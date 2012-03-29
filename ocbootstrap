@@ -12,6 +12,8 @@
 
 ARCH=amd64
 UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
+CHROOT_DISTRO=precise
+CHROOT_DIR=/var/$CHROOT_DISTRO
 
 if [ $(which dpkg) ] ; then 
   wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39_all.deb
@@ -25,26 +27,26 @@ else
   export PATH=$PATH:$DEBOOTSTRAP_DIR
 fi
 
-mkdir /var/precise
-debootstrap --arch $ARCH precise /var/precise $UBUNTU_MIRROR
+mkdir $CHROOT_DIR
+debootstrap --arch $ARCH $CHROOT_DISTRO $CHROOT_DIR $UBUNTU_MIRROR
 
-mkdir -p /var/precise/usr/local/bin
-mkdir -p /var/precise/usr/local/src/opencog
+mkdir -p $CHROOT_DIR/usr/local/bin
+mkdir -p $CHROOT_DIR/usr/local/src/opencog
 
-ln -f -P /etc/mtab /var/precise/etc/mtab
-ln -f -P `which ocpkg` /var/precise/usr/local/bin/ocpkg
+ln -f -P /etc/mtab $CHROOT_DIR/etc/mtab
+ln -f -P `which ocpkg` $CHROOT_DIR/usr/local/bin/ocpkg
 
-mount -o bind /dev /var/precise/dev
-mount -o bind /proc /var/precise/proc
-mount -o bind /sys /var/precise/sys
-mount -o bind /tmp /var/precise/tmp
-mount -o bind /dev/pts /var/precise/dev/pts
-mount -o bind /var/cache/apt/archives /var/precise/var/cache/apt/archives
-mount -o bind /var/lib/apt/lists /var/precise/var/lib/apt/lists
-mount -o bind /usr/local/src/opencog /var/precise/usr/local/src/opencog
+mount -o bind /dev $CHROOT_DIR/dev
+mount -o bind /proc $CHROOT_DIR/proc
+mount -o bind /sys $CHROOT_DIR/sys
+mount -o bind /tmp $CHROOT_DIR/tmp
+mount -o bind /dev/pts $CHROOT_DIR/dev/pts
+mount -o bind /var/cache/apt/archives $CHROOT_DIR/var/cache/apt/archives
+mount -o bind /var/lib/apt/lists $CHROOT_DIR/var/lib/apt/lists
+mount -o bind /usr/local/src/opencog $CHROOT_DIR/usr/local/src/opencog
 
-echo "deb $UBUNTU_MIRROR precise main universe" > /var/precise/etc/apt/sources.list
+echo "deb $UBUNTU_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sources.list
 
-chroot /var/precise /usr/bin/apt-get update
-chroot /var/precise /usr/bin/apt-get -y install python-software-properties
-chroot /var/precise /usr/local/bin/ocpkg
+chroot $CHROOT_DIR /usr/bin/apt-get update
+chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties
+chroot $CHROOT_DIR /usr/local/bin/ocpkg
