@@ -367,11 +367,11 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
 fi
 
-while getopts ":i:o:p:s:c:l:adubtrh" flag ; do
+while getopts ":i:o:j:s:c:l:adubtrh" flag ; do
   case $flag in
     i)	INPUT_ISO_NAME="$OPTARG" ;;          
     o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
-    p)	PACKAGE_TYPE="$OPTARG" ;;		#min, DEMO, dev, etc.
+    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
     s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
     c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
     l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
