@@ -5,7 +5,8 @@
 ## @author		David Hart <dhart@opencog.org>
 ## @section DESCRIPTION	create a chroot environment in which to run ocpkg 
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
-## @section REQUIREMENT	any Linux disto, ocpkg in your path, e.g. /usr/local/bin/ocpkg
+## @section REQUIREMENT	any Linux disto, run as root, ocpkg in your path, 
+##			e.g. /usr/local/bin/ocpkg
 
 # Note: Edit variables as needed to suit your architecture (i386 or amd64) and
 #       closest Ubuntu mirror
@@ -15,16 +16,20 @@ UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
 CHROOT_DIR=/var/$CHROOT_DISTRO
 
-if [ $(which dpkg) ] ; then 
-  wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39_all.deb
-  dpkg -i debootstrap_1.0.39_all.deb
-else
-  wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39.tar.gz
-  tar zxvf debootstrap_1.0.39.tar.gz
-  cd debootstrap_1.0.39
-  make devices.tar.gz
-  export DEBOOTSTRAP_DIR=`pwd`
-  export PATH=$PATH:$DEBOOTSTRAP_DIR
+if [ $1 ] ; then CHROOT_DISTRO=$1 ; fi
+
+if [ ! $(which debootstrap) ] ; then
+  if [ $(which dpkg) ] ; then 
+    wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39_all.deb
+    dpkg -i debootstrap_1.0.39_all.deb
+  else
+    wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39.tar.gz
+    tar zxvf debootstrap_1.0.39.tar.gz
+    cd debootstrap-1.0.39/
+    make devices.tar.gz
+    export DEBOOTSTRAP_DIR=`pwd`
+    export PATH=$PATH:$DEBOOTSTRAP_DIR
+  fi
 fi
 
 mkdir $CHROOT_DIR
