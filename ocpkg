@@ -48,11 +48,11 @@ declare -A PACKAGE_DESCRIPTION=(
 PATH_PREFIX=/usr/local
 
 if [ "$USER" == "root" ] ; then
- HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
- HOST_BUILD_DIR=/tmp/opencog_build
-else
  HOST_SOURCE_BRANCH=$CURRENT_DIR/opencog/src  
  HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
+else
+ HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
+ HOST_BUILD_DIR=/tmp/opencog_build
 fi
 
 OUTPUT_ISO_NAME=OpenCogLive.iso 
