@@ -6,6 +6,7 @@
 ## @section DESCRIPTION	download, build, test, install and package OpenCog
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
 ## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
+## @section SEEALSO	ocbootstrap - install a precise chroot on any Linux
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
@@ -16,12 +17,12 @@
 
 # Notes:
 # - terminal & editor are best set to a colum width of 144+ characters 
-#   (bash lines, dpkg lines and gcc lines can be long!)
+#        (bash lines, dpkg lines and gcc lines can be long!)
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
-#   (real time overhead for CD repackaging without building OpenCog is about 5m)
+#        (real time overhead for CD repackaging without building OpenCog is about 5m)
 # - test CD/DVD images using:
-#   testdrive -u $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME
-#   kvm -cdrom $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME -boot d -m 2048
+#        testdrive -u $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME
+#        kvm -cdrom $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME -boot d -m 2048
 
 # To do: 
 # - add Launchpad & bzr-buildeb build options (for deb packaging)
@@ -44,12 +45,29 @@ declare -A PACKAGE_DESCRIPTION=(
   [debs]="TBD Ubuntu packages (deb files)" 
 )
 
-#Defaults for command line flags
+PATH_PREFIX=/usr/local
+
+if [ "$USER" == "root" ] ; then
+ HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
+ HOST_BUILD_DIR=/tmp/opencog_build
+else
+ HOST_SOURCE_BRANCH=$CURRENT_DIR/opencog/src  
+ HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
+fi
+
+OUTPUT_ISO_NAME=OpenCogLive.iso 
+OUTPUT_ISO_LOCATION=$CURRENT_DIR
+
 DEFAULT_PACKAGE_TYPE=local		
-DEFAULT_UPDATE_FLAG=true		
-DEFAULT_BUILD_FLAG=true		
-DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_ADD_REPOSITORIES=true
+DEFAULT_INSTALL_DEPENDENCIES=true	
+DEFAULT_UPDATE_OPENCOG=true		
+DEFAULT_BUILD_OPENCOG=true		
+
+UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
+UBUNTU_URL=http://releases.ubuntu.com/11.10/
+UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
+UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
 CURRENT_DIR=$(pwd)
 SELF_NAME=$(basename $0)
@@ -58,29 +76,11 @@ TOOL_NAME=octool
 PROCESSORS=$(grep processor /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
 
-UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
-UBUNTU_URL=http://releases.ubuntu.com/11.10/
-UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
-UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
-
-PATH_PREFIX=/usr/local
-HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
-LIVE_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
-HOST_BUILD_DIR=/tmp/opencog_build
-LIVE_BUILD_DIR=/tmp/opencog_build
-
-if [ ! "$USER" == "root" ] ; then
- HOST_SOURCE_BRANCH=$CURRENT_DIR/opencog/src  
- LIVE_SOURCE_BRANCH=$CURRENT_DIR/opencog/src  
- HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
- LIVE_BUILD_DIR=$CURRENT_DIR/opencog/build
-fi
-
-OUTPUT_ISO_NAME=OpenCogLive.iso 
-OUTPUT_ISO_LOCATION=$CURRENT_DIR
-
 SQUASHFS_OPTIONS="-noDataCompression -noappend" #faster
 SQUASHFS_OPTIONS="-noappend"
+
+LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
+LIVE_BUILD_DIR=$HOST_BUILD_DIR
 
 VERBOSE="-v"				#for mount, umount, rm, etc.
 QUIET="-qq" 				#for apt-get
@@ -338,6 +338,8 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
   done
   echo " -i [filename]	 ISO input  filename"
   echo " -o [filename]	 ISO output filename"
+  echo " -j [jobs] override number of auto-detected make jobs"
+  echo " -n supress bzr updates"
   echo ""
   echo " Ubuntu ISO image (~700MB) will be downloaded if none found."
 else 
@@ -354,6 +356,28 @@ message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
+while getopts ":i:o:j:s:c:l:adunbtrh" flag ; do
+  case $flag in
+    i)	INPUT_ISO_NAME="$OPTARG" ;;          
+    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
+    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
+    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+    a)	ADD_REPOSITORIES=true ;;
+    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
+    u)	UPDATE_OPENCOG=true ;;			#bzr pull
+    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
+    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
+    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
+    r)	REINSTALL_PACKAGES="$OPTARG" ;; 
+    h)	usage ;; 
+    \?)	usage ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
 if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  case $1 in 
    debs)  PACKAGE_TYPE=$1 ;;
@@ -366,28 +390,6 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  esac
  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
 fi
-
-while getopts ":i:o:j:s:c:l:adunbtrh" flag ; do
-  case $flag in
-    i)	INPUT_ISO_NAME="$OPTARG" ;;          
-    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
-    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
-    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
-    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
-    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
-    a)	ADD_REPOSITORIES=true ;;
-    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-    u)	UPDATE_FLAG=true ;;			#bzr pull
-    n)	unset DEFAULT_UPDATE_FLAG ;;		#suppress bzr update
-    b)	BUILD_FLAG=true ;;			#TRUE, false : mostly for testing
-    t)	TEST_FLAG=true ;;			#TRUE, false : mostly for testing
-    r)	REINSTALL_PACKAGES="$OPTARG" ;; 
-    h)	usage ;; 
-    \?)	usage ;;
-  esac
-done
-
-shift $((OPTIND-1))
 
 #echo "[otheropts]==> $@"
 
@@ -528,7 +530,7 @@ if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
   bzr branch lp:opencog --use-existing-dir $OPENCOG_SOURCE_DIR
 else
-if [ $UPDATE_FLAG ] ; then
+if [ $UPDATE_OPENCOG ] ; then
   MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
   bzr pull lp:opencog --directory $OPENCOG_SOURCE_DIR 
 fi
@@ -536,16 +538,14 @@ fi
 }
 
 build_opencog() {
-MESSAGE="Building OpenCog..." ; message
 mkdir -p -v $LIVE_BUILD_DIR || true
 cd $LIVE_BUILD_DIR
-
 MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
 cmake $LIVE_SOURCE_BRANCH
 MESSAGE="make -j$MAKE_JOBS" ; message
 make -j$MAKE_JOBS
 
-if [ $TEST_FLAG ] ; then 
+if [ $TEST_OPENCOG ] ; then 
   make test
 fi
 
@@ -744,19 +744,19 @@ cleanup_iso
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
  if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
  if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
- if [ $UPDATE_FLAG ] ; then update_opencog_source ; fi
- if [ $BUILD_FLAG ] ; then build_opencog ; fi
+ if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
+ if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
  if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
  exit 0
 fi
 
 # option flag conditionals are finisned, so set defaults
 
-if [ ! $UPDATE_FLAG ] ; then
- UPDATE_FLAG=$DEFAULT_UPDATE_FLAG
+if [ ! $UPDATE_OPENCOG ] ; then
+ UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
 fi 
-if [ ! $BUILD_FLAG ] ; then
- BUILD_FLAG=$DEFAULT_BUILD_FLAG
+if [ ! $BUILD_OPENCOG ] ; then
+ BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG
 fi 
 if [ ! $ADD_REPOSITORIES ] ; then
  ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES
@@ -782,17 +782,17 @@ case $PACKAGE_TYPE in
 esac
 
 case $PACKAGE_TYPE in
-  local) if [ $UPDATE_FLAG ] ; then update_opencog_source ; fi ;;
-  demo)  if [ $UPDATE_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  min)   if [ $UPDATE_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  dev)   if [ $UPDATE_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+  local) if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi ;;
+  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
 esac
 
 case $PACKAGE_TYPE in
-  local) if [ $BUILD_FLAG ] ; then build_opencog ; fi ;;
-  demo)  if [ $BUILD_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  min)   if [ $BUILD_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  dev)   if [ $BUILD_FLAG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
+  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
 esac
 
 case $PACKAGE_TYPE in
