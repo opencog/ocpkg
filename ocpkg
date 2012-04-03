@@ -55,6 +55,8 @@ else
  HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
 fi
 
+BZR_REVISION="last:1"
+
 OUTPUT_ISO_NAME=OpenCogLive.iso 
 OUTPUT_ISO_LOCATION=$CURRENT_DIR
 
@@ -356,7 +358,7 @@ message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
-while getopts ":i:o:j:s:c:l:adunbtrh" flag ; do
+while getopts ":i:o:j:s:c:l:r:adunbtrh" flag ; do
   case $flag in
     i)	INPUT_ISO_NAME="$OPTARG" ;;          
     o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
@@ -364,13 +366,14 @@ while getopts ":i:o:j:s:c:l:adunbtrh" flag ; do
     s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
     c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
     l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+    r)	BZR_REVISION="$OPTARG" ;;		
     a)	ADD_REPOSITORIES=true ;;
     d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
     u)	UPDATE_OPENCOG=true ;;			#bzr pull
     n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
     b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
     t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    r)	REINSTALL_PACKAGES="$OPTARG" ;; 
+    p)	REINSTALL_PACKAGES=true ;; 
     h)	usage ;; 
     \?)	usage ;;
   esac
@@ -526,11 +529,11 @@ OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR
+  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
 else
 if [ $UPDATE_OPENCOG ] ; then
   MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR 
+  bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
 fi
 fi
 }
