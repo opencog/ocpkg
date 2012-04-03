@@ -489,7 +489,7 @@ trap quit_trap  INT HUP QUIT TERM
 
 add_repositories() {
 if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
-  MESSAGE="opencog-dev software repository exists..." ; message
+  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; message
 else
   MESSAGE="Adding software repositories..." ; message
   for REPO in $REPOSITORIES ; do 
@@ -501,10 +501,7 @@ fi
 
 install_admin() {
 MESSAGE="Installing sysadmin tools...." ; message
-if (sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN)
-then			
-  echo 
-else
+if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; then
   MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
@@ -512,10 +509,7 @@ fi
 
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
-if sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME
-then			
-  echo 
-else
+if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME ; then
   MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
