@@ -488,11 +488,15 @@ trap quit_trap  INT HUP QUIT TERM
 # SECTION 4: Function Definitions
 
 add_repositories() {
-MESSAGE="Adding software repositories..." ; message
-for REPO in $REPOSITORIES ; do 
-  sudo apt-add-repository -y $REPO
-done
-sudo apt-get $QUIET --assume-yes update 
+if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
+  MESSAGE="opencog-dev software repository exists..." ; message
+else
+  MESSAGE="Adding software repositories..." ; message
+  for REPO in $REPOSITORIES ; do 
+    sudo apt-add-repository -y $REPO
+  done
+  sudo apt-get $QUIET --assume-yes update 
+fi
 }
 
 install_admin() {
@@ -528,11 +532,11 @@ OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr branch lp:opencog --use-existing-dir $OPENCOG_SOURCE_DIR
+  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR
 else
 if [ $UPDATE_OPENCOG ] ; then
   MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr pull lp:opencog --directory $OPENCOG_SOURCE_DIR 
+  bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR 
 fi
 fi
 }
