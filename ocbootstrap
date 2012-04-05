@@ -8,15 +8,27 @@
 ## @section REQUIREMENT	any Linux disto, run as root, ocpkg in your path, 
 ##			e.g. /usr/local/bin/ocpkg
 
-# Note: Edit variables as needed to suit your architecture (i386 or amd64) and
-#       closest Ubuntu mirror
-
-ARCH=amd64
-UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
+DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
-CHROOT_DIR=/var/$CHROOT_DISTRO
+ARCH=amd64
+
+usage() {
+  echo "Usage: $SELF_NAME [-a ARCH] [-p DISTRO_MIRROR] [DISTRO_NAME]"
+}
+
+while getopts ":p:" flag ; do
+  case $flag in
+    a)	ARCH="$OPTARG" ;;          
+    p)	DISTRO_MIRROR="$OPTARG" ;;          
+    \?)	usage ;;
+  esac
+done
+
+shift $((OPTIND-1))
 
 if [ $1 ] ; then CHROOT_DISTRO=$1 ; fi
+
+CHROOT_DIR=/var/$CHROOT_DISTRO
 
 if [ ! $(which debootstrap) ] ; then
   if [ $(which dpkg) ] ; then 
@@ -27,19 +39,21 @@ if [ ! $(which debootstrap) ] ; then
     tar zxvf debootstrap_1.0.39.tar.gz
     cd debootstrap-1.0.39/
     make devices.tar.gz
-    export DEBOOTSTRAP_DIR=`pwd`
+    export DEBOOTSTRAP_DIR=$(pwd)
     export PATH=$PATH:$DEBOOTSTRAP_DIR
   fi
 fi
 
-mkdir $CHROOT_DIR
-debootstrap --arch $ARCH $CHROOT_DISTRO $CHROOT_DIR $UBUNTU_MIRROR
+if [ ! -d "$CHROOT_DIR" ] ; then
+  mkdir -p $CHROOT_DIR
+  debootstrap --arch $ARCH $CHROOT_DISTRO $CHROOT_DIR $DISTRO_MIRROR
+fi
 
 mkdir -p $CHROOT_DIR/usr/local/bin
 mkdir -p $CHROOT_DIR/usr/local/src/opencog
 
 ln -f -P /etc/mtab $CHROOT_DIR/etc/mtab
-ln -f -P `which ocpkg` $CHROOT_DIR/usr/local/bin/ocpkg
+cp $(which ocpkg) $CHROOT_DIR/usr/local/bin/ocpkg
 
 mount -o bind /dev $CHROOT_DIR/dev
 mount -o bind /proc $CHROOT_DIR/proc
@@ -50,8 +64,8 @@ mount -o bind /var/cache/apt/archives $CHROOT_DIR/var/cache/apt/archives
 mount -o bind /var/lib/apt/lists $CHROOT_DIR/var/lib/apt/lists
 mount -o bind /usr/local/src/opencog $CHROOT_DIR/usr/local/src/opencog
 
-echo "deb $UBUNTU_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sources.list
+echo "deb $DISTRO_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sources.list
 
 chroot $CHROOT_DIR /usr/bin/apt-get update
-chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties
+chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties sudo
 chroot $CHROOT_DIR /usr/local/bin/ocpkg
