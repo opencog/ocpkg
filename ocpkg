@@ -402,7 +402,7 @@ fi
 
 debug() {
 MESSAGE="Dropping to debugging chroot prompt..." ; message
-chroot $LIVE_SQUASH_UNION bash -l 
+chroot $LIVE_SQUASH_UNION /bin/bash -l 
 }
 
 cleanup_squash() {
@@ -485,7 +485,6 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
 fi
 }
 
-
 trap error_trap ERR 
 trap exit_trap  EXIT 
 trap quit_trap  INT HUP QUIT TERM
@@ -533,10 +532,10 @@ if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
   bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
 else
-if [ $UPDATE_OPENCOG ] ; then
-  MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
-fi
+  if [ $UPDATE_OPENCOG ] ; then
+    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  fi
 fi
 }
 
