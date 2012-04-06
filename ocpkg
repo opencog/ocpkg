@@ -380,7 +380,9 @@ message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
-if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
+PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
+
+if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  case $1 in 
    debs)  PACKAGE_TYPE=$1 ;;
    dev)   PACKAGE_TYPE=$1 ;;
