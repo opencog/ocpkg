@@ -46,6 +46,7 @@ declare -A PACKAGE_DESCRIPTION=(
 )
 
 PATH_PREFIX=/usr/local
+CURRENT_DIR=$(pwd)
 
 if [ "$USER" == "root" ] ; then
  HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
@@ -71,7 +72,6 @@ UBUNTU_URL=http://releases.ubuntu.com/11.10/
 UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
-CURRENT_DIR=$(pwd)
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool
 
@@ -353,7 +353,7 @@ else
 fi 
 }
 
-while getopts ":i:o:j:s:c:l:r:adunbtrh" flag ; do
+while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
   case $flag in
     i)	INPUT_ISO_NAME="$OPTARG" ;;          
     o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
@@ -369,6 +369,7 @@ while getopts ":i:o:j:s:c:l:r:adunbtrh" flag ; do
     b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
     t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
     p)	REINSTALL_PACKAGES=true ;; 
+    v)	unset QUIET ;; 
     h)	usage ;; 
     \?)	usage ;;
   esac
