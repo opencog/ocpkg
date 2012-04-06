@@ -11,12 +11,13 @@
 DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
 ARCH=amd64
+SELF_NAME=$(basename $0)
 
 usage() {
   echo "Usage: $SELF_NAME [-a ARCH] [-p DISTRO_MIRROR] [DISTRO_NAME]"
 }
 
-while getopts ":p:" flag ; do
+while getopts ":a:p:" flag ; do
   case $flag in
     a)	ARCH="$OPTARG" ;;          
     p)	DISTRO_MIRROR="$OPTARG" ;;          
@@ -68,4 +69,4 @@ echo "deb $DISTRO_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sou
 
 chroot $CHROOT_DIR /usr/bin/apt-get update
 chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties sudo
-chroot $CHROOT_DIR /usr/local/bin/ocpkg
+chroot $CHROOT_DIR /usr/local/bin/ocpkg 
