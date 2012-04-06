@@ -722,21 +722,14 @@ if [ -f  $LIVE_SQUASH_UNION/etc/apt/apt.conf.d/01apt-cacher-ng-proxy ]; then
 fi
 }
 
-write_livecd() {
-
+write_live_media() {
 MESSAGE="Creating new compressed filesystem..." ; message
-
 mksquashfs $LIVE_SQUASH_UNION $LIVE_ISO_UNION/casper/filesystem.squashfs $SQUASHFS_OPTIONS 
 printf $(sudo du -sx --block-size=1 $LIVE_SQUASH_UNION | cut -f1) > $LIVE_ISO_UNION/casper/filesystem.size
-
 MESSAGE="Creating new bootable ISO image..." ; message
-
 mkisofs -D -r -V $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o "$OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME" $LIVE_ISO_UNION
-
 MESSAGE="Wrote $(du -sm $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME)MB ..." ; message
-
 chown $VERBOSE $SUDO_USER $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME
-
 cleanup_squash
 cleanup_iso
 }
