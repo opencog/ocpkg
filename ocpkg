@@ -87,13 +87,12 @@ LIVE_BUILD_DIR=$HOST_BUILD_DIR
 VERBOSE="-v"				#for mount, umount, rm, etc.
 QUIET="-qq" 				#for apt-get
 
-#Desktop links
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
 REPOSITORIES="		
 		ppa:opencog-dev/ppa \
 		"
-#		opencog-dev: cxxtest
+		#opencog-dev: cxxtest
 
 PACKAGES_TOOLS="	
 		squashfs-tools \
@@ -104,8 +103,8 @@ PACKAGES_TOOLS="
 		#testdrive \
 PACKAGES_FETCH="	
 		bzr \
-		bzr-rewrite \
 			"
+		#bzr-rewrite \
 PACKAGES_ADMIN="	
 		apt-rdepends \
 		synaptic \
@@ -168,6 +167,9 @@ PACKAGES_DOC="
 		"
 PACKAGES_REMOVE="	
 		ubuntu-desktop \
+		example-content \
+		software-center \
+		app-install-data \
 		locales \
 		libqtwebkit4 \
 		openjdk-6-jre-headless \
@@ -189,7 +191,6 @@ PACKAGES_REMOVE="
 		gimp-data \
 		gimp-help-common \
 		evolution-data-server \
-		example-content \
 		gnome-games-common \
 		gnome-games-data \
 		aisleriot \
@@ -201,8 +202,6 @@ PACKAGES_REMOVE="
 		gwibber \
 		oneconf \
 		shotwell \
-		software-center \
-		app-install-data \
 		ubuntuone-client \
 		python-ubuntuone-client \
 		vim-runtime \
@@ -240,6 +239,7 @@ PACKAGES_REMOVE="
 		ttf-nanum-coding \
 		ttf-indic-fonts-core \
 		ttf-devanagari-fonts \
+		ttf-wqy-microhei \
 		fonts-takao-pgothic \
 		cmap-adobe-japan1 \
 		anthy-common \
@@ -248,7 +248,6 @@ PACKAGES_REMOVE="
 		libpurple0 \
 		brltty \
 		liblouis-data \
-		ttf-wqy-microhei \
 		libwebkitgtk-1.0-0 \
 		libwebkitgtk-1.0-common \
 		"
@@ -327,35 +326,31 @@ PACKAGES_EXDEV="
 		zlib1g-dev \
 		python-bzrlib \
 		linux-headers-generic \
-		linux-headers-3.2.0-17 \
+		linux-headers-3.2.0-22 \
 		"
 # SECTION 2: Command line option handling
 
 usage() {
 if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
   echo "Usage: $SELF_NAME [OPTIONS] [PACKAGE-TYPE]"
-  echo " -p "
+  echo "  PACKAGE-TYPES:"
   for key in ${!PACKAGE_DESCRIPTION[@]}; do
     echo "   " ${key} $'\t' "${PACKAGE_DESCRIPTION[$key]}"
   done
-  echo " -i [filename]	 ISO input  filename"
-  echo " -o [filename]	 ISO output filename"
-  echo " -j [jobs] override number of auto-detected make jobs"
-  echo " -n supress bzr updates"
-  echo ""
-  echo " Ubuntu ISO image (~700MB) will be downloaded if none found."
+  echo "    (Live CD: Ubuntu ISO image ~700MB will be downloaded if none found.)"
+  echo "  OPTIONS:"
+  echo "    -i [filename]  ISO input  filename"
+  echo "    -o [filename]  ISO output filename"
+  echo "    -j [jobs]      override number of auto-detected make jobs"
+  echo "    -n             supress bzr updates"
 else 
   echo "Usage: $SELF_NAME OPTION"
   echo " -a Add software repositories"
-  echo " -d Install dependencies"
-  echo " -u Update $HOST_SOURCE_BRANCH"
+  echo " -d Install build dependencies"
+  echo " -u Update OpenCog source at $HOST_SOURCE_BRANCH"
   echo " -b Build OpenCog"
   echo " -t Test OpenCog"
 fi 
-}
-
-message() {
-echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
 while getopts ":i:o:j:s:c:l:r:adunbtrh" flag ; do
@@ -381,6 +376,10 @@ done
 
 shift $((OPTIND-1))
 
+message() {
+echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+}
+
 if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  case $1 in 
    debs)  PACKAGE_TYPE=$1 ;;
@@ -389,7 +388,7 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
    kvm)   PACKAGE_TYPE=$1 ;;
    min)   PACKAGE_TYPE=$1 ;;
    local) PACKAGE_TYPE=$1 ;;
-   *)	  PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE ;;
+   *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
  esac
  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
 fi
