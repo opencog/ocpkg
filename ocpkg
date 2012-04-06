@@ -702,7 +702,7 @@ mount $VERBOSE -t aufs -o br=/var/lib/apt/lists none $LIVE_SQUASH_UNION/var/lib/
 mount $VERBOSE -t aufs -o br=$HOST_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 }
 
-umount_live_iso() {
+prepare_live_iso() {
 
 echo     fuser $LIVE_SQUASH_UNION -c -kill
 fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
@@ -804,7 +804,7 @@ case $PACKAGE_TYPE in
 esac
 
 case $PACKAGE_TYPE in
-  min)  unmount_live_iso ; write_live_cd ;;
-  demo) unmount_live_iso ; write_live_cd ;;
-  dev)  unmount_live_iso ; write_live_cd ;;
+  min)  prepare_live_iso ; write_live_media ;;
+  demo) prepare_live_iso ; write_live_media ;;
+  dev)  prepare_live_iso ; write_live_media ;;
 esac
