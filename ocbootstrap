@@ -5,8 +5,7 @@
 ## @author		David Hart <dhart@opencog.org>
 ## @section DESCRIPTION	create a chroot environment in which to run ocpkg 
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
-## @section REQUIREMENT	any Linux disto, run as root, ocpkg in your path, 
-##			e.g. /usr/local/bin/ocpkg
+## @section REQUIREMENT	any Linux disto, run as root
 
 DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
@@ -54,7 +53,6 @@ mkdir -p $CHROOT_DIR/usr/local/bin
 mkdir -p $CHROOT_DIR/usr/local/src/opencog
 
 ln -f -P /etc/mtab $CHROOT_DIR/etc/mtab
-cp $(which ocpkg) $CHROOT_DIR/usr/local/bin/ocpkg
 
 mount -o bind /dev $CHROOT_DIR/dev
 mount -o bind /proc $CHROOT_DIR/proc
@@ -68,5 +66,7 @@ mount -o bind /usr/local/src/opencog $CHROOT_DIR/usr/local/src/opencog
 echo "deb $DISTRO_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sources.list
 
 chroot $CHROOT_DIR /usr/bin/apt-get update
-chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties sudo
+chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties bzr sudo
+chroot $CHROOT_DIR /usr/bin/bzr pull https://code.launchpad.net/~opencog-dev/opencog/ocpkg --use-existing-dir /usr/local/bin
+chroot $CHROOT_DIR /bin/chmod ugo+rx /usr/local/bin/*
 chroot $CHROOT_DIR /usr/local/bin/ocpkg 
