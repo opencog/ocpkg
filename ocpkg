@@ -3,10 +3,10 @@
 ## @file		ocpkg
 ## @copyright		OpenCog Foundation (2012)
 ## @author		David Hart <dhart@opencog.org>
-## @section DESCRIPTION	download, build, test, install and package OpenCog
+## @section DESCRIPTION	A script to download, build, test, install and package OpenCog
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
 ## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
-## @section SEEALSO	ocbootstrap - install a precise chroot on any Linux
+## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
@@ -21,8 +21,8 @@
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
 #        (real time overhead for CD repackaging without building OpenCog is about 5m)
 # - test CD/DVD images using:
-#        testdrive -u $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME
-#        kvm -cdrom $OUTPUT_ISO_LOCATION/$OUTPUT_ISO_NAME -boot d -m 2048
+#        testdrive -u OpenCogLive.iso
+#        kvm -cdrom OpenCogLive.iso -boot d -m 2048
 
 # To do: 
 # - add Launchpad & bzr-buildeb build options (for deb packaging)
@@ -31,7 +31,7 @@
 #       https://help.ubuntu.com/11.04/serverguide/C/jeos-and-vmbuilder.html
 # - add manifest rebuild to LiveCD/DVD
 
-# exit on error
+# trap errors
 set -e
 
 # SECTION 1: GLOBAL VARIABLES
