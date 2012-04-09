@@ -37,12 +37,13 @@ set -e
 # SECTION 1: GLOBAL VARIABLES
 
 declare -A PACKAGE_DESCRIPTION=(
- [local]="Local install with no packaging (default)"
-  [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
-   [min]="LiveCD  ISO image ~700MB with OpenCog Server"
-   [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
-   [kvm]="TBD Ubuntu KVM image with OpenCog Server"
-  [debs]="TBD Ubuntu packages (deb files)" 
+  [local]="Local install with no packaging (default)"
+   [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
+    [min]="LiveCD  ISO image ~700MB with OpenCog Server"
+    [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
+    [kvm]="TBD Ubuntu KVM image with OpenCog Server"
+ [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
+   [debs]="TBD Ubuntu packages (deb files)" 
 )
 
 PATH_PREFIX=/usr/local
@@ -734,6 +735,8 @@ cleanup_squash
 cleanup_iso
 }
 
+# SECTION 5: Main Program (MAIN main)
+
 # options that run when invoked as $TOOL_NAME 
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
@@ -747,20 +750,12 @@ fi
 
 # option flag conditionals are finisned, so set defaults
 
-if [ ! $UPDATE_OPENCOG ] ; then
- UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
-fi 
-if [ ! $BUILD_OPENCOG ] ; then
- BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG
-fi 
-if [ ! $ADD_REPOSITORIES ] ; then
- ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES
-fi 
-if [ ! $INSTALL_DEPENDENCIES ] ; then
- INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES
-fi 
+if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
+if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
+if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
+if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
 
-# SECTION 5: Main Program (MAIN main)
+# package type selected when invoked as 'ocpkg'
 
 case $PACKAGE_TYPE in
   demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
