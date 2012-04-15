@@ -11,6 +11,7 @@ DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
 ARCH=amd64
 SELF_NAME=$(basename $0)
+MAKE_JOBS=$(($PROCESSORS+0))
 
 usage() {
   echo "Usage: $SELF_NAME [-a ARCH] [-p DISTRO_MIRROR] [DISTRO_NAME]"
@@ -20,6 +21,7 @@ while getopts ":a:p:" flag ; do
   case $flag in
     a)	ARCH="$OPTARG" ;;          
     p)	DISTRO_MIRROR="$OPTARG" ;;          
+    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
     \?)	usage ;;
   esac
 done
@@ -69,4 +71,4 @@ chroot $CHROOT_DIR /usr/bin/apt-get update
 chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties bzr sudo
 chroot $CHROOT_DIR /usr/bin/bzr pull https://code.launchpad.net/~opencog-dev/opencog/ocpkg --use-existing-dir /usr/local/bin
 chroot $CHROOT_DIR /bin/chmod ugo+rx /usr/local/bin/*
-chroot $CHROOT_DIR /usr/local/bin/ocpkg 
+chroot $CHROOT_DIR /usr/local/bin/ocpkg -j$MAKE_JOBS
