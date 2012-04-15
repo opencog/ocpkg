@@ -17,7 +17,7 @@ usage() {
   echo "Usage: $SELF_NAME [-a ARCH] [-p DISTRO_MIRROR] [DISTRO_NAME]"
 }
 
-while getopts ":a:p:" flag ; do
+while getopts ":a:p:j:" flag ; do
   case $flag in
     a)	ARCH="$OPTARG" ;;          
     p)	DISTRO_MIRROR="$OPTARG" ;;          
