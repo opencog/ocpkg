@@ -29,7 +29,9 @@
 #       http://developer.ubuntu.com/packaging/html/
 # - add vmbuilder option for OpenStack & Amazon EC2 distribution 
 #       https://help.ubuntu.com/11.04/serverguide/C/jeos-and-vmbuilder.html
+# - add PACKAGE_BUILD variables for incremental builds
 # - add manifest rebuild to LiveCD/DVD
+# - add priveledge separation when run as root (run make, etc., as real user)
 
 # trap errors
 set -e
