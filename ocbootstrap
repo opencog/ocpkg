@@ -3,9 +3,9 @@
 ## @file		ocbootstrap
 ## @copyright		OpenCog Foundation (2012)
 ## @author		David Hart <dhart@opencog.org>
-## @section DESCRIPTION	create a chroot environment in which to run ocpkg 
+## @section DESCRIPTION	A script to create a chroot environment in which to run ocpkg 
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
-## @section REQUIREMENT	any Linux disto, run as root
+## @section REQUIREMENT	Any Linux distribution, run as root
 
 DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
