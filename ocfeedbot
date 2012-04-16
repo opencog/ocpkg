@@ -13,19 +13,19 @@ import threading
 import time
 
 channel_list = [ "#opencog" ] # Put in a list of channels
-feed_list = [ "http://wiki.opencog.org/wikihome/index.php?title=Special:RecentChanges&feed=atom", "http://feeds.launchpad.net/opencog/revisions.atom"]
+feed_list = [ "http://wiki.opencog.org/wikihome/index.php?title=Special:RecentChanges&feed=atom", 
+              "http://feeds.launchpad.net/opencog/revisions.atom",
+	      "http://search.twitter.com/search.atom?q=%23opencog" ]
 old_entries_file = os.environ.get("HOME") + "/.ocfeedbot.history"
 
 irc = irclib.IRC()
 server = irc.server()
 
-server.connect( "irc.freenode.org", 6667, "ocfeedbot" ) # TODO: Make this general
-# server.privmsg( "NickServ", "identify " )
+server.connect( "irc.freenode.org", 6667, "ocfeedbot" ) 
 
 msgqueue = []
 
 def feed_refresh():
- #print "Test"
  FILE = open( old_entries_file, "r" )
  filetext = FILE.read()
  FILE.close()
@@ -38,14 +38,13 @@ def feed_refresh():
     NextFeed = True
    else:
     FILE = open( old_entries_file, "a" )
-    #print entry.title + "\n"
     FILE.write( id + "\n" )
     FILE.close()
     msgqueue.append( entry.title.encode('utf-8') + " : " + entry.link.encode('utf-8') )
    if NextFeed:
     break;
 
- t = threading.Timer( 900.0, feed_refresh ) # TODO: make this static
+ t = threading.Timer( 900.0, feed_refresh ) 
  t.start()
 
 for channel in channel_list:
@@ -58,5 +57,5 @@ while 1:
   msg = msgqueue.pop()
   for channel in channel_list:
    server.privmsg( channel, msg )
- time.sleep(1) # TODO: Fix bad code
+ time.sleep(1) 
  irc.process_once()
