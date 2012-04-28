@@ -11,7 +11,7 @@ DISTRO_MIRROR=http://archive.ubuntu.com/ubuntu
 CHROOT_DISTRO=precise
 ARCH=amd64
 SELF_NAME=$(basename $0)
-PROCESSORS=$(grep processor /proc/cpuinfo | wc -l)
+PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
 
 usage() {
