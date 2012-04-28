@@ -29,6 +29,7 @@
 #       http://developer.ubuntu.com/packaging/html/
 # - add vmbuilder option for OpenStack & Amazon EC2 distribution 
 #       https://help.ubuntu.com/11.04/serverguide/C/jeos-and-vmbuilder.html
+#	https://launchpad.net/awsome (front-end for OpenStack providing the AWS API)
 # - add PACKAGE_BUILD variables for incremental builds
 # - add manifest rebuild to LiveCD/DVD
 # - add priveledge separation when run as root (run make, etc., as real user)
@@ -78,7 +79,7 @@ UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool
 
-PROCESSORS=$(grep processor /proc/cpuinfo | wc -l)
+PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
 
 SQUASHFS_OPTIONS="-noDataCompression -noappend" #faster
