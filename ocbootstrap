@@ -49,7 +49,9 @@ fi
 
 if [ ! -d "$CHROOT_DIR" ] ; then
   mkdir -p $CHROOT_DIR
-  debootstrap --arch $ARCH $CHROOT_DISTRO $CHROOT_DIR $DISTRO_MIRROR
+  # --variant=buildd installs the build-essential packages (this option is useful when building packages)
+  # This option closely imitates the environment of the official build machines (https://launchpad.net/builders/)
+  debootstrap --variant=buildd --arch $ARCH $CHROOT_DISTRO $CHROOT_DIR $DISTRO_MIRROR
 fi
 
 mkdir -p $CHROOT_DIR/usr/local/bin
