@@ -148,6 +148,7 @@ PACKAGES_BUILD="
 		libzmq-dev \
 		libprotoc-dev \
 		protobuf-compiler \
+		doxygen \
 		"
 		#liblua5.1-0-dev \
 PACKAGES_RUNTIME="	
