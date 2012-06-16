@@ -1,5 +1,4 @@
 usr/bin/cogserver
-
 usr/lib/opencog/libserver.so
 usr/lib/opencog/libpersist.so
 usr/lib/opencog/libPythonModule.so
@@ -8,3 +7,4 @@ usr/lib/opencog/libscheme-shell.so
 usr/lib/opencog/libsmob.so
 usr/lib/opencog/libwsd.so
 usr/lib/opencog/libxml.so
+usr/etc/opencog.conf
