@@ -1,0 +1,6 @@
+usr/bin/moses
+usr/bin/eval-features
+usr/bin/feature-selection
+usr/lib/opencog/libmoses.so
+usr/man/man1/feature-selection.1.gz
+usr/man/man1/moses.1.gz
