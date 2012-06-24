@@ -37,9 +37,6 @@
 # TODO (when code in amberj-ocpkg is merged with lp:ocpkg)
 # 1. build_opencog_deb() copies debian/ from lp:~i-amber-jain/ocpkg/amberj-ocpkg. Change the code so that it does the same from lp:ocpkg
 # 2. build_opencog_deb() deletes Gama's debian/ from lp:opencog. When lp:opencog's debian/ (in the root dir) is removed from lp:opencog, remove the appropriate line of code
-# 
-# 
-# 
 
 # trap errors
 set -e
@@ -53,7 +50,8 @@ declare -A PACKAGE_DESCRIPTION=(
     [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
     [kvm]="TBD Ubuntu KVM image with OpenCog Server"
  [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
-   [debs]="TBD Ubuntu packages (deb files)" 
+   [debs]="TBD Ubuntu packages (deb files)"
+    [ppa]="Launchpad Personal Package Archive (PPA)"
 )
 
 PATH_PREFIX=/usr/local
@@ -687,6 +685,7 @@ rm -rf /tmp/opencog-temp/debian/
 
 MESSAGE="Creating OpenCog (upstream) source tarball..." ; message
 bzr export opencog-0.1.tar.gz /tmp/opencog_temp
+# Cleanup
 rm -rf /tmp/opencog_temp
 
 # Extract upstream source tarball and auto-add debian/ template
@@ -694,10 +693,21 @@ rm -rf /tmp/opencog_temp
 MESSAGE="Extracting upstream source (OpenCog) tarball and debianizing it..." ; message
 tar -xzf opencog-0.1.tar.gz
 cd opencog-0.1
-rm -rf debian/
-dh_make --email test@example.com -s -f ../opencog-0.1.tar.gz
-# Delete auto-added debian/ template (in previous step/command)
-rm -rf debian/
+#rm -rf debian/
+
+
+# Using dh_make: Not automated (at the moment). Needs user to confirm settings.
+# See commit message of revision 43: http://bazaar.launchpad.net/~i-amber-jain/ocpkg/amberj-ocpkg/revision/43
+#dh_make --email test@example.com -s -f ../opencog-0.1.tar.gz
+
+# Delete auto-added debian/ templates (created by 'dh_make')
+#rm -rf debian/
+
+
+# Without dh_make (i.e. manually doing what dh_make does behind the scenes):
+# Fully automated (as opposed to dh_make solution above)
+# Create orig if not using dh_make
+cp ../opencog-0.1.tar.gz ../opencog_0.1.orig.tar.gz
 
 # Use customized debianization: add customized debian/ config (from amberj-ocpkg)
 # TODO: When code in amberj-ocpkg is merged with lp:ocpkg, following line should be modified to work with lp:ocpkg
