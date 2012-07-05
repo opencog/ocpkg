@@ -338,6 +338,11 @@ case "$1" in
 	shift;
 	. /tmp/amberj-ocpkg/ocdeb "$@"
 	;;
+	--tool|tool)
+	MESSAGE="Package type: [tool] Common building/packaging operations for OpenCog" ; message
+	shift;
+	. /tmp/amberj-ocpkg/octool "$@"
+	;;
 	*)
 	echo "Invalid operation $1"
 	# print usage() help message

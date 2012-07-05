@@ -54,3 +54,30 @@ fi
 cleanup() {
 rm -rf /tmp/amberj-ocpkg	
 }
+
+reinstall_removed() {
+MESSAGE="Re-installing removed packages..." ; message
+apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_REMOVE
+}
+
+build_opencog() {
+mkdir -p -v $LIVE_BUILD_DIR || true
+cd $LIVE_BUILD_DIR
+MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
+cmake $LIVE_SOURCE_BRANCH
+MESSAGE="make -j$MAKE_JOBS" ; message
+make -j$MAKE_JOBS
+
+if [ $TEST_OPENCOG ] ; then 
+  make test
+fi
+
+case $PACKAGE_TYPE in
+  min)	MESSAGE="Installing OpenCog..." ; message
+ 	make install; exit 0;;
+  demo)	MESSAGE="Installing OpenCog..." ; message
+  	make install; exit 0;;
+  dev)	exit 0;;
+esac
+
+}
