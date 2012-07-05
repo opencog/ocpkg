@@ -1,0 +1,346 @@
+#!/bin/bash
+#
+## @file		ocpkg
+## @copyright		OpenCog Foundation (2012)
+## @author		David Hart <dhart@opencog.org>
+## @section DESCRIPTION	A script to download, build, test, install and package OpenCog
+## @section LICENSE	Permission to copy and modify is granted under the GPL
+## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
+## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
+
+# TODO:
+# 1. Add usage()
+# 2. When code in amberj-ocpkg is merged with lp:ocpkg, all references to amberj-ocpkg 'stuff' should be changed to corresponding equivalents in lp:ocpkg
+
+# Trap errors
+set -e
+
+###############################
+# SECTION 1: GLOBAL VARIABLES #
+###############################
+
+PATH_PREFIX=/usr/local
+CURRENT_DIR=$(pwd)
+
+if [ "$USER" == "root" ] ; then
+ HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog  
+ HOST_BUILD_DIR=/tmp/opencog_build
+else
+ HOST_SOURCE_BRANCH=$CURRENT_DIR/opencog/src  
+ HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
+fi
+
+BZR_REVISION="last:1"
+
+DEFAULT_ADD_REPOSITORIES=true
+DEFAULT_INSTALL_DEPENDENCIES=true
+DEFAULT_UPDATE_OPENCOG=true
+
+SELF_NAME=$(basename $0)
+TOOL_NAME=octool
+
+PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
+MAKE_JOBS=$(($PROCESSORS+0))
+
+LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
+LIVE_BUILD_DIR=$HOST_BUILD_DIR
+
+VERBOSE="-v"				#for mount, umount, rm, etc.
+QUIET="-qq" 				#for apt-get
+
+REPOSITORIES="		
+		ppa:opencog-dev/ppa \
+		"
+		#opencog-dev: cxxtest
+
+PACKAGES_TOOLS="	
+		squashfs-tools \
+		genisoimage \
+		"
+		#aria2 \
+		#qemu-kvm \
+		#testdrive \
+
+DEB_PACKAGES_TOOLS="	
+		build-essential \
+		packaging-dev \
+		gnupg \
+		pbuilder \
+		ubuntu-dev-tools \
+		bzr-builddeb \
+		apt-file \
+		dh-make \
+		bzr-builddeb \
+		devscripts \
+		"
+
+PACKAGES_FETCH="	
+		bzr \
+			"
+		#bzr-rewrite \
+
+PACKAGES_ADMIN="	
+		apt-rdepends \
+		synaptic \
+		gdebi \
+		epiphany-browser \
+		"
+PACKAGES_BUILD="	
+		build-essential \
+		cmake \
+		cxxtest \
+		rlwrap \
+		libsdl-gfx1.2-dev \
+		guile-1.8-dev \
+		libicu-dev \
+		libbz2-dev \
+		python-dev \
+		cython \
+		python-zmq \
+		python-matplotlib \
+		python-nose \
+		python-numpy \
+		python-setuptools \
+		python-distutils-extra \
+		python-scipy \
+		python-mock \
+		libboost-all-dev \
+		libssl-dev \
+		libgsl0-dev \
+		libexpat1-dev \
+		libxmlrpc-c3-dev \
+		unixodbc-dev \
+		libxerces-c2-dev \
+		libcurl4-gnutls-dev \
+		tcl-dev \
+		tcsh \
+		uuid-dev \
+		libzmq-dev \
+		libprotoc-dev \
+		protobuf-compiler \
+		doxygen \
+		"
+		#liblua5.1-0-dev \
+
+PACKAGES_RUNTIME="	
+		libboost-system1.46.1 \
+		libboost-filesystem1.46.1 \
+		libboost-thread1.46.1 \
+		libboost-signals1.46.1 \
+		libboost-regex1.46.1 \
+		unixodbc \
+		"
+PACKAGES_DOC="		
+		ubuntu-docs \
+		libglib2.0-doc \
+		libpango1.0-doc \
+		libgtk-3-doc \
+		texlive-latex-base-doc \
+		python-doc \
+		devhelp-common \
+		texlive-doc-base \
+		doxygen \
+ 		dot2tex \
+		"
+PACKAGES_REMOVE="	
+		ubuntu-desktop \
+		example-content \
+		software-center \
+		app-install-data \
+		locales \
+		libqtwebkit4 \
+		openjdk-6-jre-headless \
+		openjdk-6-jre \
+		openjdk-7-jre \
+		python-twisted-core \
+		texlive-binaries \
+		luatex \
+		ubiquity \
+		rhythmbox \
+		rhythmbox-data \
+		empathy \
+		empathy-common \
+		libtelepathy-glib0 \
+		firefox \
+		thunderbird \
+		inkscape \
+		libreoffice-core \
+		gimp-data \
+		gimp-help-common \
+		evolution-data-server \
+		gnome-games-common \
+		gnome-games-data \
+		aisleriot \
+		ibus-table \
+		ibus-table-extraphrase \
+		libchewing3-data \
+		deja-dup \
+		banshee \
+		gwibber \
+		oneconf \
+		shotwell \
+		ubuntuone-client \
+		python-ubuntuone-client \
+		vim-runtime \
+		gnome-orca \
+		libgweather-common \
+		simple-scan \
+		sane-utils \
+		printer-driver-hpcups \
+		printer-driver-hpijs \
+		printer-driver-foo2zjs \
+		hplip \
+		hplip-data \
+		libgutenprint2 \
+		foo2zjs \
+		colord \
+		libsane \
+		mono-runtime \
+		samba-common \
+		gnome-user-guide \
+		ure \
+		smbclient \
+		indicator-messages \
+		ubuntuone-client-gnome \
+		geoip-database \
+		libopencc1 \
+		fonts-arphic-bsmi00lp \
+		fonts-arphic-gbsn00lp \
+		fonts-arphic-bkai00mp \
+		fonts-arphic-gkai00mp \
+		lmodern \
+		culmus \
+		fonts-nanum \
+		fonts-nanum-extra \
+		fonts-nanum-coding \
+		ttf-nanum-coding \
+		ttf-indic-fonts-core \
+		ttf-devanagari-fonts \
+		ttf-wqy-microhei \
+		fonts-takao-pgothic \
+		cmap-adobe-japan1 \
+		anthy-common \
+		m17n-db \
+		libhangul-data \
+		libpurple0 \
+		brltty \
+		liblouis-data \
+		libwebkitgtk-1.0-0 \
+		libwebkitgtk-1.0-common \
+		"
+		#ubuntu-wallpapers \
+		#this stuff is for Unity 2D, but Ubuntu fails to login without it
+		#libqtgui4 \
+		#libqt4-core \
+		#libqt4-xmlpatterns \
+		#libwebkitgtk-3.0-0 \
+		#language-pack-pt-base \
+		#language-pack-es-base \
+		#language-pack-xh-base \
+		#language-pack-zh-hans \
+		#language-pack-de-base \
+		#language-pack-fr-base \
+		#language-pack-ca-base \
+		#language-pack-el-base \
+		#language-pack-sv-base \
+		#language-pack-ru-base \
+		#language-pack-gnome-zh-hans-base \
+		#language-pack-kde-zh-hans-base \
+		# NOTES
+		# apps listed first, then libraries that they depend upon which will 
+		#	also uninstall other stuff
+		#	ubiquity - graphical Ubuntu installer that runs on boot
+		#  23MB app-install-data (ubuntu software center)
+		#  22MB ubuntu-docs (desktop docs)
+		#  44MB thunderbird
+		#  26MB amarok
+		# 200MB libreoffice
+		#  45MB smbclient
+PACKAGES_EXDEV="	
+		autoconf automake autotools-dev \
+		blt \
+		comerr-dev \
+		dpkg-dev \
+		emacsen-common \
+		fakeroot \
+		gettext \
+		gdb \
+		g++-4.6 \
+		gcc-4.6 \
+		krb5-multidev \
+		libc6-dev \
+		libdpkg-perl \
+		libdpkg-perl \
+		libgcrypt11-dev \
+		libglade2-0 \
+		libgnutls-dev \
+		libgpg-error-dev \
+		libgssrpc4 \
+		libidn11-dev \
+		libalgorithm-diff-perl \
+		libalgorithm-diff-xs-perl \
+		libalgorithm-merge-perl \
+		libkadm5clnt-mit8 \
+		libkadm5srv-mit8 \
+		libkrb5-dev \
+		libldap2-dev \
+		libltdl-dev \
+		libstdc++6-4.6-dev \
+		libtasn1-3-dev \
+		libtimedate-perl \
+		libtool \
+		libunistring0 \
+		libxss1 \
+		make \
+		manpages-dev \
+		m4 \
+		patch \
+		python-glade2 \
+		python-tk \
+		tcl8.5 \
+		tk8.5 \
+		ttf-lyx \
+		zlib1g-dev \
+		python-bzrlib \
+		linux-headers-generic \
+		linux-headers-3.2.0-22 \
+		"
+
+###########################################
+# SECTION 2: Command line option handling #
+###########################################
+
+message() {
+	echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+}
+
+# Install 'bzr'
+MESSAGE="Installing bzr..." ; message
+if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
+  echo -n
+else
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+exit 1
+fi
+
+# Let's branch lp:~i-amber-jain/ocpkg/amberj-ocpkg to /tmp
+# (we'll need to call 'child' scripts in amberj-ocpkg from this 'parent' ocpkg script)
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg/
+
+# Source the common modules shared between 'children' scripts in ocpkg branch
+. /tmp/amberj-ocpkg/ocmodules
+
+case "$1" in
+    --deb|deb)
+    MESSAGE="Package type: [deb] DEB packages for Debian based systems" ; message
+	shift;
+	. /tmp/amberj-ocpkg/ocdeb "$@"
+	;;
+	*)
+	echo "Invalid operation $1"
+	# print usage() help message
+	;;
+esac
+
+# Cleanup
+rm -rf /tmp/amberj-ocpkg

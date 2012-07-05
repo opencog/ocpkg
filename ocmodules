@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+## @file		ocmodules
+## @copyright		OpenCog Foundation (2012)
+## @author		David Hart <dhart@opencog.org>
+## @section DESCRIPTION	Common modules for ocpkg
+## @section LICENSE	Permission to copy and modify is granted under the GPL
+## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
+## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
+
+# TODO:
+# None.
+
+add_repositories() {
+if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
+  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; message
+else
+  MESSAGE="Adding software repositories..." ; message
+  for REPO in $REPOSITORIES ; do 
+    sudo apt-add-repository -y $REPO
+  done
+  sudo apt-get $QUIET --assume-yes update 
+fi
+}
+
+install_dependencies() {
+MESSAGE="Installing OpenCog build dependencies...." ; message
+if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME ; then
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  exit 1
+fi
+}
+
+update_opencog_source() { 
+if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
+  echo -n
+else
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+exit 1
+fi
+OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
+mkdir -p $OPENCOG_SOURCE_DIR || true
+if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
+  MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+else
+  if [ $UPDATE_OPENCOG ] ; then
+    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  fi
+fi
+}

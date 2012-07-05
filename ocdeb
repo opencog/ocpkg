@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+## @file		ocdeb
+## @copyright		OpenCog Foundation (2012)
+## @author		David Hart <dhart@opencog.org>
+## @section DESCRIPTION	A script to build DEB packages for Debian based systems (including Ubuntu)
+## @section LICENSE	Permission to copy and modify is granted under the GPL
+## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
+## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
+
+# TODO:
+# None.
+
+install_deb_package_tools() {
+MESSAGE="Installing DEB packaging tools..." ; message
+if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $DEB_PACKAGES_TOOLS ; then
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+ exit 1
+fi
+}
+
+build_opencog_deb() {
+DEB_BUILD_DIR=$LIVE_BUILD_DIR
+mkdir -p -v $DEB_BUILD_DIR || true
+cd $DEB_BUILD_DIR
+# lp:opencog contains Gama's debian/ in the root directory. It needs to be manually deleted before creating upstream source tar
+cp -r $LIVE_SOURCE_BRANCH /tmp/opencog_temp
+rm -rf /tmp/opencog-temp/debian/
+
+MESSAGE="Creating OpenCog (upstream) source tarball..." ; message
+bzr export opencog-0.1.tar.gz /tmp/opencog_temp
+# Cleanup
+rm -rf /tmp/opencog_temp
+
+# Extract upstream source tarball and auto-add debian/ template
+# TODO: OpenCog versions
+MESSAGE="Extracting upstream source (OpenCog) tarball and debianizing it..." ; message
+tar -xzf opencog-0.1.tar.gz
+cd opencog-0.1
+#rm -rf debian/
+
+
+# Using dh_make: All that dh_make does is:
+# 1. create a orig tarball (opencog-orig.tar.gz)
+# 2. create a debian/ template directory in the branch
+# This is manually done by this ocpkg using two simple 'cp' commands.
+#echo "\n" | dh_make --email test@example.com -s -f ../opencog-0.1.tar.gz
+
+# Delete auto-added debian/ templates (created by 'dh_make')
+#rm -rf debian/
+
+
+# Without dh_make (i.e. manually doing what dh_make does behind the scenes):
+# Fully automated (as opposed to dh_make solution above)
+# Create orig if not using dh_make
+cp ../opencog-0.1.tar.gz ../opencog_0.1.orig.tar.gz
+
+# Use customized debianization: add customized debian/ config (from amberj-ocpkg)
+# TODO: When code in amberj-ocpkg is merged with lp:ocpkg, following line should be modified to work with lp:ocpkg
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg -r $BZR_REVISION
+cp -r /tmp/amberj-ocpkg/debian/ .
+rm -rf /tmp/amberj-ocpkg
+#cd opencog
+
+# Create DEB packages
+# -us -uc imply not to (gpg) sign the packages
+debuild -us -uc
+cd ..
+
+echo "FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR"
+#echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
+#echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
+}
+
+install_deb_package_tools
+add_repositories
+install_dependencies
+update_opencog_source
+build_opencog_deb
