@@ -8,8 +8,8 @@
 ## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
 ## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
 
-# TODO:
-# None.
+# Todo: Consider command line argument/option when setting value of UPDATE_OPENCOG
+UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
 
 install_deb_package_tools() {
 MESSAGE="Installing DEB packaging tools..." ; message
@@ -57,7 +57,16 @@ cp ../opencog-0.1.tar.gz ../opencog_0.1.orig.tar.gz
 
 # Use customized debianization: add customized debian/ config (from amberj-ocpkg)
 # TODO: When code in amberj-ocpkg is merged with lp:ocpkg, following line should be modified to work with lp:ocpkg
-bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg -r $BZR_REVISION
+if [ ! "$(ls -A /tmp/amberj-ocpkg)" ]; then
+  MESSAGE="Fetching OpenCog source at /tmp/amberj-ocpkg..." ; message
+  bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir /tmp/amberj-ocpkg -r $BZR_REVISION
+else
+  if [ $UPDATE_OPENCOG ] ; then
+    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+    bzr pull lp:~i-amber-jain/ocpkg/amberj-ocpkg --directory /tmp/amberj-ocpkg -r $BZR_REVISION
+  fi
+fi
+
 cp -r /tmp/amberj-ocpkg/debian/ .
 rm -rf /tmp/amberj-ocpkg
 #cd opencog
