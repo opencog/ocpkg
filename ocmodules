@@ -50,3 +50,7 @@ else
   fi
 fi
 }
+
+cleanup() {
+rm -rf /tmp/amberj-ocpkg	
+}

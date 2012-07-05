@@ -314,6 +314,11 @@ message() {
 	echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
+# Source the common modules shared between 'children' scripts in ocpkg branch
+. /tmp/amberj-ocpkg/ocmodules
+
+trap cleanup EXIT
+
 # Install 'bzr'
 MESSAGE="Installing bzr..." ; message
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
@@ -327,9 +332,6 @@ fi
 # (we'll need to call 'child' scripts in amberj-ocpkg from this 'parent' ocpkg script)
 bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg/
 
-# Source the common modules shared between 'children' scripts in ocpkg branch
-. /tmp/amberj-ocpkg/ocmodules
-
 case "$1" in
     --deb|deb)
     MESSAGE="Package type: [deb] DEB packages for Debian based systems" ; message
@@ -341,6 +343,3 @@ case "$1" in
 	# print usage() help message
 	;;
 esac
-
-# Cleanup
-rm -rf /tmp/amberj-ocpkg
