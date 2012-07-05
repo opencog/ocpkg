@@ -51,10 +51,6 @@ else
 fi
 }
 
-cleanup() {
-rm -rf /tmp/amberj-ocpkg	
-}
-
 reinstall_removed() {
 MESSAGE="Re-installing removed packages..." ; message
 apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_REMOVE

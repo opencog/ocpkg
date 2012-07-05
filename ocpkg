@@ -314,8 +314,9 @@ message() {
 	echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
-# Source the common modules shared between 'children' scripts in ocpkg branch
-. /tmp/amberj-ocpkg/ocmodules
+cleanup() {
+rm -rf /tmp/amberj-ocpkg	
+}
 
 trap cleanup EXIT
 
@@ -331,6 +332,9 @@ fi
 # Let's branch lp:~i-amber-jain/ocpkg/amberj-ocpkg to /tmp
 # (we'll need to call 'child' scripts in amberj-ocpkg from this 'parent' ocpkg script)
 bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg/
+
+# Source the common modules shared between 'children' scripts in ocpkg branch
+. /tmp/amberj-ocpkg/ocmodules
 
 case "$1" in
     --deb|deb)
