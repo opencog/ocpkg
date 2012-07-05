@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-## @file		ocpkg
+## @file		ocetc
 ## @copyright		OpenCog Foundation (2012)
 ## @author		David Hart <dhart@opencog.org>
 ## @section DESCRIPTION	A script to download, build, test, install and package OpenCog
