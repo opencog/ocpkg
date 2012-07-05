@@ -8,6 +8,14 @@
 ## @section REQUIREMENT	Ubuntu Linux 12.04 (precise pangolin)
 ## @section SEEALSO	ocbootstrap - install an Ubuntu chroot on any Linux distro
 
+# Check if user forgot to pass any options.
+if [ $# -eq 0 ]
+then
+  echo "Error: No options specified"
+  # TODO: print usage()
+  exit 1
+fi
+
 while getopts ":adubtpv" flag ; do
   case $flag in
     a)	ADD_REPOSITORIES=true ;;
@@ -16,7 +24,8 @@ while getopts ":adubtpv" flag ; do
     b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
     t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
     p)	REINSTALL_PACKAGES=true ;; 
-    v)	unset QUIET ;; 
+    v)	unset QUIET ;;
+    \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
 
