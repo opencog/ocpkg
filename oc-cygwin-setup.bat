@@ -98,14 +98,14 @@ call:fetchurl
 
 echo Script will install Cygwin 'base' packages now...
 if defined INTERACTIVE pause
-%TEMP%\cygwin-setup.exe ^
+%TEMP%\cygwin.exe ^
 %CYGWIN_SETUPEXE_OPTIONS% ^
 %CYGWIN_BASE_PACKAGES%
 
 echo.
 echo Script will install OpenCog Cygwin build dependencies now...
 if defined INTERACTIVE pause
-%TEMP%\cygwin-setup.exe ^
+%TEMP%\cygwin.exe ^
 %CYGWIN_SETUPEXE_OPTIONS% ^
 %PACKAGES_BUILD%
 
@@ -134,7 +134,7 @@ goto :EOF
 set file=%TEMP%\fetch-url.vbs
 >%file% echo ' Set your settings
 >>%file% echo     strFileURL = "http://cygwin.com/setup.exe"
->>%file% echo     strHDLocation = "%TEMP%\cygwin-setup.txt"
+>>%file% echo     strHDLocation = "%TEMP%\cygwin.txt"
 >>%file% echo.
 >>%file% echo ' Fetch the file
 >>%file% echo     Set objXMLHTTP = CreateObject("MSXML2.XMLHTTP")
@@ -161,5 +161,5 @@ set file=%TEMP%\fetch-url.vbs
 >>%file% echo.
 >>%file% echo Set objXMLHTTP = Nothing
 cscript %TEMP%/fetch-url.vbs
-move %TEMP%\cygwin-setup.txt %TEMP%\cygwin-setup.exe
+move %TEMP%\cygwin.txt %TEMP%\cygwin.exe
 goto:EOF
