@@ -161,5 +161,5 @@ set file=%TEMP%\fetch-url.vbs
 >>%file% echo.
 >>%file% echo Set objXMLHTTP = Nothing
 cscript %TEMP%/fetch-url.vbs
-mv %TEMP%\cygwin-setup.txt %TEMP%\cygwin-setup.exe
+move %TEMP%\cygwin-setup.txt %TEMP%\cygwin-setup.exe
 goto:EOF
