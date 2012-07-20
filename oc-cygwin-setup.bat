@@ -62,7 +62,11 @@ libxerces-c-devel,^
 libcurl-devel,^
 tcsh,^
 libuuid-devel,^
-doxygen
+doxygen,^
+libboost-devel,^
+,^
+,^
+,^
 
 REM Unset these variables
 REM (this is to initialize them to 'empty-ish' value)
@@ -98,9 +102,10 @@ call:fetchurl
 
 echo Script will install Cygwin 'base' packages now...
 if defined INTERACTIVE pause
-%TEMP%\cygwin.exe ^
-%CYGWIN_SETUPEXE_OPTIONS% ^
-%CYGWIN_BASE_PACKAGES%
+%TEMP%\cygwin.exe
+REM TODO: If possible, automate the installation of Cygwin 'base' packages
+REM %CYGWIN_SETUPEXE_OPTIONS% ^
+REM %CYGWIN_BASE_PACKAGES%
 
 echo.
 echo Script will install OpenCog Cygwin build dependencies now...
