@@ -118,11 +118,11 @@ DEB_PACKAGES_TOOLS="
 		pbuilder \
 		ubuntu-dev-tools \
 		bzr-builddeb \
-		apt-file \
 		dh-make \
 		bzr-builddeb \
 		devscripts \
 		"
+		#apt-file
 
 PACKAGES_FETCH="	
 		bzr \
