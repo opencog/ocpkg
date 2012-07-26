@@ -10,7 +10,7 @@
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
-# SECTION 2. Command line option hanling
+# SECTION 2. Command line option handling
 # SECTION 3. Error handling & cleanup
 # SECTION 4. Function definitions
 # SECTION 5. Main program
@@ -41,7 +41,9 @@
 # trap errors
 set -e
 
-# SECTION 1: GLOBAL VARIABLES
+###############################
+# SECTION 1: GLOBAL VARIABLES #
+###############################
 
 declare -A PACKAGE_DESCRIPTION=(
   [local]="Local install with no packaging (default)"
@@ -52,6 +54,7 @@ declare -A PACKAGE_DESCRIPTION=(
  [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
    [debs]="TBD Ubuntu packages (deb files)"
     [ppa]="Launchpad Personal Package Archive (PPA)"
+   [tool]="OpenCog related operations"
 )
 
 PATH_PREFIX=/usr/local
@@ -76,12 +79,15 @@ DEFAULT_INSTALL_DEPENDENCIES=true
 DEFAULT_UPDATE_OPENCOG=true		
 DEFAULT_BUILD_OPENCOG=true		
 
+UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG		# true 
+
 UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
 UBUNTU_URL=http://releases.ubuntu.com/11.10/
 UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
 SELF_NAME=$(basename $0)
+# TODO Change all occurrences of octool with tool (?)
 TOOL_NAME=octool
 
 PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
@@ -355,8 +361,12 @@ PACKAGES_EXDEV="
 		linux-headers-generic \
 		linux-headers-3.2.0-22 \
 		"
-# SECTION 2: Command line option handling
 
+###########################################
+# SECTION 2: Command line option handling #
+###########################################
+
+# TODO: Update usage() [major changes were made to command line option handling]
 usage() {
 if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
   echo "Usage: $SELF_NAME [OPTIONS] [PACKAGE-TYPE]"
@@ -380,52 +390,97 @@ else
 fi 
 }
 
-while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
-  case $flag in
-    i)	INPUT_ISO_NAME="$OPTARG" ;;          
-    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
-    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
-    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
-    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
-    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
-    r)	BZR_REVISION="$OPTARG" ;;		
-    a)	ADD_REPOSITORIES=true ;;
-    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-    u)	UPDATE_OPENCOG=true ;;			#bzr pull
-    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
-    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    p)	REINSTALL_PACKAGES=true ;; 
-    v)	unset QUIET ;; 
-    h)	usage ;; 
-    \?)	usage ;;
-  esac
-done
-
-shift $((OPTIND-1))
-
 message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
-PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
-
-if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
- case $1 in 
-   debs)  PACKAGE_TYPE=$1 ;;
-   dev)   PACKAGE_TYPE=$1 ;;
-   demo)  PACKAGE_TYPE=$1 ;;
-   kvm)   PACKAGE_TYPE=$1 ;;
-   min)   PACKAGE_TYPE=$1 ;;
-   local) PACKAGE_TYPE=$1 ;;
-   *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
- esac
- MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
+# Parse package type (e.g. "debs" for Ubuntu/Debian debs, "local" for building locally etc.)
+if [ $SELF_NAME = "ocpkg" ] ; then
+  PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
+  case "$1" in
+    --debs|debs)
+	  shift ; PACKAGE_TYPE="debs" ;;
+	--dev|dev)
+	  shift ; PACKAGE_TYPE="dev"	;;
+	--demo|demo)
+	  shift ; PACKAGE_TYPE="demo" ;;
+	--kvm|kvm)
+	  shift ; PACKAGE_TYPE="kvm" ;;
+	--min|min)
+	  shift ; PACKAGE_TYPE="min" ;;
+	--local|local)
+	  shift ; PACKAGE_TYPE="local" ;;
+	--tool|tool)
+	  shift ; PACKAGE_TYPE="tool" ;;
+	*)
+	  MESSAGE="Package type $1 not recognized." ; message ; usage ; exit 1 ;;
+  esac
+  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
 fi
+
+if [ $SELF_NAME = "ocdebs" ] || [ $PACKAGE_TYPE = "debs" ] ; then
+  while getopts ":s:l:r:nvh" flag ; do
+    case $flag in
+#TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;			#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;				#suppress bzr update
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+else
+  MESSAGE="$SELF_NAME not recognized." ; message ; usage ; exit 1 ;;
+fi
+
+#while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
+#  case $flag in
+#    i)	INPUT_ISO_NAME="$OPTARG" ;;          
+#    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+#    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+			# Used by octool and oclocal (and PROBABLY ocdebs as well)
+#    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
+#    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
+#    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+#    r)	BZR_REVISION="$OPTARG" ;;		
+#    a)	ADD_REPOSITORIES=true ;;
+#    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
+#    u)	UPDATE_OPENCOG=true ;;			#bzr pull
+#    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
+#    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
+			# USED by octool ATLEAST
+#    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
+			# USED by oclocal/build_opencog ATLEAST
+#    p)	REINSTALL_PACKAGES=true ;; 
+			# Used by octool (and PROBABLY squash/liveCD as well)
+#    v)	unset QUIET ;; 
+#    h)	usage ;; 
+#    \?)	usage ;;
+#  esac
+#done
+
+##if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
+## case $1 in 
+##   debs)  PACKAGE_TYPE=$1 ;;
+##   dev)   PACKAGE_TYPE=$1 ;;
+##   demo)  PACKAGE_TYPE=$1 ;;
+##   kvm)   PACKAGE_TYPE=$1 ;;
+##   min)   PACKAGE_TYPE=$1 ;;
+##   local) PACKAGE_TYPE=$1 ;;
+##   *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
+## esac
+## MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
+##fi
+
 
 #echo "[otheropts]==> $@"
 
-# SECTION 3: Error handling & cleanup
+#######################################
+# SECTION 3: Error handling & cleanup #
+#######################################
 
 debug() {
 MESSAGE="Dropping to debugging chroot prompt..." ; message
@@ -516,7 +571,9 @@ trap error_trap ERR
 trap exit_trap  EXIT 
 trap quit_trap  INT HUP QUIT TERM
 
-# SECTION 4: Function Definitions
+###################################
+# SECTION 4: Function Definitions #
+###################################
 
 add_repositories() {
 if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
@@ -546,6 +603,13 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACK
 fi
 }
 
+check_source_dir_exist() {
+if [ ! -d $LIVE_SOURCE_BRANCH ] ; then
+  MESSAGE="You specified -n option but directory $LIVE_SOURCE_BRANCH does NOT exists. You can use -s option to specify source branch/directory." ; message
+  exit 1
+fi
+}
+
 update_opencog_source() { 
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
   echo -n
@@ -553,16 +617,18 @@ else
   MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
 exit 1
 fi
+
 OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
   bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
 else
-  if [ $UPDATE_OPENCOG ] ; then
+  # It seems this 'if' test is not needed (as the call to update_opencog_source() is surrounded by similar 'if' test). Test it!
+  #if [ $UPDATE_OPENCOG ] ; then
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
     bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
-  fi
+  #fi
 fi
 }
 
@@ -787,7 +853,9 @@ mkdir -p $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 
 mount $VERBOSE -t aufs -o br=/var/cache/apt/archives none $LIVE_SQUASH_UNION/var/cache/apt/archives
 mount $VERBOSE -t aufs -o br=/var/lib/apt/lists none $LIVE_SQUASH_UNION/var/lib/apt/lists
-mount $VERBOSE -t aufs -o br=$HOST_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
+# Replaced $HOST_SOURCE_BRANCH with $ LIVE_SOURCE_BRANCH below (since the whole ocpkg script uses LIVE_SOURCE_BRANCH instead)
+# TODO: Test if code/line below workds with $LIVE_SOURCE_BRANCH? Test and edit accordingly
+mount $VERBOSE -t aufs -o br=$LIVE_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 }
 
 prepare_live_iso() {
@@ -822,69 +890,77 @@ cleanup_squash
 cleanup_iso
 }
 
-# SECTION 5: Main Program (MAIN main)
+#######################################
+# SECTION 5: Main Program (MAIN main) #
+#######################################
 
 # options that run when invoked as $TOOL_NAME 
 
-if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
- if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
- if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
- if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
- if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
- if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
- exit 0
-fi
+# TODO: Replace with new octool code (and delete following code snippet)
+#if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
+# if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
+# if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
+# if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
+# if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
+# if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
+# exit 0
+#fi
 
+# TODO: Delete following code snippet
 # option flag conditionals are finisned, so set defaults
+#if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
+#if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
+#if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
+#if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
 
-if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
-if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
-if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
-if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
+if [ $SELF_NAME = "ocdebs" ] || [ $PACKAGE_TYPE = "debs" ] ; then
+  install_deb_package_tools ; add_repositories ; install_dependencies
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
+  build_opencog_deb
+fi
 
 # package type selected when invoked as 'ocpkg'
 
-case $PACKAGE_TYPE in
-  debs) install_deb_package_tools ;;
-  demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
-  min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
-  dev)	install_package_tools; locate_live_iso ; mount_live_iso 
-      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) add_repositories ; install_dependencies ;;
-  debs)  add_repositories ; install_dependencies ;;
-  demo)  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  min)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  dev)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi ;;
-  debs)  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi ;;
-  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
-  debs)  if [ $BUILD_OPENCOG ] ; then build_opencog_deb ; fi ;;
-  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-esac
-
-case $PACKAGE_TYPE in
-  min)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
-  demo)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
-  dev)	keep_source  ;;
-esac
-
-case $PACKAGE_TYPE in
-  min)  prepare_live_iso ; write_live_media ;;
-  demo) prepare_live_iso ; write_live_media ;;
-  dev)  prepare_live_iso ; write_live_media ;;
-esac
-
+#case $PACKAGE_TYPE in
+#  debs) install_deb_package_tools ;;
+#  demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
+#  min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
+#  dev)	install_package_tools; locate_live_iso ; mount_live_iso 
+#      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
+#esac
+#
+#case $PACKAGE_TYPE in
+#  local) add_repositories ; install_dependencies ;;
+#  debs)  add_repositories ; install_dependencies ;;
+#  demo)  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
+#  min)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
+#  dev)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
+#esac
+#
+#case $PACKAGE_TYPE in
+#  local) if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi ;;
+#  debs)  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi ;;
+#  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+#  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+#  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+#esac
+#
+#case $PACKAGE_TYPE in
+#  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
+#  debs)  if [ $BUILD_OPENCOG ] ; then build_opencog_deb ; fi ;;
+#  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+#  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+#  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+#esac
+#
+#case $PACKAGE_TYPE in
+#  min)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
+#  demo)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
+#  dev)	keep_source  ;;
+#esac
+#
+#case $PACKAGE_TYPE in
+#  min)  prepare_live_iso ; write_live_media ;;
+#  demo) prepare_live_iso ; write_live_media ;;
+#  dev)  prepare_live_iso ; write_live_media ;;
+#esac
