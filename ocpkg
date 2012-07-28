@@ -77,9 +77,7 @@ DEFAULT_PACKAGE_TYPE=local
 DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_UPDATE_OPENCOG=true		
-DEFAULT_BUILD_OPENCOG=true		
-
-UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG		# true 
+DEFAULT_BUILD_OPENCOG=true
 
 UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
 UBUNTU_URL=http://releases.ubuntu.com/11.10/
@@ -388,6 +386,7 @@ else
   echo " -b Build OpenCog"
   echo " -t Test OpenCog"
 fi 
+exit 0
 }
 
 message() {
@@ -395,7 +394,7 @@ echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
 # Parse package type (e.g. "debs" for Ubuntu/Debian debs, "local" for building locally etc.)
-if [ $SELF_NAME = "ocpkg" ] ; then
+if [ "$SELF_NAME" = "ocpkg" ] ; then
   PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
   case "$1" in
     --debs|debs)
@@ -418,7 +417,8 @@ if [ $SELF_NAME = "ocpkg" ] ; then
   MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
 fi
 
-if [ $SELF_NAME = "ocdebs" ] || [ $PACKAGE_TYPE = "debs" ] ; then
+if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
+  UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
   while getopts ":s:l:r:nvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
@@ -432,49 +432,29 @@ if [ $SELF_NAME = "ocdebs" ] || [ $PACKAGE_TYPE = "debs" ] ; then
     esac
   done
   shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  while getopts ":j:s:l:r:adubtpvh" flag ; do
+    case $flag in
+      # Continue checking for the need of options from below line      
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      a)	ADD_REPOSITORIES=true ;;
+      d)	INSTALL_DEPENDENCIES=true ;;	#ALL, none
+      u)	UPDATE_OPENCOG=true ;;			#bzr pull
+      b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
+      t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
+      p)	REINSTALL_PACKAGES=true ;;
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
 else
-  MESSAGE="$SELF_NAME not recognized." ; message ; usage ; exit 1 ;;
+  MESSAGE="$SELF_NAME not recognized." ; message ; usage ; exit 1
 fi
-
-#while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
-#  case $flag in
-#    i)	INPUT_ISO_NAME="$OPTARG" ;;          
-#    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
-#    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
-			# Used by octool and oclocal (and PROBABLY ocdebs as well)
-#    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
-#    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
-#    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
-#    r)	BZR_REVISION="$OPTARG" ;;		
-#    a)	ADD_REPOSITORIES=true ;;
-#    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-#    u)	UPDATE_OPENCOG=true ;;			#bzr pull
-#    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
-#    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
-			# USED by octool ATLEAST
-#    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
-			# USED by oclocal/build_opencog ATLEAST
-#    p)	REINSTALL_PACKAGES=true ;; 
-			# Used by octool (and PROBABLY squash/liveCD as well)
-#    v)	unset QUIET ;; 
-#    h)	usage ;; 
-#    \?)	usage ;;
-#  esac
-#done
-
-##if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
-## case $1 in 
-##   debs)  PACKAGE_TYPE=$1 ;;
-##   dev)   PACKAGE_TYPE=$1 ;;
-##   demo)  PACKAGE_TYPE=$1 ;;
-##   kvm)   PACKAGE_TYPE=$1 ;;
-##   min)   PACKAGE_TYPE=$1 ;;
-##   local) PACKAGE_TYPE=$1 ;;
-##   *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
-## esac
-## MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
-##fi
-
 
 #echo "[otheropts]==> $@"
 
@@ -583,6 +563,7 @@ else
   for REPO in $REPOSITORIES ; do 
     sudo apt-add-repository -y $REPO
   done
+  MESSAGE="Updating the package index. Please wait..." ; message
   sudo apt-get $QUIET --assume-yes update 
 fi
 }
@@ -894,29 +875,18 @@ cleanup_iso
 # SECTION 5: Main Program (MAIN main) #
 #######################################
 
-# options that run when invoked as $TOOL_NAME 
-
-# TODO: Replace with new octool code (and delete following code snippet)
-#if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-# if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
-# if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
-# if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
-# if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
-# if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
-# exit 0
-#fi
-
-# TODO: Delete following code snippet
-# option flag conditionals are finisned, so set defaults
-#if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
-#if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
-#if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
-#if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
-
-if [ $SELF_NAME = "ocdebs" ] || [ $PACKAGE_TYPE = "debs" ] ; then
+if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   install_deb_package_tools ; add_repositories ; install_dependencies
   if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
   build_opencog_deb
+elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
+  if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
+  if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
+  if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
+else
+  MESSAGE="Could not recognize package type" ; message ; usage ; exit 1
 fi
 
 # package type selected when invoked as 'ocpkg'
