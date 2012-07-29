@@ -16,7 +16,7 @@
 # SECTION 5. Main program
 
 # Notes:
-# - terminal & editor are best set to a colum width of 144+ characters 
+# - terminal & editor are best set to a column width of 144+ characters 
 #        (bash lines, dpkg lines and gcc lines can be long!)
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
 #        (real time overhead for CD repackaging without building OpenCog is about 5m)
@@ -448,6 +448,21 @@ elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
       p)	REINSTALL_PACKAGES=true ;;
       v)	unset QUIET ;;
       h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
+  # TODO: ADD VALID OPTIONS IN LINE BELOW
+  while getopts ":j:s:l:r:nvh" flag ; do
+    case $flag in
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
+      v)	unset QUIET ;; 
+      h)	usage ;; 
       \?)	usage ;;
     esac
   done
