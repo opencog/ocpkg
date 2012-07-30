@@ -84,6 +84,7 @@ UBUNTU_URL=http://releases.ubuntu.com/11.10/
 UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
+UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
 SELF_NAME=$(basename $0)
 # TODO Change all occurrences of octool with tool (?)
 TOOL_NAME=octool
@@ -418,7 +419,6 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
   while getopts ":s:l:r:nvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
@@ -433,6 +433,7 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  unset UPDATE_OPENCOG
   while getopts ":j:s:l:r:adubtpvh" flag ; do
     case $flag in     
       j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
@@ -964,7 +965,7 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
   remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ; prepare_live_iso ; write_live_media
 elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
   install_package_tools ; locate_live_iso ; mount_live_iso
-  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
+  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
