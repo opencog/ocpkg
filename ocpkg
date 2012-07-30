@@ -497,6 +497,22 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
     esac
   done
   shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
+  while getopts ":i:o:j:s:l:r:nvh" flag ; do
+    case $flag in
+      i)	INPUT_ISO_NAME="$OPTARG" ;;          
+      o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
+      v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
 else
   MESSAGE="$SELF_NAME not recognized." ; message ; usage ; exit 1
 fi
@@ -946,6 +962,13 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
   remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ; prepare_live_iso ; write_live_media
+elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
+  install_package_tools ; locate_live_iso ; mount_live_iso
+  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
+  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
+  keep_source ; prepare_live_iso ; write_live_media
 else
   MESSAGE="Could not recognize package type" ; message ; usage ; exit 1
 fi
