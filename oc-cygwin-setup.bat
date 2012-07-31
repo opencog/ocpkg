@@ -63,10 +63,9 @@ libcurl-devel,^
 tcsh,^
 libuuid-devel,^
 doxygen,^
-libboost-devel,^
-,^
-,^
-,^
+libboost-devel
+
+set PACKAGES_FETCH=bzr
 
 REM Unset these variables
 REM (this is to initialize them to 'empty-ish' value)
@@ -113,6 +112,13 @@ if defined INTERACTIVE pause
 %TEMP%\cygwin.exe ^
 %CYGWIN_SETUPEXE_OPTIONS% ^
 %PACKAGES_BUILD%
+
+echo.
+echo Script will install Cygwin packages needed to fetch OpenCog source now...
+if defined INTERACTIVE pause
+%TEMP%\cygwin.exe ^
+%CYGWIN_SETUPEXE_OPTIONS% ^
+%PACKAGES_FETCH%
 
 echo.
 echo Script will exit now...
