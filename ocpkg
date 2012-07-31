@@ -129,6 +129,9 @@ DEB_PACKAGES_TOOLS="
 		"
 		#apt-file
 
+DAILYDEB_PACKAGES_TOOLS="
+		bzr-builder"
+
 PACKAGES_FETCH="	
 		bzr \
 			"
@@ -412,6 +415,8 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	  shift ; PACKAGE_TYPE="local" ;;
 	--tool|tool)
 	  shift ; PACKAGE_TYPE="tool" ;;
+	--dailydeb|dailydeb)
+	  shift ; PACKAGE_TYPE="dailydeb" ;;
 	*)
 	  MESSAGE="Package type $1 not recognized." ; message ; usage ; exit 1 ;;
   esac
@@ -509,6 +514,16 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
       r)	BZR_REVISION="$OPTARG" ;;
       n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
       v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
+  QUIET="-q"
+  while getopts ":vh" flag ; do
+    case $flag in
+      v)	unset QUIET ;;
       h)	usage ;; 
       \?)	usage ;;
     esac
@@ -835,6 +850,21 @@ echo "FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR"
 #echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
 }
 
+install_dailydeb_tools() {
+MESSAGE="Installing source package recipe tools..." ; message
+if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_FETCH $DAILYDEB_PACKAGES_TOOLS ; then
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  exit 1
+fi
+}
+
+dailydeb_recipe() {
+MESSAGE="Testing the dailydeb source recipe..." ; message
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg
+bzr dailydeb $QUIET --allow-fallback-to-native /tmp/amberj-ocpkg/opencog.recipe /tmp/opencog-dailydeb
+echo "The resulting source tree and source package are placed in /tmp/opencog-dailydeb"
+}
+
 mount_live_iso() {
 MESSAGE="Mounting Ubuntu ISO image..." ; message
 
@@ -970,6 +1000,8 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
   keep_source ; prepare_live_iso ; write_live_media
+elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
+  install_dailydeb_tools ; dailydeb_recipe
 else
   MESSAGE="Could not recognize package type" ; message ; usage ; exit 1
 fi
