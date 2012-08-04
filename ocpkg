@@ -68,6 +68,8 @@ else
  HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
 fi
 
+TEMP_OCPKG_BRANCH=$(mktemp -d --suffix=.ocpkg)
+
 BZR_REVISION="last:1"
 
 OUTPUT_ISO_NAME=OpenCogLive.iso 
@@ -120,7 +122,6 @@ DEB_PACKAGES_TOOLS="
 		build-essential \
 		packaging-dev \
 		gnupg \
-		pbuilder \
 		ubuntu-dev-tools \
 		bzr-builddeb \
 		dh-make \
@@ -130,7 +131,16 @@ DEB_PACKAGES_TOOLS="
 		#apt-file
 
 DAILYDEB_PACKAGES_TOOLS="
-		bzr-builder"
+		bzr-builder \
+		debhelper \
+		"
+		#devscripts
+
+PACKAGES_FOR_PBUILDER="
+		pbuilder \
+		debootstrap \
+		"
+		#devscripts
 
 PACKAGES_FETCH="	
 		bzr \
@@ -519,11 +529,12 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
     esac
   done
   shift $((OPTIND-1))
+# Testing daily source recipe locally before sending it to Launchpad is recommended as failed builds will waste your Launchpad allocation (Launchpad limits each user to five builds per distroseries, per recipe, per day)
 elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
-  QUIET="-q"
+  DAILYDEB_QUIET="-q"
   while getopts ":vh" flag ; do
     case $flag in
-      v)	unset QUIET ;;
+      v)	unset DAILYDEB_QUIET ;;
       h)	usage ;; 
       \?)	usage ;;
     esac
@@ -802,6 +813,36 @@ if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $DEB_PACKAGES_TOOL
 fi
 }
 
+setup_pbuilder() {
+MESSAGE="Installing packages for pbuilder ..." ; message
+if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_FOR_PBUILDER ; then
+ echo -n
+else
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+ exit 1
+fi
+
+MESSAGE="Configuring pbuilder ..." ; message
+echo "COMPONENTS=\"main restricted universe multiverse\"" >> ~/.pbuilderrc
+echo "EXTRAPACKAGES=\"sudo python-software-properties\"" >> ~/.pbuilderrc
+
+# TODO: Debian pbuilder
+# --variant=buildd option (passed to debootstrap using --debootstrapopts) closely mimics the environment of the official Launchpad build machines
+if [ -a /var/cache/pbuilder/base.tgz ] ; then
+  MESSAGE="Updating pbuilder chroot ..." ; message
+  sudo pbuilder update
+else
+  MESSAGE="Setting up pbuilder chroot ..." ; message
+  sudo pbuilder create --debootstrapopts --variant=buildd
+fi
+
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH -r $BZR_REVISION
+MESSAGE="Installing dependencies inside pbuilder chroot ..." ; message
+# Following command will run 'octool -ad' inside pbuilder chroot
+sudo pbuilder execute --save-after-exec $TEMP_OCPKG_BRANCH/ocpkg
+rm -rf $TEMP_OCPKG_BRANCH
+}
+
 build_opencog_deb() {
 DEB_BUILD_DIR=$LIVE_BUILD_DIR
 mkdir -p -v $DEB_BUILD_DIR || true
@@ -840,9 +881,9 @@ cp ../opencog-0.1.tar.gz ../opencog_0.1.orig.tar.gz
 
 # Use customized debianization: add customized debian/ config (from amberj-ocpkg)
 # TODO: When code in amberj-ocpkg is merged with lp:ocpkg, following line should be modified to work with lp:ocpkg
-bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg -r $BZR_REVISION
-cp -r /tmp/amberj-ocpkg/debian/ .
-rm -rf /tmp/amberj-ocpkg
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH -r $BZR_REVISION
+cp -r $TEMP_OCPKG_BRANCH/debian/ .
+rm -rf $TEMP_OCPKG_BRANCH
 #cd opencog
 
 # Create DEB packages
@@ -850,7 +891,7 @@ rm -rf /tmp/amberj-ocpkg
 debuild -us -uc
 cd ..
 
-echo "FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR"
+MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; message
 #echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
 #echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
 }
@@ -865,9 +906,13 @@ fi
 
 dailydeb_recipe() {
 MESSAGE="Testing the dailydeb source recipe..." ; message
-bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg /tmp/amberj-ocpkg
-bzr dailydeb $QUIET --allow-fallback-to-native /tmp/amberj-ocpkg/opencog.recipe /tmp/opencog-dailydeb
-echo "The resulting source tree and source package are placed in /tmp/opencog-dailydeb"
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH
+DAILYDEB_BUILD=$(mktemp -d --suffix=.oc-dailydeb)
+MESSAGE="Building daily source builds in $DAILYDEB_BUILD ..." ; message
+bzr dailydeb $DAILYDEB_QUIET --allow-fallback-to-native $TEMP_OCPKG_BRANCH/opencog.recipe $DAILYDEB_BUILD
+MESSAGE="The resulting source tree and source package are placed in $DAILYDEB_BUILD" ; message
+cd $DAILYDEB_BUILD/opencog-{debupstream}+{revno}+{revno:packaging}
+pdebuild
 }
 
 mount_live_iso() {
@@ -1000,13 +1045,13 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
   remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ; prepare_live_iso ; write_live_media
 elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
   install_package_tools ; locate_live_iso ; mount_live_iso
-  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message
+  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu packages..." ; message
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
   keep_source ; prepare_live_iso ; write_live_media
 elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
-  install_dailydeb_tools ; dailydeb_recipe
+  install_dailydeb_tools ; setup_pbuilder ; dailydeb_recipe
 # 'runscript' is to run 'octool -ad' in pbuilder chroot
 # When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
 elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
