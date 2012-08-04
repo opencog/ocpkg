@@ -805,6 +805,17 @@ else
 fi
 }
 
+check_bzr_config() {
+# 'bzr launchpad-login' needed as well?
+if bzr whoami &> /dev/null ; then
+  echo -n
+else
+  MESSAGE="bzr: ERROR: Unable to determine your name." ; message
+  echo "Please, set your name with the 'whoami' command E.g. bzr whoami \"Your Name <name@example.com>\""
+  exit 1
+fi
+}
+
 install_deb_package_tools() {
 MESSAGE="Installing DEB packaging tools..." ; message
 if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $DEB_PACKAGES_TOOLS ; then
@@ -1051,7 +1062,7 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
   keep_source ; prepare_live_iso ; write_live_media
 elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
-  install_dailydeb_tools ; setup_pbuilder ; dailydeb_recipe
+  install_dailydeb_tools ; setup_pbuilder ; check_bzr_config ; dailydeb_recipe
 # 'runscript' is to run 'octool -ad' in pbuilder chroot
 # When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
 elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
