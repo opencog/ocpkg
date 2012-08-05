@@ -413,6 +413,8 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
   case "$1" in
     --debs|debs)
 	  shift ; PACKAGE_TYPE="debs" ;;
+	--ppa|ppa)
+	  shift ; PACKAGE_TYPE="ppa" ;;
 	--dev|dev)
 	  shift ; PACKAGE_TYPE="dev"	;;
 	--demo|demo)
@@ -441,6 +443,20 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
       l)	LIVE_BUILD_DIR="$OPTARG" ;;			#live/local build directory
       r)	BZR_REVISION="$OPTARG" ;;
       n)	unset UPDATE_OPENCOG ;;				#suppress bzr update
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
+  while getopts ":s:l:r:p:nvh" flag ; do
+    case $flag in
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      p)	PPA_LOCATION="$OPTARG" ;;		# Launchpad PPA location (listed under "Uploading packages to this PPA" section on PPA's overview page)
+      n)	unset UPDATE_OPENCOG ;;			#bzr pull
       v)	unset QUIET ;;
       h)	usage ;;
       \?)	usage ;;
@@ -854,18 +870,13 @@ sudo pbuilder execute --save-after-exec $TEMP_OCPKG_BRANCH/ocpkg
 rm -rf $TEMP_OCPKG_BRANCH
 }
 
-build_opencog_deb() {
+setup_deb_packaging() {
 DEB_BUILD_DIR=$LIVE_BUILD_DIR
 mkdir -p -v $DEB_BUILD_DIR || true
 cd $DEB_BUILD_DIR
-# lp:opencog contains Gama's debian/ in the root directory. It needs to be manually deleted before creating upstream source tar
-cp -r $LIVE_SOURCE_BRANCH /tmp/opencog_temp
-rm -rf /tmp/opencog-temp/debian/
 
 MESSAGE="Creating OpenCog (upstream) source tarball..." ; message
-bzr export opencog-0.1.tar.gz /tmp/opencog_temp
-# Cleanup
-rm -rf /tmp/opencog_temp
+bzr export opencog-0.1.tar.gz $LIVE_SOURCE_BRANCH
 
 # Extract upstream source tarball and auto-add debian/ template
 # TODO: OpenCog versions
@@ -874,16 +885,13 @@ tar -xzf opencog-0.1.tar.gz
 cd opencog-0.1
 #rm -rf debian/
 
-
 # Using dh_make: All that dh_make does is:
 # 1. create a orig tarball (opencog-orig.tar.gz)
 # 2. create a debian/ template directory in the branch
 # This is manually done by this ocpkg using two simple 'cp' commands.
 #echo "\n" | dh_make --email test@example.com -s -f ../opencog-0.1.tar.gz
-
 # Delete auto-added debian/ templates (created by 'dh_make')
 #rm -rf debian/
-
 
 # Without dh_make (i.e. manually doing what dh_make does behind the scenes):
 # Fully automated (as opposed to dh_make solution above)
@@ -897,11 +905,36 @@ cp -r $TEMP_OCPKG_BRANCH/debian/ .
 rm -rf $TEMP_OCPKG_BRANCH
 #cd opencog
 
+# Open $DEB_BUILD_DIR/opencog-0.1/debian/changelog in a text editor to manually add a new changelog entry.
+# TODO: Automating the process of adding a new changelog entry using 'dch'
+MESSAGE="Script will now open debian/changelog in a text editor. Please edit changelog, save file and exit to continue..." ; message
+read -p "Press [Enter] key to continue..."
+dch -i
+}
+
+build_deb_source_package() {
+# TODO: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Snapshots
+cd $DEB_BUILD_DIR/opencog-0.1
+# TODO: -us -uc if user does NOT wants package to be digitally signed
+# TODO: -k<key> option to specify which key to use to sign packages. See "Note" here: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Options_when_building
+debuild -S -sa
+}
+
+upload_to_ppa() {
+# Launchpad will only accept the package if it can absolutely determine who uploaded the package.
+# Therefore, you need to sign files with your GPG key so they can be identified as something that you worked on.
+# The process of setting up GPG can't be automated. So, you have to manually setup GPG on your system.
+# To setup GPG on your system, follow instructions at: http://wiki.opencog.org/w/Setup_GPG_to_sign_Debian/Ubuntu_packages
+MESSAGE="Uploading source package to Launchpad PPA $PPA_LOCATION" ; message
+dput $PPA_LOCATION $DEB_BUILD_DIR/*source.changes
+}
+
+build_opencog_deb() {
+cd $DEB_BUILD_DIR/opencog-0.1
 # Create DEB packages
 # -us -uc imply not to (gpg) sign the packages
 debuild -us -uc
 cd ..
-
 MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; message
 #echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
 #echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
@@ -1031,7 +1064,7 @@ cleanup_iso
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   install_deb_package_tools ; add_repositories ; install_dependencies
   if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
-  build_opencog_deb
+  setup_deb_packaging ; build_opencog_deb
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
   if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
   if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
@@ -1068,6 +1101,9 @@ elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
 elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
   if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
   if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
+elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
+  install_deb_package_tools ; setup_deb_packaging ; build_deb_source_package ; upload_to_ppa
 else
   MESSAGE="Could not recognize package type" ; message ; usage ; exit 1
 fi
