@@ -436,13 +436,14 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  while getopts ":s:l:r:nvh" flag ; do
+  while getopts ":s:l:r:dnvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
       l)	LIVE_BUILD_DIR="$OPTARG" ;;			#live/local build directory
       r)	BZR_REVISION="$OPTARG" ;;
-      n)	unset UPDATE_OPENCOG ;;				#suppress bzr update
+      d)	SIGN_PACKAGES=true ;;				# digitally sign packages
+      n)	unset UPDATE_OPENCOG ;;				# suppress bzr update
       v)	unset QUIET ;;
       h)	usage ;;
       \?)	usage ;;
@@ -450,12 +451,13 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
-  while getopts ":s:l:r:p:nvh" flag ; do
+  while getopts ":s:l:r:p:dnvh" flag ; do
     case $flag in
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
       l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live/local build directory
       r)	BZR_REVISION="$OPTARG" ;;
       p)	PPA_LOCATION="$OPTARG" ;;		# Launchpad PPA location (listed under "Uploading packages to this PPA" section on PPA's overview page)
+      d)	SIGN_PACKAGES=true ;;				# digitally sign packages
       n)	unset UPDATE_OPENCOG ;;			#bzr pull
       v)	unset QUIET ;;
       h)	usage ;;
@@ -917,7 +919,11 @@ build_deb_source_package() {
 cd $DEB_BUILD_DIR/opencog-0.1
 # TODO: -us -uc if user does NOT wants package to be digitally signed
 # TODO: -k<key> option to specify which key to use to sign packages. See "Note" here: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Options_when_building
-debuild -S -sa
+if [ $SIGN_PACKAGES ] ; then
+  debuild -S -sa
+else
+  debuild -us -uc -S -sa
+fi
 }
 
 upload_to_ppa() {
@@ -933,7 +939,11 @@ build_opencog_deb() {
 cd $DEB_BUILD_DIR/opencog-0.1
 # Create DEB packages
 # -us -uc imply not to (gpg) sign the packages
-debuild -us -uc
+if [ $SIGN_PACKAGES ] ; then
+  debuild
+else
+  debuild -us -uc
+fi
 cd ..
 MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; message
 #echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
