@@ -36,7 +36,6 @@
 
 # TODO (when code in amberj-ocpkg is merged with lp:ocpkg)
 # 1. build_opencog_deb() copies debian/ from lp:~i-amber-jain/ocpkg/amberj-ocpkg. Change the code so that it does the same from lp:ocpkg
-# 2. build_opencog_deb() deletes Gama's debian/ from lp:opencog. When lp:opencog's debian/ (in the root dir) is removed from lp:opencog, remove the appropriate line of code
 
 # trap errors
 set -e
@@ -46,15 +45,15 @@ set -e
 ###############################
 
 declare -A PACKAGE_DESCRIPTION=(
-  [local]="Local install with no packaging (default)"
-   [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
-    [min]="LiveCD  ISO image ~700MB with OpenCog Server"
-    [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
-    [kvm]="TBD Ubuntu KVM image with OpenCog Server"
- [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
-   [debs]="TBD Ubuntu packages (deb files)"
-    [ppa]="Launchpad Personal Package Archive (PPA)"
-   [tool]="OpenCog related operations"
+   [local]="Local install with no packaging (default)"
+    [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
+     [min]="LiveCD  ISO image ~700MB with OpenCog Server"
+     [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
+     [kvm]="TBD Ubuntu KVM image with OpenCog Server"
+  [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
+    [debs]="Ubuntu packages (deb files)"
+     [ppa]="Launchpad Personal Package Archive (PPA)"
+    [tool]="OpenCog related operations"
 )
 
 PATH_PREFIX=/usr/local
@@ -852,16 +851,45 @@ else
 fi
 
 MESSAGE="Configuring pbuilder ..." ; message
-echo "COMPONENTS=\"main restricted universe multiverse\"" >> ~/.pbuilderrc
-echo "EXTRAPACKAGES=\"sudo python-software-properties\"" >> ~/.pbuilderrc
+# Add repositories to be enabled inside Ubuntu pbuilder chroot
+if ! grep -q "COMPONENTS=" ~/.pbuilderrc ; then
+  echo "COMPONENTS=\"main restricted universe multiverse\"" >> ~/.pbuilderrc
+else
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "main" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"main\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "universe" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"universe\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "multiverse" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"multiverse\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "restricted" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"restricted\"" >> ~/.pbuilderrc
+  fi
+fi
+
+# Add required packages which will be installed inside pbuilder chroot
+if ! grep -q "EXTRAPACKAGES=" ~/.pbuilderrc ; then
+  echo "EXTRAPACKAGES=\"sudo python-software-properties\"" >> ~/.pbuilderrc
+else
+  if ! grep "EXTRAPACKAGES=" ~/.pbuilderrc | grep -q "sudo" ~/.pbuilderrc ; then
+    echo "EXTRAPACKAGES=\"sudo\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "EXTRAPACKAGES=" ~/.pbuilderrc | grep -q "python-software-properties" ~/.pbuilderrc ; then
+    echo "EXTRAPACKAGES=\"python-software-properties\"" >> ~/.pbuilderrc
+  fi
+fi
+
 
 # TODO: Debian pbuilder
-# --variant=buildd option (passed to debootstrap using --debootstrapopts) closely mimics the environment of the official Launchpad build machines
 if [ -a /var/cache/pbuilder/base.tgz ] ; then
   MESSAGE="Updating pbuilder chroot ..." ; message
   sudo pbuilder update
 else
   MESSAGE="Setting up pbuilder chroot ..." ; message
+  # --variant=buildd option (passed to debootstrap using --debootstrapopts)
+  # This option closely mimics the environment of the official Launchpad build machines
   sudo pbuilder create --debootstrapopts --variant=buildd
 fi
 
