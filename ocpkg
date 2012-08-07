@@ -418,8 +418,6 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	  shift ; PACKAGE_TYPE="dev"	;;
 	--demo|demo)
 	  shift ; PACKAGE_TYPE="demo" ;;
-	--kvm|kvm)
-	  shift ; PACKAGE_TYPE="kvm" ;;
 	--min|min)
 	  shift ; PACKAGE_TYPE="min" ;;
 	--local|local)
@@ -435,13 +433,14 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  while getopts ":s:l:r:dnvh" flag ; do
+  while getopts ":s:l:r:dpnvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
       l)	LIVE_BUILD_DIR="$OPTARG" ;;			#live/local build directory
       r)	BZR_REVISION="$OPTARG" ;;
       d)	SIGN_PACKAGES=true ;;				# digitally sign packages
+      p)	USE_PBUILDER=true ;;				# Use pbuilder chroot to build in a minimal debian install
       n)	unset UPDATE_OPENCOG ;;				# suppress bzr update
       v)	unset QUIET ;;
       h)	usage ;;
@@ -557,7 +556,7 @@ elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
     esac
   done
   shift $((OPTIND-1))
-# 'runscript' is to run 'octool -ad' in pbuilder chroot
+# 'runscript' package type is to run 'octool -ad' inside pbuilder chroot
 # When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
 elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
   ADD_REPOSITORIES=true
@@ -881,7 +880,6 @@ else
   fi
 fi
 
-
 # TODO: Debian pbuilder
 if [ -a /var/cache/pbuilder/base.tgz ] ; then
   MESSAGE="Updating pbuilder chroot ..." ; message
@@ -966,10 +964,10 @@ dput $PPA_LOCATION $DEB_BUILD_DIR/*source.changes
 build_opencog_deb() {
 cd $DEB_BUILD_DIR/opencog-0.1
 # Create DEB packages
-# -us -uc imply not to (gpg) sign the packages
 if [ $SIGN_PACKAGES ] ; then
   debuild
 else
+  # -us -uc options imply NOT to (gpg) sign the packages
   debuild -us -uc
 fi
 cd ..
@@ -1102,7 +1100,12 @@ cleanup_iso
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   install_deb_package_tools ; add_repositories ; install_dependencies
   if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
-  setup_deb_packaging ; build_opencog_deb
+  if [ $USE_PBUILDER ] ; then
+    setup_pbuilder ; setup_deb_packaging ; build_deb_source_package
+    cd $DEB_BUILD_DIR ; sudo pbuilder build *.dsc
+  else
+    setup_deb_packaging ; build_opencog_deb
+  fi
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
   if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
   if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
