@@ -44,6 +44,11 @@ set -e
 # SECTION 1: GLOBAL VARIABLES #
 ###############################
 
+STDOUT_LOG_FILE=$(mktemp --suffix=.ocpkg-stdout.log)
+STDERR_LOG_FILE=$(mktemp --suffix=.ocpkg-stderr.log)
+
+echo -e "Log files for this ocpkg session are located at:\n $STDOUT_LOG_FILE and $STDERR_LOG_FILE\n"
+
 declare -A PACKAGE_DESCRIPTION=(
    [local]="Local install with no packaging (default)"
     [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
@@ -421,6 +426,7 @@ echo -e "\e[1;32m[$SELF_NAME] I: $MESSAGE\e[0m"
 }
 
 # Prints $MESSAGE in blue foreground color
+# For output messages that require special user attention (especially when script requires input from user to continue)
 blue_message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
@@ -446,9 +452,10 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	--dailydeb|dailydeb)
 	  shift ; PACKAGE_TYPE="dailydeb" ;;
 	*)
-	  MESSAGE="Package type $1 not recognized." ; message ; usage ; exit 1 ;;
+	  MESSAGE="Package type $1 not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+	  usage ; exit 1 ;;
   esac
-  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
+  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
@@ -581,7 +588,8 @@ elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
   ADD_REPOSITORIES=true
   INSTALL_DEPENDENCIES=true
 else
-  MESSAGE="$SELF_NAME not recognized." ; message ; usage ; exit 1
+  MESSAGE="$SELF_NAME not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  usage ; exit 1
 fi
 
 #echo "[otheropts]==> $@"
@@ -1116,14 +1124,24 @@ cleanup_iso
 #######################################
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  install_deb_package_tools ; add_repositories ; install_dependencies
-  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
-  if [ $USE_PBUILDER ] ; then
-    setup_pbuilder ; setup_deb_packaging ; build_deb_source_package
-    MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message
-    cd $DEB_BUILD_DIR ; sudo pbuilder build *.dsc
+  install_deb_package_tools > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  add_repositories > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  install_dependencies > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  if [ $UPDATE_OPENCOG ] ; then
+    update_opencog_source > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
   else
-    setup_deb_packaging ; build_opencog_deb
+     check_source_dir_exist > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  fi
+  if [ $USE_PBUILDER ] ; then
+    setup_pbuilder > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    build_deb_source_package > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message  > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    cd $DEB_BUILD_DIR
+    sudo pbuilder build *.dsc > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  else
+    setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    build_opencog_deb > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
   fi
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
   if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
