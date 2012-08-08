@@ -402,7 +402,26 @@ fi
 exit 0
 }
 
+# DEPRECATED! Print message in blue foreground color
+# DEPRECATED: Please use red_message(), green_message() or blue_message() instead
 message() {
+echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+}
+
+# Prints warning/error $MESSAGE in red foreground color
+# For error [E] messages
+red_message() {
+echo -e "\e[1;31m[$SELF_NAME] E: $MESSAGE\e[0m"
+}
+
+# Prints success/info $MESSAGE in green foreground color
+# For info [I] messages
+green_message() {
+echo -e "\e[1;32m[$SELF_NAME] I: $MESSAGE\e[0m"
+}
+
+# Prints $MESSAGE in blue foreground color
+blue_message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
@@ -666,13 +685,13 @@ trap quit_trap  INT HUP QUIT TERM
 
 add_repositories() {
 if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
-  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; message
+  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; green_message
 else
-  MESSAGE="Adding software repositories..." ; message
+  MESSAGE="Adding software repositories..." ; green_message
   for REPO in $REPOSITORIES ; do 
     sudo apt-add-repository -y $REPO
   done
-  MESSAGE="Updating the package index. Please wait..." ; message
+  MESSAGE="Updating the package index. Please wait..." ; green_message
   sudo apt-get $QUIET --assume-yes update 
 fi
 }
@@ -686,9 +705,9 @@ fi
 }
 
 install_dependencies() {
-MESSAGE="Installing OpenCog build dependencies...." ; message
+MESSAGE="Installing OpenCog build dependencies...." ; green_message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME ; then
-  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
   exit 1
 fi
 }
@@ -704,21 +723,18 @@ update_opencog_source() {
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
   echo -n
 else
-  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
 exit 1
 fi
 
 OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
-  MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+  MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
   bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
 else
-  # It seems this 'if' test is not needed (as the call to update_opencog_source() is surrounded by similar 'if' test). Test it!
-  #if [ $UPDATE_OPENCOG ] ; then
-    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
+    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
     bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
-  #fi
 fi
 }
 
@@ -833,23 +849,23 @@ fi
 }
 
 install_deb_package_tools() {
-MESSAGE="Installing DEB packaging tools..." ; message
+MESSAGE="Installing DEB packaging tools..." ; green_message
 if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $DEB_PACKAGES_TOOLS ; then
- MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
  exit 1
 fi
 }
 
 setup_pbuilder() {
-MESSAGE="Installing packages for pbuilder ..." ; message
+MESSAGE="Installing packages for pbuilder ..." ; green_message
 if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_FOR_PBUILDER ; then
  echo -n
 else
- MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
  exit 1
 fi
 
-MESSAGE="Configuring pbuilder ..." ; message
+MESSAGE="Configuring pbuilder ..." ; green_message
 # Add repositories to be enabled inside Ubuntu pbuilder chroot
 if ! grep -q "COMPONENTS=" ~/.pbuilderrc ; then
   echo "COMPONENTS=\"main restricted universe multiverse\"" >> ~/.pbuilderrc
@@ -882,17 +898,17 @@ fi
 
 # TODO: Debian pbuilder
 if [ -a /var/cache/pbuilder/base.tgz ] ; then
-  MESSAGE="Updating pbuilder chroot ..." ; message
+  MESSAGE="Updating pbuilder chroot ..." ; green_message
   sudo pbuilder update
 else
-  MESSAGE="Setting up pbuilder chroot ..." ; message
+  MESSAGE="Setting up pbuilder chroot ..." ; green_message
   # --variant=buildd option (passed to debootstrap using --debootstrapopts)
   # This option closely mimics the environment of the official Launchpad build machines
   sudo pbuilder create --debootstrapopts --variant=buildd
 fi
 
 bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH -r $BZR_REVISION
-MESSAGE="Installing dependencies inside pbuilder chroot ..." ; message
+MESSAGE="Installing dependencies inside pbuilder chroot ..." ; green_message
 # Following command will run 'octool -ad' inside pbuilder chroot
 sudo pbuilder execute --save-after-exec $TEMP_OCPKG_BRANCH/ocpkg
 rm -rf $TEMP_OCPKG_BRANCH
@@ -903,12 +919,12 @@ DEB_BUILD_DIR=$LIVE_BUILD_DIR
 mkdir -p -v $DEB_BUILD_DIR || true
 cd $DEB_BUILD_DIR
 
-MESSAGE="Creating OpenCog (upstream) source tarball..." ; message
+MESSAGE="Creating OpenCog (upstream) source tarball..." ; green_message
 bzr export opencog-0.1.tar.gz $LIVE_SOURCE_BRANCH
 
 # Extract upstream source tarball and auto-add debian/ template
 # TODO: OpenCog versions
-MESSAGE="Extracting upstream source (OpenCog) tarball and debianizing it..." ; message
+MESSAGE="Extracting upstream source (OpenCog) tarball and debianizing it..." ; green_message
 tar -xzf opencog-0.1.tar.gz
 cd opencog-0.1
 #rm -rf debian/
@@ -935,12 +951,13 @@ rm -rf $TEMP_OCPKG_BRANCH
 
 # Open $DEB_BUILD_DIR/opencog-0.1/debian/changelog in a text editor to manually add a new changelog entry.
 # TODO: Automating the process of adding a new changelog entry using 'dch'
-MESSAGE="Script will now open debian/changelog in a text editor. Please edit changelog, save file and exit to continue..." ; message
+MESSAGE="Script will now open debian/changelog in a text editor. Please edit changelog, save file and exit to continue..." ; blue_message
 read -p "Press [Enter] key to continue..."
 dch -i
 }
 
 build_deb_source_package() {
+MESSAGE="Building DEB source package..." ; green_message
 # TODO: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Snapshots
 cd $DEB_BUILD_DIR/opencog-0.1
 # TODO: -us -uc if user does NOT wants package to be digitally signed
@@ -962,6 +979,7 @@ dput $PPA_LOCATION $DEB_BUILD_DIR/*source.changes
 }
 
 build_opencog_deb() {
+MESSAGE="Building DEB packages..." ; green_message
 cd $DEB_BUILD_DIR/opencog-0.1
 # Create DEB packages
 if [ $SIGN_PACKAGES ] ; then
@@ -971,7 +989,7 @@ else
   debuild -us -uc
 fi
 cd ..
-MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; message
+MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; green_message
 #echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
 #echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
 }
@@ -1102,6 +1120,7 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
   if [ $USE_PBUILDER ] ; then
     setup_pbuilder ; setup_deb_packaging ; build_deb_source_package
+    MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message
     cd $DEB_BUILD_DIR ; sudo pbuilder build *.dsc
   else
     setup_deb_packaging ; build_opencog_deb
