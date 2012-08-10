@@ -459,7 +459,7 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  while getopts ":s:l:r:dpnvh" flag ; do
+  while getopts ":s:l:r:dpcnvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
@@ -467,6 +467,7 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
       r)	BZR_REVISION="$OPTARG" ;;
       d)	SIGN_PACKAGES=true ;;				# digitally sign packages
       p)	USE_PBUILDER=true ;;				# Use pbuilder chroot to build in a minimal debian install
+      c)	SOURCE_PACKAGE_ONLY=true ;;			# Build Debian/Ubuntu source package only
       n)	unset UPDATE_OPENCOG ;;				# suppress bzr update
       v)	unset QUIET ;;
       h)	usage ;;
@@ -1132,16 +1133,22 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   else
      check_source_dir_exist > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
   fi
-  if [ $USE_PBUILDER ] ; then
-    setup_pbuilder > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  if [ $SOURCE_PACKAGE_ONLY ] ; then
     setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
     build_deb_source_package > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-    MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message  > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-    cd $DEB_BUILD_DIR
-    sudo pbuilder build *.dsc > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
   else
-    setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-    build_opencog_deb > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    if [ $USE_PBUILDER ] ; then
+      setup_pbuilder > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      build_deb_source_package > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message  > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      cd $DEB_BUILD_DIR
+      sudo pbuilder build *.dsc > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      MESSAGE="Built DEB packages are placed in /var/cache/pbuilder/result" ; green_message
+    else
+      setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      build_opencog_deb > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    fi
   fi
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
   if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
