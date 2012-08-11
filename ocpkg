@@ -50,15 +50,17 @@ STDERR_LOG_FILE=$(mktemp --suffix=.ocpkg-stderr.log)
 echo -e "Log files for this ocpkg session are located at:\n $STDOUT_LOG_FILE and $STDERR_LOG_FILE\n"
 
 declare -A PACKAGE_DESCRIPTION=(
-   [local]="Local install with no packaging (default)"
-    [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
-     [min]="LiveCD  ISO image ~700MB with OpenCog Server"
-     [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
-     [kvm]="TBD Ubuntu KVM image with OpenCog Server"
-  [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
-    [debs]="Ubuntu packages (deb files)"
-     [ppa]="Launchpad Personal Package Archive (PPA)"
-    [tool]="OpenCog related operations"
+    [local]="Local install with no packaging (default)"
+     [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
+      [min]="LiveCD  ISO image ~700MB with OpenCog Server"
+      [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
+      [kvm]="TBD Ubuntu KVM image with OpenCog Server"
+   [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
+     [debs]="Ubuntu packages (deb files)"
+      [ppa]="Launchpad Personal Package Archive (PPA)"
+     [tool]="OpenCog related operations"
+ [dailydeb]="Daily DEB Source builds (Launchpad daily builds)"
+[runscript]="Run 'octool -ad' inside pbuilder chroot"
 )
 
 PATH_PREFIX=/usr/local
@@ -455,10 +457,10 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	  MESSAGE="Package type $1 not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
 	  usage ; exit 1 ;;
   esac
-  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
 fi
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
+  PACKAGE_TYPE="debs"							# when "$SELF_NAME" = "ocdebs"
   while getopts ":s:l:r:dpcnvh" flag ; do
     case $flag in
 #TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
@@ -476,6 +478,7 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
+  PACKAGE_TYPE="ppa"						# when "$SELF_NAME" = "ocppa"
   while getopts ":s:l:r:p:dnvh" flag ; do
     case $flag in
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
@@ -491,6 +494,7 @@ elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  PACKAGE_TYPE="tool"						# when "$SELF_NAME" = "ocppa"
   unset UPDATE_OPENCOG
   while getopts ":j:s:l:r:adubtpvh" flag ; do
     case $flag in     
@@ -511,6 +515,7 @@ elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
+  PACKAGE_TYPE="local"						# when "$SELF_NAME" = "oclocal"
   while getopts ":j:s:l:r:nvh" flag ; do
     case $flag in
       j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
@@ -525,6 +530,7 @@ elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "ocmin" ] || [ "$PACKAGE_TYPE" = "min" ] ; then
+  PACKAGE_TYPE="min"						# when "$SELF_NAME" = "ocmin"
   while getopts ":i:o:j:s:l:r:nvh" flag ; do
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;          
@@ -541,6 +547,7 @@ elif [ "$SELF_NAME" = "ocmin" ] || [ "$PACKAGE_TYPE" = "min" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
+  PACKAGE_TYPE="demo"						# when "$SELF_NAME" = "ocdemo"
   while getopts ":i:o:j:s:l:r:nvh" flag ; do
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;          
@@ -557,6 +564,7 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
   done
   shift $((OPTIND-1))
 elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
+  PACKAGE_TYPE="dev"						# when "$SELF_NAME" = "ocdev"
   while getopts ":i:o:j:s:l:r:nvh" flag ; do
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;          
@@ -574,6 +582,7 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
   shift $((OPTIND-1))
 # Testing daily source recipe locally before sending it to Launchpad is recommended as failed builds will waste your Launchpad allocation (Launchpad limits each user to five builds per distroseries, per recipe, per day)
 elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
+  PACKAGE_TYPE="dailydeb"				# when "$SELF_NAME" = "ocdailydeb"
   DAILYDEB_QUIET="-q"
   while getopts ":vh" flag ; do
     case $flag in
@@ -585,13 +594,16 @@ elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
   shift $((OPTIND-1))
 # 'runscript' package type is to run 'octool -ad' inside pbuilder chroot
 # When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
-elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
+elif [ "$SELF_NAME" = "runscript" ] ; then
+  PACKAGE_TYPE="runscript"				# when "$SELF_NAME" = "runscript"
   ADD_REPOSITORIES=true
   INSTALL_DEPENDENCIES=true
 else
   MESSAGE="$SELF_NAME not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
   usage ; exit 1
 fi
+
+MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
 
 #echo "[otheropts]==> $@"
 
