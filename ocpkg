@@ -44,11 +44,6 @@ set -e
 # SECTION 1: GLOBAL VARIABLES #
 ###############################
 
-STDOUT_LOG_FILE=$(mktemp --suffix=.ocpkg-stdout.log)
-STDERR_LOG_FILE=$(mktemp --suffix=.ocpkg-stderr.log)
-
-echo -e "Log files for this ocpkg session are located at:\n $STDOUT_LOG_FILE and $STDERR_LOG_FILE\n"
-
 declare -A PACKAGE_DESCRIPTION=(
     [local]="Local install with no packaging (default)"
      [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
@@ -454,8 +449,7 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	--dailydeb|dailydeb)
 	  shift ; PACKAGE_TYPE="dailydeb" ;;
 	*)
-	  MESSAGE="Package type $1 not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-	  usage ; exit 1 ;;
+	  MESSAGE="Package type $1 not recognized." ; red_message ; usage ; exit 1 ;;
   esac
 fi
 
@@ -599,11 +593,10 @@ elif [ "$SELF_NAME" = "runscript" ] ; then
   ADD_REPOSITORIES=true
   INSTALL_DEPENDENCIES=true
 else
-  MESSAGE="$SELF_NAME not recognized." ; red_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-  usage ; exit 1
+  MESSAGE="$SELF_NAME not recognized." ; red_message ; usage ; exit 1
 fi
 
-MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message
 
 #echo "[otheropts]==> $@"
 
@@ -932,7 +925,6 @@ bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BR
 MESSAGE="Installing dependencies inside pbuilder chroot ..." ; green_message
 # Following command will run 'octool -ad' inside pbuilder chroot
 sudo pbuilder execute --save-after-exec $TEMP_OCPKG_BRANCH/ocpkg
-rm -rf $TEMP_OCPKG_BRANCH
 }
 
 setup_deb_packaging() {
@@ -1025,7 +1017,6 @@ fi
 
 dailydeb_recipe() {
 MESSAGE="Testing the dailydeb source recipe..." ; message
-bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH
 DAILYDEB_BUILD=$(mktemp -d --suffix=.oc-dailydeb)
 MESSAGE="Building daily source builds in $DAILYDEB_BUILD ..." ; message
 bzr dailydeb $DAILYDEB_QUIET --allow-fallback-to-native $TEMP_OCPKG_BRANCH/opencog.recipe $DAILYDEB_BUILD
@@ -1137,29 +1128,23 @@ cleanup_iso
 #######################################
 
 if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
-  install_deb_package_tools > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-  add_repositories > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-  install_dependencies > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+  install_deb_package_tools ; add_repositories ; install_dependencies
   if [ $UPDATE_OPENCOG ] ; then
-    update_opencog_source > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    update_opencog_source
   else
-     check_source_dir_exist > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    check_source_dir_exist
   fi
   if [ $SOURCE_PACKAGE_ONLY ] ; then
-    setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-    build_deb_source_package > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+    setup_deb_packaging ; build_deb_source_package
   else
     if [ $USE_PBUILDER ] ; then
-      setup_pbuilder > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-      setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-      build_deb_source_package > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-      MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message  > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      setup_pbuilder ; setup_deb_packaging ; build_deb_source_package
+      MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message
       cd $DEB_BUILD_DIR
-      sudo pbuilder build *.dsc > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      sudo pbuilder build *.dsc
       MESSAGE="Built DEB packages are placed in /var/cache/pbuilder/result" ; green_message
     else
-      setup_deb_packaging > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
-      build_opencog_deb > >(tee -a STDOUT_LOG_FILE) 2> >(tee -a STDERR_LOG_FILE >&2)
+      setup_deb_packaging ; build_opencog_deb
     fi
   fi
 elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
