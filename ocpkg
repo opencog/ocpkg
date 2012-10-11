@@ -379,9 +379,13 @@ PACKAGES_EXDEV="
 # SECTION 2: Command line option handling #
 ###########################################
 
-# TODO: Update usage() [major changes were made to command line option handling]
+# Simply keep usage() below up-to-date
+# And, to automatically update the manpage (located at lp:ocpkg/ocpkg.8), run:
+# ./ocpkg -h | txt2man -s 8 -t ocpkg -v "ocpkg manual" > ./ocpkg.8
+
 usage() {
-  echo "NAME"
+#  echo "NAME"
+  MESSAGE="NAME" ; blue_message
   echo "ocpkg - Download, build, test, install and package OpenCog"
   echo ""
   echo "SYNOPSIS"
@@ -566,7 +570,7 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	--dailydeb|dailydeb)
 	  shift ; PACKAGE_TYPE="dailydeb" ;;
 	*)
-	  usage ; exit 1 ;;
+	  MESSAGE="Package type $1 not recognized." ; red_message ; usage ; exit 1 ;;
   esac
 fi
 
