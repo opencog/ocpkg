@@ -145,6 +145,7 @@ PACKAGES_FOR_PBUILDER="
 
 PACKAGES_FETCH="	
 		bzr \
+		git \
 			"
 		#bzr-rewrite \
 
@@ -187,7 +188,6 @@ PACKAGES_BUILD="
 		libzmq-dev \
 		libprotoc-dev \
 		protobuf-compiler \
-		doxygen \
 		"
 		#liblua5.1-0-dev \
 
@@ -569,8 +569,6 @@ if [ "$SELF_NAME" = "ocpkg" ] ; then
 	  shift ; PACKAGE_TYPE="tool" ;;
 	--dailydeb|dailydeb)
 	  shift ; PACKAGE_TYPE="dailydeb" ;;
-	*)
-	  MESSAGE="Package type $1 not recognized." ; red_message ; usage ; exit 1 ;;
   esac
 fi
 
@@ -585,7 +583,7 @@ if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
       d)	SIGN_PACKAGES=true ;;				# digitally sign packages
       p)	USE_PBUILDER=true ;;				# Use pbuilder chroot to build in a minimal debian install
       c)	SOURCE_PACKAGE_ONLY=true ;;			# Build Debian/Ubuntu source package only
-      n)	unset UPDATE_OPENCOG ;;				# suppress bzr update
+      n)	unset UPDATE_OPENCOG ;;				# suppress git update
       v)	unset QUIET ;;
       h)	usage ;;
       \?)	usage ;;
@@ -601,7 +599,7 @@ elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
       r)	BZR_REVISION="$OPTARG" ;;
       p)	PPA_LOCATION="$OPTARG" ;;		# Launchpad PPA location (listed under "Uploading packages to this PPA" section on PPA's overview page)
       d)	SIGN_PACKAGES=true ;;				# digitally sign packages
-      n)	unset UPDATE_OPENCOG ;;			#bzr pull
+      n)	unset UPDATE_OPENCOG ;;			#git pull
       v)	unset QUIET ;;
       h)	usage ;;
       \?)	usage ;;
@@ -619,7 +617,7 @@ elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
       r)	BZR_REVISION="$OPTARG" ;;
       a)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;;	#ALL, none
-      u)	UPDATE_OPENCOG=true ;;			#bzr pull
+      u)	UPDATE_OPENCOG=true ;;			#git pull
       b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
       t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
       p)	REINSTALL_PACKAGES=true ;;
@@ -637,7 +635,7 @@ elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
       l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
       r)	BZR_REVISION="$OPTARG" ;;
-      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
       v)	unset QUIET ;; 
       h)	usage ;; 
       \?)	usage ;;
@@ -654,7 +652,7 @@ elif [ "$SELF_NAME" = "ocmin" ] || [ "$PACKAGE_TYPE" = "min" ] ; then
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
       l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
       r)	BZR_REVISION="$OPTARG" ;;
-      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
       v)	unset QUIET ;; 
       h)	usage ;; 
       \?)	usage ;;
@@ -671,7 +669,7 @@ elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
       l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
       r)	BZR_REVISION="$OPTARG" ;;		
-      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update 
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update 
       v)	unset QUIET ;; 
       h)	usage ;; 
       \?)	usage ;;
@@ -688,7 +686,7 @@ elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
       s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
       l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
       r)	BZR_REVISION="$OPTARG" ;;
-      n)	unset UPDATE_OPENCOG ;;		#suppress bzr update
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
       v)	unset QUIET ;; 
       h)	usage ;; 
       \?)	usage ;;
@@ -866,10 +864,10 @@ OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
-  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  git clone git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR 
 else
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
-    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+    git pull git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR 
 fi
 }
 

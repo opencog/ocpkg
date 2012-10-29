@@ -71,7 +71,8 @@ mount -o bind /usr/local/src/opencog $CHROOT_DIR/usr/local/src/opencog
 echo "deb $DISTRO_MIRROR $CHROOT_DISTRO main universe" > $CHROOT_DIR/etc/apt/sources.list
 
 chroot $CHROOT_DIR /usr/bin/apt-get update
-chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties bzr sudo
-chroot $CHROOT_DIR /usr/bin/bzr branch lp:ocpkg --use-existing-dir /usr/local/bin
-chroot $CHROOT_DIR /bin/chmod ugo+rx /usr/local/bin/*
+chroot $CHROOT_DIR /usr/bin/apt-get -y install python-software-properties git sudo
+chroot $CHROOT_DIR /usr/bin/git clone git://github.com/opencog/ocpkg /usr/local/lib/opencog
+chroot $CHROOT_DIR /bin/chmod ugo+rx /usr/local/lib/opencog/ocpkg/*
+chroot $CHROOT_DIR ln -s /usr/local/lib/opencog/ocpkg/ocpkg /usr/local/bin
 chroot $CHROOT_DIR /usr/local/bin/ocpkg -j$MAKE_JOBS
