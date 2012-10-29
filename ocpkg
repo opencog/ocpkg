@@ -10,13 +10,13 @@
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
-# SECTION 2. Command line option hanling
+# SECTION 2. Command line option handling
 # SECTION 3. Error handling & cleanup
 # SECTION 4. Function definitions
 # SECTION 5. Main program
 
 # Notes:
-# - terminal & editor are best set to a colum width of 144+ characters 
+# - terminal & editor are best set to a column width of 144+ characters 
 #        (bash lines, dpkg lines and gcc lines can be long!)
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
 #        (real time overhead for CD repackaging without building OpenCog is about 5m)
@@ -34,19 +34,28 @@
 # - add manifest rebuild to LiveCD/DVD
 # - add priveledge separation when run as root (run make, etc., as real user)
 
+# TODO (when code in amberj-ocpkg is merged with lp:ocpkg)
+# 1. build_opencog_deb() copies debian/ from lp:~i-amber-jain/ocpkg/amberj-ocpkg. Change the code so that it does the same from lp:ocpkg
+
 # trap errors
 set -e
 
-# SECTION 1: GLOBAL VARIABLES
+###############################
+# SECTION 1: GLOBAL VARIABLES #
+###############################
 
 declare -A PACKAGE_DESCRIPTION=(
-  [local]="Local install with no packaging (default)"
-   [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
-    [min]="LiveCD  ISO image ~700MB with OpenCog Server"
-    [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
-    [kvm]="TBD Ubuntu KVM image with OpenCog Server"
- [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
-   [debs]="TBD Ubuntu packages (deb files)" 
+    [local]="Local install with no packaging (default)"
+     [demo]="LiveCD  ISO image ~700MB with OpenCog Demo (auto-starting)"
+      [min]="LiveCD  ISO image ~700MB with OpenCog Server"
+      [dev]="LiveDVD ISO image ~900MB with OpenCog Developement Environment"
+      [kvm]="TBD Ubuntu KVM image with OpenCog Server"
+   [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
+     [debs]="Ubuntu packages (deb files)"
+      [ppa]="Launchpad Personal Package Archive (PPA)"
+     [tool]="OpenCog related operations"
+ [dailydeb]="Daily DEB Source builds (Launchpad daily builds)"
+[runscript]="Run 'octool -ad' inside pbuilder chroot"
 )
 
 PATH_PREFIX=/usr/local
@@ -60,6 +69,8 @@ else
  HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
 fi
 
+TEMP_OCPKG_BRANCH=$(mktemp -d --suffix=.ocpkg)
+
 BZR_REVISION="last:1"
 
 OUTPUT_ISO_NAME=OpenCogLive.iso 
@@ -69,14 +80,16 @@ DEFAULT_PACKAGE_TYPE=local
 DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_UPDATE_OPENCOG=true		
-DEFAULT_BUILD_OPENCOG=true		
+DEFAULT_BUILD_OPENCOG=true
 
 UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
 UBUNTU_URL=http://releases.ubuntu.com/11.10/
 UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
+UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG
 SELF_NAME=$(basename $0)
+# TODO Change all occurrences of octool with tool (?)
 TOOL_NAME=octool
 
 PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
@@ -105,10 +118,37 @@ PACKAGES_TOOLS="
 		#aria2 \
 		#qemu-kvm \
 		#testdrive \
+
+DEB_PACKAGES_TOOLS="	
+		build-essential \
+		packaging-dev \
+		gnupg \
+		ubuntu-dev-tools \
+		bzr-builddeb \
+		dh-make \
+		bzr-builddeb \
+		devscripts \
+		"
+		#apt-file
+
+DAILYDEB_PACKAGES_TOOLS="
+		bzr-builder \
+		debhelper \
+		"
+		#devscripts
+
+PACKAGES_FOR_PBUILDER="
+		pbuilder \
+		debootstrap \
+		"
+		#devscripts
+
 PACKAGES_FETCH="	
 		bzr \
+		git \
 			"
 		#bzr-rewrite \
+
 PACKAGES_ADMIN="	
 		apt-rdepends \
 		synaptic \
@@ -147,8 +187,10 @@ PACKAGES_BUILD="
 		uuid-dev \
 		libzmq-dev \
 		libprotoc-dev \
+		protobuf-compiler \
 		"
 		#liblua5.1-0-dev \
+
 PACKAGES_RUNTIME="	
 		libboost-system1.46.1 \
 		libboost-filesystem1.46.1 \
@@ -332,77 +374,354 @@ PACKAGES_EXDEV="
 		linux-headers-generic \
 		linux-headers-3.2.0-22 \
 		"
-# SECTION 2: Command line option handling
+
+###########################################
+# SECTION 2: Command line option handling #
+###########################################
+
+# Simply keep usage() below up-to-date
+# And, to automatically update the manpage (located at lp:ocpkg/ocpkg.8), run:
+# ./ocpkg -h | txt2man -s 8 -t ocpkg -v "ocpkg manual" > ./ocpkg.8
 
 usage() {
-if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
-  echo "Usage: $SELF_NAME [OPTIONS] [PACKAGE-TYPE]"
-  echo "  PACKAGE-TYPES:"
-  for key in ${!PACKAGE_DESCRIPTION[@]}; do
-    echo "   " ${key} $'\t' "${PACKAGE_DESCRIPTION[$key]}"
-  done
-  echo "    (Live CD: Ubuntu ISO image ~700MB will be downloaded if none found.)"
-  echo "  OPTIONS:"
-  echo "    -i [filename]  ISO input  filename"
-  echo "    -o [filename]  ISO output filename"
-  echo "    -j [jobs]      override number of auto-detected make jobs"
-  echo "    -n             supress bzr updates"
-else 
-  echo "Usage: $SELF_NAME OPTION"
-  echo " -a Add software repositories"
-  echo " -d Install build dependencies"
-  echo " -u Update OpenCog source at $HOST_SOURCE_BRANCH"
-  echo " -b Build OpenCog"
-  echo " -t Test OpenCog"
-fi 
+#  echo "NAME"
+  MESSAGE="NAME" ; blue_message
+  echo "ocpkg - Download, build, test, install and package OpenCog"
+  echo ""
+  echo "SYNOPSIS"
+  echo "ocpkg --debs [options]"
+  echo "ocpkg --tool [options]"
+  echo "ocpkg --local [options]"
+  echo "ocpkg --ppa [options]"
+  echo "ocpkg --dailydeb [options]"
+  echo ""
+  echo "DESCRIPTION"
+  echo "Front end script to the ocpkg suite of bash scripts used to download,"
+  echo "build, test, install and package OpenCog. This multi-call script allows"
+  echo "anyone to build and test different package types."
+  echo ""
+  echo "USAGE"
+  echo "  ocpkg is a multi-call script. A multi-call script is a script that"
+  echo "  performs the same job as more than one utility script. That means there"
+  echo "  is just a single ocpkg script, but that single script acts like a large"
+  echo "  number of sub-scripts. This allows ocpkg script to be smaller since all"
+  echo "  the builtin sub-scripts can share code for many common operations. You"
+  echo "  can invoke ocpkg by issuing a package type as an argument on the command"
+  echo "  line. For example, to build Debian/Ubuntu DEB packages, enter:"
+  echo ""
+  echo "	ocpkg --debs"
+  echo ""
+  echo "  For your convenience, you can invoke a particular package type in ocpkg"
+  echo "  using links to ocpkg script. For example, entering:"
+  echo ""
+  echo "	ln -s ocpkg ocdebs"
+  echo ""
+  echo "  will cause ocdebs to behave as 'ocpkg --debs'."
+  echo "COMMANDS AND OPTIONS"
+  echo "  ocpkg --debs [options]  Create DEB packages for Debian based systems."
+  echo "                          (including Ubuntu)."
+  echo "	Options:  "
+  echo "		-s LOCAL_SOURCE_DIR  Local source branch/directory of OpenCog."
+  echo "		-l LOCAL_BUILD_DIR   Local build directory."
+  echo "		-r BZR_REVISION      Bazaar revision number to branch locally."
+  echo "		-d                   Digitally sign built Debian packages."
+  echo "		-p                   Use pbuilder chroot to build in a minimal"
+  echo "		                     debian install."
+  echo "		-c                   Build Debian/Ubuntu source package only."
+  echo "		-n                   Suppress Bazaar update before building"
+  echo "		                     Debian packages."
+  echo "		-v                   Turn on verbose mode."
+  echo "		-h                   Prints out help message with usage"
+  echo "		                     instructions."
+  echo ""
+  echo "  ocpkg --tool [options]  Perform common operations related to building"
+  echo "						  OpenCog."
+  echo "	Options:  "
+  echo "		-j MAKE_JOBS         Override auto-detected 'make' jobs i.e. number"
+  echo "		                     of jobs/commands to run simultaneously."
+  echo "		-s LOCAL_SOURCE_DIR  Local source branch/directory of OpenCog."
+  echo "		-l LOCAL_BUILD_DIR   Local build directory."
+  echo "		-r BZR_REVISION      Bazaar revision number to branch locally."
+  echo "		-a                   Add Debian repositories/Launchpad PPA which"
+  echo "		                     contain OpenCog build dependencies."
+  echo "		-d                   Install OpenCog build dependencies."
+  echo "		-u                   Update OpenCog's local branch."
+  echo "		-b                   Build OpenCog locally."
+  echo "		-t                   Test OpenCog after local build."
+  echo "		-p                   Reinstall Debian packages uninstalled"
+  echo "		                     (i.e. 'apt-get remove') by ocpkg."
+  echo "		-v                   Turn on verbose mode."
+  echo "		-h                   Prints out help message with usage instructions."
+  echo ""
+  echo "  ocpkg --local [options]  Build OpenCog in a local directory."
+  echo "	Options:  "
+  echo "		-j MAKE_JOBS         Override auto-detected 'make' jobs (number"
+  echo "		                     of jobs/commands to run simultaneously)."
+  echo "		-s LOCAL_SOURCE_DIR  Local source branch/directory of OpenCog."
+  echo "		-l LOCAL_BUILD_DIR   Local build directory."
+  echo "		-r BZR_REVISION      Bazaar revision number to branch locally."
+  echo "		-n                   Suppress Bazaar update (before building"
+  echo "		                     Debian packages)."
+  echo "		-v                   Turn on verbose mode."
+  echo "		-h                   Prints out help message with usage instructions."
+  echo ""
+  echo "  ocpkg --ppa [options]  Build source package and upload to specified"
+  echo "                         Launchpad PPA."
+  echo "	Options:  "
+  echo "		-s LOCAL_SOURCE_DIR  Local source branch/directory of OpenCog."
+  echo "		-l LOCAL_BUILD_DIR   Local build directory."
+  echo "		-r BZR_REVISION      Bazaar revision number to branch locally."
+  echo "		-p PPA_LOCATION      Launchpad PPA location listed under \"Uploading"
+  echo "		                     packages to this PPA\" section on PPA's overview"
+  echo "		                     webpage."
+  echo "		-d                   Digitally sign packages with GPG."
+  echo "		-n                   Suppress Bazaar update before building"
+  echo "		                     Debian packages."
+  echo "		-v                   Turn on verbose mode."
+  echo "		-h                   Prints out help message with usage instructions."
+  echo ""
+  echo "  ocpkg --dailydeb [options]  Test Launchpad Launchpad's daily source"
+  echo "                               package recipes."
+  echo "	Options:  "
+  echo "		-v Turn on verbose mode."
+  echo "		"
+  echo "		-h Prints out help message with usage instructions."
+  echo ""
+  echo "FILES AND DIRECTORIES"
+  echo "  lp:ocpkg/ocbootstrap  A script to create a chroot environment in which"
+  echo "  to run ocpkg."
+  echo "  "
+  echo "  lp:ocpkg/oc-cygwin-setup.bat  Windows batch script to install and setup"
+  echo "  Cygwin packages needed to build OpenCog."
+  echo "  "
+  echo "  lp:ocpkg/ocfeedbot  IRC bot that keeps track of RSS feeds."
+  echo "  "
+  echo "  lp:ocpkg/debian/  Debian packaging configuration."
+  echo ""
+  echo "EXAMPLES"
+  echo "  Even though ocpkg has loads of options (intended to be used by OpenCog"
+  echo "  packagers), ocpkg uses sane defaults so that simply typing any of the"
+  echo "  commands (without any options) work out of the box such as:"
+  echo ""
+  echo "	ocpkg --debs"
+  echo ""
+  echo "	ocpkg --tool"
+  echo ""
+  echo "	ocpkg --local"
+  echo ""
+  echo "	ocpkg --dailydeb"
+  echo ""
+  echo "BUGS"
+  echo "Not known."
+  echo ""
+  echo "AUTHORS"
+  echo "  OpenCog Foundation"
+  echo "  "
+  echo "  OpenCog homepage is located at http://opencog.org/"
+  echo "  "
+  echo "  The currently active ocpkg development branches are located at:"
+  echo "  1. https://launchpad.net/ocpkg aka lp:ocpkg (stable, recommended)"
+  echo "  2. https://code.launchpad.net/~i-amber-jain/ocpkg/amberj-ocpkg (trunk, unstable)."
+exit 0
 }
 
-while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
-  case $flag in
-    i)	INPUT_ISO_NAME="$OPTARG" ;;          
-    o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
-    j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
-    s)	HOST_SOURCE_BRANCH="$OPTARG" ;;   
-    c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
-    l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
-    r)	BZR_REVISION="$OPTARG" ;;		
-    a)	ADD_REPOSITORIES=true ;;
-    d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-    u)	UPDATE_OPENCOG=true ;;			#bzr pull
-    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
-    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    p)	REINSTALL_PACKAGES=true ;; 
-    v)	unset QUIET ;; 
-    h)	usage ;; 
-    \?)	usage ;;
-  esac
-done
-
-shift $((OPTIND-1))
-
+# DEPRECATED! Print message in blue foreground color
+# DEPRECATED: Please use red_message(), green_message() or blue_message() instead
 message() {
 echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
-PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
+# Prints warning/error $MESSAGE in red foreground color
+# For error [E] messages
+red_message() {
+echo -e "\e[1;31m[$SELF_NAME] E: $MESSAGE\e[0m"
+}
 
-if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
- case $1 in 
-   debs)  PACKAGE_TYPE=$1 ;;
-   dev)   PACKAGE_TYPE=$1 ;;
-   demo)  PACKAGE_TYPE=$1 ;;
-   kvm)   PACKAGE_TYPE=$1 ;;
-   min)   PACKAGE_TYPE=$1 ;;
-   local) PACKAGE_TYPE=$1 ;;
-   *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
- esac
- MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
+# Prints success/info $MESSAGE in green foreground color
+# For info [I] messages
+green_message() {
+echo -e "\e[1;32m[$SELF_NAME] I: $MESSAGE\e[0m"
+}
+
+# Prints $MESSAGE in blue foreground color
+# For output messages that require special user attention (especially when script requires input from user to continue)
+blue_message() {
+echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+}
+
+# Parse package type (e.g. "debs" for Ubuntu/Debian debs, "local" for building locally etc.)
+if [ "$SELF_NAME" = "ocpkg" ] ; then
+  PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
+  case "$1" in
+    --debs|debs)
+	  shift ; PACKAGE_TYPE="debs" ;;
+	--ppa|ppa)
+	  shift ; PACKAGE_TYPE="ppa" ;;
+	--dev|dev)
+	  shift ; PACKAGE_TYPE="dev"	;;
+	--demo|demo)
+	  shift ; PACKAGE_TYPE="demo" ;;
+	--min|min)
+	  shift ; PACKAGE_TYPE="min" ;;
+	--local|local)
+	  shift ; PACKAGE_TYPE="local" ;;
+	--tool|tool)
+	  shift ; PACKAGE_TYPE="tool" ;;
+	--dailydeb|dailydeb)
+	  shift ; PACKAGE_TYPE="dailydeb" ;;
+  esac
 fi
+
+if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
+  PACKAGE_TYPE="debs"							# when "$SELF_NAME" = "ocdebs"
+  while getopts ":s:l:r:dpcnvh" flag ; do
+    case $flag in
+#TODO      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;			#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      d)	SIGN_PACKAGES=true ;;				# digitally sign packages
+      p)	USE_PBUILDER=true ;;				# Use pbuilder chroot to build in a minimal debian install
+      c)	SOURCE_PACKAGE_ONLY=true ;;			# Build Debian/Ubuntu source package only
+      n)	unset UPDATE_OPENCOG ;;				# suppress git update
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
+  PACKAGE_TYPE="ppa"						# when "$SELF_NAME" = "ocppa"
+  while getopts ":s:l:r:p:dnvh" flag ; do
+    case $flag in
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      p)	PPA_LOCATION="$OPTARG" ;;		# Launchpad PPA location (listed under "Uploading packages to this PPA" section on PPA's overview page)
+      d)	SIGN_PACKAGES=true ;;				# digitally sign packages
+      n)	unset UPDATE_OPENCOG ;;			#git pull
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  PACKAGE_TYPE="tool"						# when "$SELF_NAME" = "ocppa"
+  unset UPDATE_OPENCOG
+  while getopts ":j:s:l:r:adubtpvh" flag ; do
+    case $flag in     
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;  
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live/local build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      a)	ADD_REPOSITORIES=true ;;
+      d)	INSTALL_DEPENDENCIES=true ;;	#ALL, none
+      u)	UPDATE_OPENCOG=true ;;			#git pull
+      b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
+      t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
+      p)	REINSTALL_PACKAGES=true ;;
+      v)	unset QUIET ;;
+      h)	usage ;;
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
+  PACKAGE_TYPE="local"						# when "$SELF_NAME" = "oclocal"
+  while getopts ":j:s:l:r:nvh" flag ; do
+    case $flag in
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
+      v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocmin" ] || [ "$PACKAGE_TYPE" = "min" ] ; then
+  PACKAGE_TYPE="min"						# when "$SELF_NAME" = "ocmin"
+  while getopts ":i:o:j:s:l:r:nvh" flag ; do
+    case $flag in
+      i)	INPUT_ISO_NAME="$OPTARG" ;;          
+      o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
+      v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
+  PACKAGE_TYPE="demo"						# when "$SELF_NAME" = "ocdemo"
+  while getopts ":i:o:j:s:l:r:nvh" flag ; do
+    case $flag in
+      i)	INPUT_ISO_NAME="$OPTARG" ;;          
+      o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;		
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update 
+      v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
+  PACKAGE_TYPE="dev"						# when "$SELF_NAME" = "ocdev"
+  while getopts ":i:o:j:s:l:r:nvh" flag ; do
+    case $flag in
+      i)	INPUT_ISO_NAME="$OPTARG" ;;          
+      o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
+      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      s)	LIVE_SOURCE_BRANCH="$OPTARG" ;;   
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      r)	BZR_REVISION="$OPTARG" ;;
+      n)	unset UPDATE_OPENCOG ;;		#suppress git update
+      v)	unset QUIET ;; 
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+# Testing daily source recipe locally before sending it to Launchpad is recommended as failed builds will waste your Launchpad allocation (Launchpad limits each user to five builds per distroseries, per recipe, per day)
+elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
+  PACKAGE_TYPE="dailydeb"				# when "$SELF_NAME" = "ocdailydeb"
+  DAILYDEB_QUIET="-q"
+  while getopts ":vh" flag ; do
+    case $flag in
+      v)	unset DAILYDEB_QUIET ;;
+      h)	usage ;; 
+      \?)	usage ;;
+    esac
+  done
+  shift $((OPTIND-1))
+# 'runscript' package type is to run 'octool -ad' inside pbuilder chroot
+# When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
+elif [ "$SELF_NAME" = "runscript" ] ; then
+  PACKAGE_TYPE="runscript"				# when "$SELF_NAME" = "runscript"
+  ADD_REPOSITORIES=true
+  INSTALL_DEPENDENCIES=true
+else
+  MESSAGE="$SELF_NAME not recognized." ; red_message ; usage ; exit 1
+fi
+
+MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; blue_message
 
 #echo "[otheropts]==> $@"
 
-# SECTION 3: Error handling & cleanup
+#######################################
+# SECTION 3: Error handling & cleanup #
+#######################################
 
 debug() {
 MESSAGE="Dropping to debugging chroot prompt..." ; message
@@ -493,16 +812,19 @@ trap error_trap ERR
 trap exit_trap  EXIT 
 trap quit_trap  INT HUP QUIT TERM
 
-# SECTION 4: Function Definitions
+###################################
+# SECTION 4: Function Definitions #
+###################################
 
 add_repositories() {
 if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
-  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; message
+  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; green_message
 else
-  MESSAGE="Adding software repositories..." ; message
+  MESSAGE="Adding software repositories..." ; green_message
   for REPO in $REPOSITORIES ; do 
     sudo apt-add-repository -y $REPO
   done
+  MESSAGE="Updating the package index. Please wait..." ; green_message
   sudo apt-get $QUIET --assume-yes update 
 fi
 }
@@ -516,9 +838,16 @@ fi
 }
 
 install_dependencies() {
-MESSAGE="Installing OpenCog build dependencies...." ; message
+MESSAGE="Installing OpenCog build dependencies...." ; green_message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME ; then
-  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
+  exit 1
+fi
+}
+
+check_source_dir_exist() {
+if [ ! -d $LIVE_SOURCE_BRANCH ] ; then
+  MESSAGE="You specified -n option but directory $LIVE_SOURCE_BRANCH does NOT exists. You can use -s option to specify source branch/directory." ; message
   exit 1
 fi
 }
@@ -527,19 +856,18 @@ update_opencog_source() {
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
   echo -n
 else
-  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
 exit 1
 fi
+
 OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
-  MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
+  git clone git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR 
 else
-  if [ $UPDATE_OPENCOG ] ; then
-    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
-  fi
+    MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; green_message
+    git pull git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR 
 fi
 }
 
@@ -634,12 +962,186 @@ chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove
 
 install_package_tools() {
 MESSAGE="Installing packaging tools..." ; message
-if apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
+if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
  echo -n
 else
  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
  exit 1
 fi
+}
+
+check_bzr_config() {
+# 'bzr launchpad-login' needed as well?
+if bzr whoami &> /dev/null ; then
+  echo -n
+else
+  MESSAGE="bzr: ERROR: Unable to determine your name." ; message
+  echo "Please, set your name with the 'whoami' command E.g. bzr whoami \"Your Name <name@example.com>\""
+  exit 1
+fi
+}
+
+install_deb_package_tools() {
+MESSAGE="Installing DEB packaging tools..." ; green_message
+if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $DEB_PACKAGES_TOOLS ; then
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
+ exit 1
+fi
+}
+
+setup_pbuilder() {
+MESSAGE="Installing packages for pbuilder ..." ; green_message
+if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_FOR_PBUILDER ; then
+ echo -n
+else
+ MESSAGE="Please enable 'universe' repositories and re-run this script."  ; red_message
+ exit 1
+fi
+
+MESSAGE="Configuring pbuilder ..." ; green_message
+# Add repositories to be enabled inside Ubuntu pbuilder chroot
+if ! grep -q "COMPONENTS=" ~/.pbuilderrc ; then
+  echo "COMPONENTS=\"main restricted universe multiverse\"" >> ~/.pbuilderrc
+else
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "main" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"main\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "universe" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"universe\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "multiverse" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"multiverse\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "COMPONENTS=" ~/.pbuilderrc | grep -q "restricted" ~/.pbuilderrc ; then
+    echo "COMPONENTS=\"restricted\"" >> ~/.pbuilderrc
+  fi
+fi
+
+# Add required packages which will be installed inside pbuilder chroot
+if ! grep -q "EXTRAPACKAGES=" ~/.pbuilderrc ; then
+  echo "EXTRAPACKAGES=\"sudo python-software-properties\"" >> ~/.pbuilderrc
+else
+  if ! grep "EXTRAPACKAGES=" ~/.pbuilderrc | grep -q "sudo" ~/.pbuilderrc ; then
+    echo "EXTRAPACKAGES=\"sudo\"" >> ~/.pbuilderrc
+  fi
+  if ! grep "EXTRAPACKAGES=" ~/.pbuilderrc | grep -q "python-software-properties" ~/.pbuilderrc ; then
+    echo "EXTRAPACKAGES=\"python-software-properties\"" >> ~/.pbuilderrc
+  fi
+fi
+
+# TODO: Debian pbuilder
+if [ -a /var/cache/pbuilder/base.tgz ] ; then
+  MESSAGE="Updating pbuilder chroot ..." ; green_message
+  sudo pbuilder update
+else
+  MESSAGE="Setting up pbuilder chroot ..." ; green_message
+  # --variant=buildd option (passed to debootstrap using --debootstrapopts)
+  # This option closely mimics the environment of the official Launchpad build machines
+  sudo pbuilder create --debootstrapopts --variant=buildd
+fi
+
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH -r $BZR_REVISION
+MESSAGE="Installing dependencies inside pbuilder chroot ..." ; green_message
+# Following command will run 'octool -ad' inside pbuilder chroot
+sudo pbuilder execute --save-after-exec $TEMP_OCPKG_BRANCH/ocpkg
+}
+
+setup_deb_packaging() {
+DEB_BUILD_DIR=$LIVE_BUILD_DIR
+mkdir -p -v $DEB_BUILD_DIR || true
+cd $DEB_BUILD_DIR
+
+MESSAGE="Creating OpenCog (upstream) source tarball..." ; green_message
+bzr export opencog-0.1.tar.gz $LIVE_SOURCE_BRANCH
+
+# Extract upstream source tarball and auto-add debian/ template
+# TODO: OpenCog versions
+MESSAGE="Extracting upstream source (OpenCog) tarball and debianizing it..." ; green_message
+tar -xzf opencog-0.1.tar.gz
+cd opencog-0.1
+#rm -rf debian/
+
+# Using dh_make: All that dh_make does is:
+# 1. create a orig tarball (opencog-orig.tar.gz)
+# 2. create a debian/ template directory in the branch
+# This is manually done by this ocpkg using two simple 'cp' commands.
+#echo "\n" | dh_make --email test@example.com -s -f ../opencog-0.1.tar.gz
+# Delete auto-added debian/ templates (created by 'dh_make')
+#rm -rf debian/
+
+# Without dh_make (i.e. manually doing what dh_make does behind the scenes):
+# Fully automated (as opposed to dh_make solution above)
+# Create orig if not using dh_make
+cp ../opencog-0.1.tar.gz ../opencog_0.1.orig.tar.gz
+
+# Use customized debianization: add customized debian/ config (from amberj-ocpkg)
+# TODO: When code in amberj-ocpkg is merged with lp:ocpkg, following line should be modified to work with lp:ocpkg
+bzr branch lp:~i-amber-jain/ocpkg/amberj-ocpkg --use-existing-dir $TEMP_OCPKG_BRANCH -r $BZR_REVISION
+cp -r $TEMP_OCPKG_BRANCH/debian/ .
+rm -rf $TEMP_OCPKG_BRANCH
+#cd opencog
+
+# Open $DEB_BUILD_DIR/opencog-0.1/debian/changelog in a text editor to manually add a new changelog entry.
+# TODO: Automating the process of adding a new changelog entry using 'dch'
+MESSAGE="Script will now open debian/changelog in a text editor. Please edit changelog, save file and exit to continue..." ; blue_message
+read -p "Press [Enter] key to continue..."
+dch -i
+}
+
+build_deb_source_package() {
+MESSAGE="Building DEB source package..." ; green_message
+# TODO: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Snapshots
+cd $DEB_BUILD_DIR/opencog-0.1
+# TODO: -us -uc if user does NOT wants package to be digitally signed
+# TODO: -k<key> option to specify which key to use to sign packages. See "Note" here: https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage#Options_when_building
+if [ $SIGN_PACKAGES ] ; then
+  debuild -S -sa
+else
+  debuild -us -uc -S -sa
+fi
+}
+
+upload_to_ppa() {
+# Launchpad will only accept the package if it can absolutely determine who uploaded the package.
+# Therefore, you need to sign files with your GPG key so they can be identified as something that you worked on.
+# The process of setting up GPG can't be automated. So, you have to manually setup GPG on your system.
+# To setup GPG on your system, follow instructions at: http://wiki.opencog.org/w/Setup_GPG_to_sign_Debian/Ubuntu_packages
+MESSAGE="Uploading source package to Launchpad PPA $PPA_LOCATION" ; message
+dput $PPA_LOCATION $DEB_BUILD_DIR/*source.changes
+}
+
+build_opencog_deb() {
+MESSAGE="Building DEB packages..." ; green_message
+cd $DEB_BUILD_DIR/opencog-0.1
+# Create DEB packages
+if [ $SIGN_PACKAGES ] ; then
+  debuild
+else
+  # -us -uc options imply NOT to (gpg) sign the packages
+  debuild -us -uc
+fi
+cd ..
+MESSAGE="FINISHED! You'll find packages (*.deb) in $DEB_BUILD_DIR" ; green_message
+#echo "Run 'ls -l /tmp/*.deb' to see a list of all DEBs created."
+#echo "Use 'sudo dpkg -i PACKAGE_NAME.deb' to install and 'sudo dpkg -r PACKAGE_NAME.deb' to uninstall any package."
+}
+
+install_dailydeb_tools() {
+MESSAGE="Installing source package recipe tools..." ; message
+if ! sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_FETCH $DAILYDEB_PACKAGES_TOOLS ; then
+  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+  exit 1
+fi
+}
+
+dailydeb_recipe() {
+MESSAGE="Testing the dailydeb source recipe..." ; message
+DAILYDEB_BUILD=$(mktemp -d --suffix=.oc-dailydeb)
+MESSAGE="Building daily source builds in $DAILYDEB_BUILD ..." ; message
+bzr dailydeb $DAILYDEB_QUIET --allow-fallback-to-native $TEMP_OCPKG_BRANCH/opencog.recipe $DAILYDEB_BUILD
+MESSAGE="The resulting source tree and source package are placed in $DAILYDEB_BUILD" ; message
+cd $DAILYDEB_BUILD/opencog-{debupstream}+{revno}+{revno:packaging}
+pdebuild
 }
 
 mount_live_iso() {
@@ -703,7 +1205,9 @@ mkdir -p $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 
 mount $VERBOSE -t aufs -o br=/var/cache/apt/archives none $LIVE_SQUASH_UNION/var/cache/apt/archives
 mount $VERBOSE -t aufs -o br=/var/lib/apt/lists none $LIVE_SQUASH_UNION/var/lib/apt/lists
-mount $VERBOSE -t aufs -o br=$HOST_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
+# Replaced $HOST_SOURCE_BRANCH with $ LIVE_SOURCE_BRANCH below (since the whole ocpkg script uses LIVE_SOURCE_BRANCH instead)
+# TODO: Test if code/line below workds with $LIVE_SOURCE_BRANCH? Test and edit accordingly
+mount $VERBOSE -t aufs -o br=$LIVE_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 }
 
 prepare_live_iso() {
@@ -738,64 +1242,69 @@ cleanup_squash
 cleanup_iso
 }
 
-# SECTION 5: Main Program (MAIN main)
+#######################################
+# SECTION 5: Main Program (MAIN main) #
+#######################################
 
-# options that run when invoked as $TOOL_NAME 
-
-if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
- if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
- if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
- if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
- if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
- if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
- exit 0
+if [ "$SELF_NAME" = "ocdebs" ] || [ "$PACKAGE_TYPE" = "debs" ] ; then
+  install_deb_package_tools ; add_repositories ; install_dependencies
+  if [ $UPDATE_OPENCOG ] ; then
+    update_opencog_source
+  else
+    check_source_dir_exist
+  fi
+  if [ $SOURCE_PACKAGE_ONLY ] ; then
+    setup_deb_packaging ; build_deb_source_package
+  else
+    if [ $USE_PBUILDER ] ; then
+      setup_pbuilder ; setup_deb_packaging ; build_deb_source_package
+      MESSAGE="Building DEB packages inside pbuilder chroot..." ; green_message
+      cd $DEB_BUILD_DIR
+      sudo pbuilder build *.dsc
+      MESSAGE="Built DEB packages are placed in /var/cache/pbuilder/result" ; green_message
+    else
+      setup_deb_packaging ; build_opencog_deb
+    fi
+  fi
+elif [ "$SELF_NAME" = "octool" ] || [ "$PACKAGE_TYPE" = "tool" ] ; then
+  if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
+  if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
+  if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
+  if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
+elif [ "$SELF_NAME" = "oclocal" ] || [ "$PACKAGE_TYPE" = "local" ] ; then
+  add_repositories ; install_dependencies
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
+  build_opencog
+elif [ "$SELF_NAME" = "ocmin" ] || [ "$PACKAGE_TYPE" = "min" ] ; then
+  install_package_tools ; locate_live_iso ; mount_live_iso ; remove_packages
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
+  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
+  remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ; prepare_live_iso ; write_live_media
+elif [ "$SELF_NAME" = "ocdemo" ] || [ "$PACKAGE_TYPE" = "demo" ] ; then
+  install_package_tools ; locate_live_iso ; mount_live_iso ; remove_packages
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
+  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
+  remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ; prepare_live_iso ; write_live_media
+elif [ "$SELF_NAME" = "ocdev" ] || [ "$PACKAGE_TYPE" = "dev" ] ; then
+  install_package_tools ; locate_live_iso ; mount_live_iso
+  MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu packages..." ; message
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d
+  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi
+  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b
+  keep_source ; prepare_live_iso ; write_live_media
+elif [ "$SELF_NAME" = "ocdailydeb" ] || [ "$PACKAGE_TYPE" = "dailydeb" ] ; then
+  install_dailydeb_tools ; setup_pbuilder ; check_bzr_config ; dailydeb_recipe
+# 'runscript' is to run 'octool -ad' in pbuilder chroot
+# When any script is executed inside pbuilder, pbuilder automatically renames it to 'runscript'
+elif [ "$SELF_NAME" = "runscript" ] || [ "$PACKAGE_TYPE" = "runscript" ] ; then
+  if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi 
+  if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi 
+elif [ "$SELF_NAME" = "ocppa" ] || [ "$PACKAGE_TYPE" = "ppa" ] ; then
+  if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; else check_source_dir_exist ; fi
+  install_deb_package_tools ; setup_deb_packaging ; build_deb_source_package ; upload_to_ppa
+else
+  MESSAGE="Could not recognize package type" ; message ; usage ; exit 1
 fi
-
-# option flag conditionals are finisned, so set defaults
-
-if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
-if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
-if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
-if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
-
-# package type selected when invoked as 'ocpkg'
-
-case $PACKAGE_TYPE in
-  demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
-  min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
-  dev)	install_package_tools; locate_live_iso ; mount_live_iso 
-      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) add_repositories ; install_dependencies ;;
-  demo)  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  min)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  dev)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi ;;
-  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-esac
-
-case $PACKAGE_TYPE in
-  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
-  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-esac
-
-case $PACKAGE_TYPE in
-  min)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
-  demo)	remove_dev_debs ; remove_doc_debs ; remove_source ; remove_build ;;
-  dev)	keep_source  ;;
-esac
-
-case $PACKAGE_TYPE in
-  min)  prepare_live_iso ; write_live_media ;;
-  demo) prepare_live_iso ; write_live_media ;;
-  dev)  prepare_live_iso ; write_live_media ;;
-esac

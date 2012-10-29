@@ -1,0 +1,5 @@
+usr/bin/moses
+usr/bin/eval-features
+usr/bin/feature-selection
+usr/share/man/man1/feature-selection.1.gz
+usr/share/man/man1/moses.1.gz

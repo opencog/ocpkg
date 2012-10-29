@@ -1,0 +1,4 @@
+usr/include/opencog/persist/*
+usr/include/opencog/query/*
+usr/include/opencog/shell/*
+usr/include/opencog/server/*

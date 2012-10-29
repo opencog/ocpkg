@@ -1,0 +1,130 @@
+Source: opencog
+Section: devel
+Priority: extra
+Maintainer: Amber Jain <i.amber.jain@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), cmake, build-essential, cmake, cxxtest, rlwrap, libsdl-gfx1.2-dev, guile-1.8-dev, libicu-dev, libbz2-dev, python-dev, cython, python-zmq, python-matplotlib, python-nose, python-numpy, python-setuptools, python-distutils-extra, python-scipy, python-mock, libboost-all-dev, libssl-dev, libgsl0-dev, libexpat1-dev, libxmlrpc-c3-dev, unixodbc-dev, libxerces-c2-dev, libcurl4-gnutls-dev, tcl-dev, tcsh, uuid-dev, libzmq-dev, libprotoc-dev, libboost-system1.46.1, libboost-filesystem1.46.1, libboost-thread1.46.1, libboost-signals1.46.1, libboost-regex1.46.1, unixodbc, protobuf-compiler
+Standards-Version: 3.9.2
+Homepage: http://opencog.org/
+Vcs-Bzr: lp:opencog
+Vcs-Browser: http://bazaar.launchpad.net/~opencog-dev/opencog/trunk/files
+
+Package: libatomspace
+Architecture: any
+Depends: libspatial, libcogutil
+Description: OpenCog libatomspace
+ This package provides OpenCog AtomSpace.
+
+Package: libatomspace-dev
+Architecture: any
+Description: OpenCog libatomspace-dev development files
+ This package provides the development headers for OpenCog AtomSpace.
+
+Package: libcogutil
+Architecture: any
+Description: OpenCog libcogutil
+ This package provides OpenCog cogutil.
+
+Package: libcogutil-dev
+Architecture: any
+Description: OpenCog libcogutil development files
+ This package provides the development headers for cogutil.
+
+Package: libcomboreduct
+Architecture: any
+Depends: libcogutil
+Description: OpenCog libcomboreduct
+ This package provides OpenCog libcomboreduct.
+
+Package: libcomboreduct-dev
+Architecture: any
+Description: OpenCog libcomboreduct development files
+ This package provides the development headers for libcomboreduct.
+
+Package: libspatial
+Architecture: any
+Description: OpenCog libspatial
+ This package provides OpenCog Spatial.
+
+Package: libspatial-dev
+Architecture: any
+Description: OpenCog libspatial development files
+ This package provides the development headers for OpenCog Spatial.
+
+Package: opencog
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Generic Artificial General Intelligence framework
+ OpenCog project aims to directly confront the AGI challenge with broad capabilities at the human level and ultimately beyond, using mathematical and biological inspiration and professional software engineering techniques.
+ OpenCog is a framework for developing AI systems, especially appropriate for integrative multi-algorithm systems, and artificial general intelligence systems.
+
+Package: opencog-doc
+Architecture: all
+Description: Documentation for OpenCog project
+ Documentation for OpenCog project (an Artificial General Intelligence framework).
+
+Package: opencog-ecan
+Architecture: any
+Description: OpenCog opencog-ecan
+ This package provides OpenCog Attention.
+
+Package: opencog-ecan-dev
+Architecture: any
+Description: opencog-ecan development files
+ This package provides the development headers for OpenCog Attention.
+
+Package: opencog-embodiment
+Architecture: any
+Description: opencog-embodiment
+ This package provides OpenCog Embodiment.
+
+Package: opencog-fishgram
+Architecture: any
+Description: opencog-fishgram
+ This package provides OpenCog Fishgram.
+
+Package: opencog-moses
+Architecture: any
+Depends: libcomboreduct, libcogutil
+Description: opencog-moses
+ This package provides OpenCog MOSES.
+
+Package: opencog-moses-dev
+Architecture: any
+Description: opencog-moses development files
+ This package provides the development headers for MOSES.
+
+#Package: opencog-pln
+#Architecture: any
+#Description: opencog-pln
+# This package provides OpenCog PLN.
+
+#Package: opencog-pln-dev
+#Architecture: any
+#Description: opencog-pln development files
+# This package provides the development headers for OpenCog PLN.
+
+Package: opencog-psi
+Architecture: any
+Description: opencog-psi
+ This package provides OpenCog OpenPsi.
+
+Package: opencog-server
+Architecture: any
+Depends: libatomspace, libcogutil, libspatial
+Description: opencog-server
+ This package provides OpenCog CogServer.
+
+Package: opencog-server-dev
+Architecture: any
+Description: opencog-server development files
+ This package provides the development headers for CogServer.
+
+Package: opencog-viz
+Architecture: any
+Description: opencog-viz
+ This package provides OpenCog Visualization.
+
+Package: opencog-viz-dev
+Architecture: any
+Description: opencog-viz development files
+ This package provides the development headers for OpenCog Visualization.
