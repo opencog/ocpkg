@@ -106,7 +106,7 @@ PACKAGES_TOOLS="
 		#qemu-kvm \
 		#testdrive \
 PACKAGES_FETCH="	
-		bzr \
+		git \
 			"
 		#bzr-rewrite \
 PACKAGES_ADMIN="	
@@ -147,6 +147,7 @@ PACKAGES_BUILD="
 		uuid-dev \
 		libzmq-dev \
 		libprotoc-dev \
+		protobuf-compiler \
 		"
 		#liblua5.1-0-dev \
 PACKAGES_RUNTIME="	
@@ -346,7 +347,7 @@ if [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
   echo "    -i [filename]  ISO input  filename"
   echo "    -o [filename]  ISO output filename"
   echo "    -j [jobs]      override number of auto-detected make jobs"
-  echo "    -n             supress bzr updates"
+  echo "    -n             supress git updates"
 else 
   echo "Usage: $SELF_NAME OPTION"
   echo " -a Add software repositories"
@@ -368,8 +369,8 @@ while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
     r)	BZR_REVISION="$OPTARG" ;;		
     a)	ADD_REPOSITORIES=true ;;
     d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-    u)	UPDATE_OPENCOG=true ;;			#bzr pull
-    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress bzr update
+    u)	UPDATE_OPENCOG=true ;;			#git pull
+    n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress git update
     b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
     t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
     p)	REINSTALL_PACKAGES=true ;; 
@@ -534,11 +535,11 @@ OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  git clone git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
 else
   if [ $UPDATE_OPENCOG ] ; then
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+    git pull git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
   fi
 fi
 }
