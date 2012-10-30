@@ -106,7 +106,7 @@ PACKAGES_TOOLS="
 		#qemu-kvm \
 		#testdrive \
 PACKAGES_FETCH="	
-		bzr \
+		git \
 			"
 		#bzr-rewrite \
 PACKAGES_ADMIN="	
@@ -534,11 +534,11 @@ OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
 if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-  bzr branch https://code.launchpad.net/opencog --use-existing-dir $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+  git clone git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
 else
   if [ $UPDATE_OPENCOG ] ; then
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-    bzr pull https://code.launchpad.net/opencog --directory $OPENCOG_SOURCE_DIR -r $BZR_REVISION
+    git pull git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
   fi
 fi
 }
