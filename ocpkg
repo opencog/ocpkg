@@ -643,7 +643,7 @@ chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove
 
 install_package_tools() {
 MESSAGE="Installing packaging tools..." ; message
-if apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
+if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
  echo -n
 else
  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
