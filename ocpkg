@@ -105,16 +105,19 @@ PACKAGES_TOOLS="
 		#aria2 \
 		#qemu-kvm \
 		#testdrive \
+
 PACKAGES_FETCH="	
 		git \
 			"
 		#bzr-rewrite \
+
 PACKAGES_ADMIN="	
 		apt-rdepends \
 		synaptic \
 		gdebi \
 		epiphany-browser \
 		"
+
 PACKAGES_BUILD="	
 		build-essential \
 		cmake \
@@ -150,6 +153,7 @@ PACKAGES_BUILD="
 		protobuf-compiler \
 		"
 		#liblua5.1-0-dev \
+
 PACKAGES_RUNTIME="	
 		libboost-system1.46.1 \
 		libboost-filesystem1.46.1 \
@@ -158,6 +162,7 @@ PACKAGES_RUNTIME="
 		libboost-regex1.46.1 \
 		unixodbc \
 		"
+
 PACKAGES_DOC="		
 		ubuntu-docs \
 		libglib2.0-doc \
@@ -170,6 +175,7 @@ PACKAGES_DOC="
 		doxygen \
  		dot2tex \
 		"
+
 PACKAGES_REMOVE="	
 		ubuntu-desktop \
 		example-content \
@@ -284,6 +290,7 @@ PACKAGES_REMOVE="
 		#  26MB amarok
 		# 200MB libreoffice
 		#  45MB smbclient
+
 PACKAGES_EXDEV="	
 		autoconf automake autotools-dev \
 		blt \
@@ -333,6 +340,7 @@ PACKAGES_EXDEV="
 		linux-headers-generic \
 		linux-headers-3.2.0-22 \
 		"
+
 # SECTION 2: Command line option handling
 
 usage() {
