@@ -10,13 +10,13 @@
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
-# SECTION 2. Command line option hanling
+# SECTION 2. Command line option handling
 # SECTION 3. Error handling & cleanup
 # SECTION 4. Function definitions
 # SECTION 5. Main program
 
 # Notes:
-# - terminal & editor are best set to a colum width of 144+ characters 
+# - terminal & editor are best set to a column width of 144+ characters 
 #        (bash lines, dpkg lines and gcc lines can be long!)
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
 #        (real time overhead for CD repackaging without building OpenCog is about 5m)
@@ -32,7 +32,7 @@
 #	https://launchpad.net/awsome (front-end for OpenStack providing the AWS API)
 # - add PACKAGE_BUILD variables for incremental builds
 # - add manifest rebuild to LiveCD/DVD
-# - add priveledge separation when run as root (run make, etc., as real user)
+# - add privilege separation when run as root (run make, etc., as real user)
 
 # trap errors
 set -e
@@ -760,7 +760,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
  exit 0
 fi
 
-# option flag conditionals are finisned, so set defaults
+# option flag conditionals are finished, so set defaults
 
 if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
 if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
@@ -773,7 +773,7 @@ case $PACKAGE_TYPE in
   demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   dev)	install_package_tools; locate_live_iso ; mount_live_iso 
-      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
+      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu packages..." ; message ;;
 esac
 
 case $PACKAGE_TYPE in
