@@ -547,7 +547,8 @@ if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
 else
   if [ $UPDATE_OPENCOG ] ; then
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-    git pull git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
+    cd $OPENCOG_SOURCE_DIR
+    git pull git://github.com/opencog/opencog
   fi
 fi
 }
