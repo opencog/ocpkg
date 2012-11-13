@@ -10,13 +10,13 @@
  
 # This bash script is organized in sections:
 # SECTION 1. Global variable setting
-# SECTION 2. Command line option hanling
+# SECTION 2. Command line option handling
 # SECTION 3. Error handling & cleanup
 # SECTION 4. Function definitions
 # SECTION 5. Main program
 
 # Notes:
-# - terminal & editor are best set to a colum width of 144+ characters 
+# - terminal & editor are best set to a column width of 144+ characters 
 #        (bash lines, dpkg lines and gcc lines can be long!)
 # - this script executes fastest with a minimum of 4GB RAM, 4GB SWAP, /tmp on 4GB tmpfs
 #        (real time overhead for CD repackaging without building OpenCog is about 5m)
@@ -32,7 +32,7 @@
 #	https://launchpad.net/awsome (front-end for OpenStack providing the AWS API)
 # - add PACKAGE_BUILD variables for incremental builds
 # - add manifest rebuild to LiveCD/DVD
-# - add priveledge separation when run as root (run make, etc., as real user)
+# - add privilege separation when run as root (run make, etc., as real user)
 
 # trap errors
 set -e
@@ -105,16 +105,19 @@ PACKAGES_TOOLS="
 		#aria2 \
 		#qemu-kvm \
 		#testdrive \
+
 PACKAGES_FETCH="	
 		git \
 			"
 		#bzr-rewrite \
+
 PACKAGES_ADMIN="	
 		apt-rdepends \
 		synaptic \
 		gdebi \
 		epiphany-browser \
 		"
+
 PACKAGES_BUILD="	
 		build-essential \
 		cmake \
@@ -150,6 +153,7 @@ PACKAGES_BUILD="
 		protobuf-compiler \
 		"
 		#liblua5.1-0-dev \
+
 PACKAGES_RUNTIME="	
 		libboost-system1.46.1 \
 		libboost-filesystem1.46.1 \
@@ -158,6 +162,7 @@ PACKAGES_RUNTIME="
 		libboost-regex1.46.1 \
 		unixodbc \
 		"
+
 PACKAGES_DOC="		
 		ubuntu-docs \
 		libglib2.0-doc \
@@ -170,6 +175,7 @@ PACKAGES_DOC="
 		doxygen \
  		dot2tex \
 		"
+
 PACKAGES_REMOVE="	
 		ubuntu-desktop \
 		example-content \
@@ -284,6 +290,7 @@ PACKAGES_REMOVE="
 		#  26MB amarok
 		# 200MB libreoffice
 		#  45MB smbclient
+
 PACKAGES_EXDEV="	
 		autoconf automake autotools-dev \
 		blt \
@@ -333,6 +340,7 @@ PACKAGES_EXDEV="
 		linux-headers-generic \
 		linux-headers-3.2.0-22 \
 		"
+
 # SECTION 2: Command line option handling
 
 usage() {
@@ -635,7 +643,7 @@ chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove
 
 install_package_tools() {
 MESSAGE="Installing packaging tools..." ; message
-if apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
+if sudo apt-get --no-upgrade --assume-yes $QUIET -y install $PACKAGES_TOOLS ; then
  echo -n
 else
  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
@@ -752,7 +760,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
  exit 0
 fi
 
-# option flag conditionals are finisned, so set defaults
+# option flag conditionals are finished, so set defaults
 
 if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
 if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
@@ -765,7 +773,7 @@ case $PACKAGE_TYPE in
   demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   dev)	install_package_tools; locate_live_iso ; mount_live_iso 
-      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu pakagkes..." ; message ;;
+      	MESSAGE="$PACKAGE_TYPE install type: Keeping all Ubuntu packages..." ; message ;;
 esac
 
 case $PACKAGE_TYPE in
