@@ -60,7 +60,7 @@ else
  HOST_BUILD_DIR=$CURRENT_DIR/opencog/build
 fi
 
-BZR_REVISION="last:1"
+SLEEP_TIME=0
 
 OUTPUT_ISO_NAME=OpenCogLive.iso 
 OUTPUT_ISO_LOCATION=$CURRENT_DIR
@@ -71,9 +71,9 @@ DEFAULT_INSTALL_DEPENDENCIES=true
 DEFAULT_UPDATE_OPENCOG=true		
 DEFAULT_BUILD_OPENCOG=true		
 
-UBUNTU_ISO=ubuntu-11.10-desktop-amd64.iso
-UBUNTU_URL=http://releases.ubuntu.com/11.10/
-UBUNTU_MD5SUM=62fb5d750c30a27a26d01c5f3d8df459
+UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
+UBUNTU_URL=http://releases.ubuntu.com/12.04/
+UBUNTU_MD5SUM=b436b6d4c7de064652f30d783bda5b4e
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
 SELF_NAME=$(basename $0)
@@ -123,11 +123,9 @@ PACKAGES_BUILD="
 		cmake \
 		cxxtest \
 		rlwrap \
-		libsdl-gfx1.2-dev \
 		guile-1.8-dev \
 		libicu-dev \
 		libbz2-dev \
-		python-dev \
 		cython \
 		python-zmq \
 		python-matplotlib \
@@ -138,19 +136,21 @@ PACKAGES_BUILD="
 		python-scipy \
 		python-mock \
 		libboost-all-dev \
-		libssl-dev \
 		libgsl0-dev \
-		libexpat1-dev \
 		libxmlrpc-c3-dev \
 		unixodbc-dev \
 		libxerces-c2-dev \
-		libcurl4-gnutls-dev \
 		tcl-dev \
 		tcsh \
 		uuid-dev \
 		libzmq-dev \
 		libprotoc-dev \
 		protobuf-compiler \
+		libcurl4-gnutls-dev \
+		libexpat1-dev \
+		libsdl-gfx1.2-dev \
+		libssl-dev \
+		python-dev \
 		"
 		#liblua5.1-0-dev \
 
@@ -182,13 +182,7 @@ PACKAGES_REMOVE="
 		software-center \
 		app-install-data \
 		locales \
-		libqtwebkit4 \
-		openjdk-6-jre-headless \
-		openjdk-6-jre \
-		openjdk-7-jre \
 		python-twisted-core \
-		texlive-binaries \
-		luatex \
 		ubiquity \
 		rhythmbox \
 		rhythmbox-data \
@@ -197,17 +191,11 @@ PACKAGES_REMOVE="
 		libtelepathy-glib0 \
 		firefox \
 		thunderbird \
-		inkscape \
 		libreoffice-core \
-		gimp-data \
-		gimp-help-common \
 		evolution-data-server \
 		gnome-games-common \
 		gnome-games-data \
 		aisleriot \
-		ibus-table \
-		ibus-table-extraphrase \
-		libchewing3-data \
 		deja-dup \
 		banshee \
 		gwibber \
@@ -215,7 +203,6 @@ PACKAGES_REMOVE="
 		shotwell \
 		ubuntuone-client \
 		python-ubuntuone-client \
-		vim-runtime \
 		gnome-orca \
 		libgweather-common \
 		simple-scan \
@@ -229,7 +216,6 @@ PACKAGES_REMOVE="
 		foo2zjs \
 		colord \
 		libsane \
-		mono-runtime \
 		samba-common \
 		gnome-user-guide \
 		ure \
@@ -238,29 +224,14 @@ PACKAGES_REMOVE="
 		ubuntuone-client-gnome \
 		geoip-database \
 		libopencc1 \
-		fonts-arphic-bsmi00lp \
-		fonts-arphic-gbsn00lp \
-		fonts-arphic-bkai00mp \
-		fonts-arphic-gkai00mp \
-		lmodern \
-		culmus \
 		fonts-nanum \
-		fonts-nanum-extra \
-		fonts-nanum-coding \
-		ttf-nanum-coding \
 		ttf-indic-fonts-core \
-		ttf-devanagari-fonts \
 		ttf-wqy-microhei \
 		fonts-takao-pgothic \
 		cmap-adobe-japan1 \
-		anthy-common \
-		m17n-db \
-		libhangul-data \
 		libpurple0 \
 		brltty \
 		liblouis-data \
-		libwebkitgtk-1.0-0 \
-		libwebkitgtk-1.0-common \
 		"
 		#ubuntu-wallpapers \
 		#this stuff is for Unity 2D, but Ubuntu fails to login without it
@@ -422,7 +393,7 @@ cleanup_squash() {
 if [ -n "$LIVE_SQUASH_UNION" ]; then
   MESSAGE="Cleaning up squash temp space..." ; message
   fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
-  sleep 1
+  sleep  $SLEEP_TIME
   umount $VERBOSE $LIVE_SQUASH_UNION/var/lib/apt/lists		|| true
   umount $VERBOSE $LIVE_SQUASH_UNION/var/cache/apt/archives	|| true
   umount $VERBOSE $LIVE_SQUASH_UNION/proc			|| true
@@ -432,7 +403,7 @@ if [ -n "$LIVE_SQUASH_UNION" ]; then
   umount $VERBOSE $LIVE_SQUASH_UNION$LIVE_SOURCE_BRANCH		|| true
   MESSAGE="Killing processes..." ; message
   fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
-  sleep  1
+  sleep  $SLEEP_TIME
   umount -v -f $VERBOSE $LIVE_SQUASH_UNION			|| true
   rmdir  $VERBOSE $LIVE_SQUASH_UNION				|| true
 fi
@@ -594,7 +565,7 @@ else
 done 
 fi
 if [ ! -f $UBUNTU_ISO_IMAGE ] ; then
- aria2c --seed-time=0 ${UBUNTU_URL}${UBUNTU_ISO}.torrent
+ #aria2c --seed-time=0 ${UBUNTU_URL}${UBUNTU_ISO}.torrent
  UBUNTU_ISO_IMAGE=${UBUNTU_ISO}
 fi
 }
@@ -603,6 +574,8 @@ remove_packages() {
 MESSAGE="$PACKAGE_TYPE install type: Removing unecessary packages..." ; message
 chroot $LIVE_SQUASH_UNION apt-get --no-upgrade --assume-yes $QUIET purge $PACKAGES_REMOVE --auto-remove 
 chroot $LIVE_SQUASH_UNION apt-get --no-upgrade --assume-yes $QUIET autoremove
+# stupid stupid stupid hack
+chroot $LIVE_SQUASH_UNION service cups stop
 }
 
 reinstall_removed() {
@@ -670,7 +643,7 @@ fi
 
 LIVE_ISO_DELTA=$(mktemp -d --suffix=.LIVE_ISO_DELTA)
 LIVE_ISO_UNION=$(mktemp -d --suffix=.LIVE_ISO_UNION)
-mount $VERBOSE -t aufs -o br=$LIVE_ISO_DELTA:$UBUNTU_ISO_FILES none $LIVE_ISO_UNION
+mount $VERBOSE -t overlayfs -o upperdir=$LIVE_ISO_DELTA,lowerdir=$UBUNTU_ISO_FILES none $LIVE_ISO_UNION
 
 #MESSAGE="Mounting read-only Ubuntu compressed filesystem..." ; message
 
@@ -681,7 +654,8 @@ mount $VERBOSE -o loop -t squashfs $UBUNTU_SQUASH_BLOB $UBUNTU_SQUASH_FILES
 
 LIVE_SQUASH_DELTA=$(mktemp -d --suffix=.LIVE_SQUASH_DELTA)
 LIVE_SQUASH_UNION=$(mktemp -d --suffix=.LIVE_SQUASH_UNION)
-mount $VERBOSE -t aufs -o br=$LIVE_SQUASH_DELTA:$UBUNTU_SQUASH_FILES none $LIVE_SQUASH_UNION
+mount $VERBOSE -t overlayfs -o upperdir=$LIVE_SQUASH_DELTA,lowerdir=$UBUNTU_SQUASH_FILES none $LIVE_SQUASH_UNION
+chmod +rx $LIVE_SQUASH_UNION
 
 MESSAGE="Setting up chroot environment..." ; message
 
@@ -709,18 +683,20 @@ chroot $LIVE_SQUASH_UNION mount $VERBOSE -t proc none /proc
 chroot $LIVE_SQUASH_UNION mount $VERBOSE -t sysfs none /sys
 chroot $LIVE_SQUASH_UNION mount $VERBOSE -t devpts none /dev/pts
 
+mkdir -p $LIVE_SQUASH_UNION/var/cache/apt/archives
+mkdir -p $LIVE_SQUASH_UNION/var/lib/apt/lists
+mkdir -p $HOST_SOURCE_BRANCH
 mkdir -p $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 
-mount $VERBOSE -t aufs -o br=/var/cache/apt/archives none $LIVE_SQUASH_UNION/var/cache/apt/archives
-mount $VERBOSE -t aufs -o br=/var/lib/apt/lists none $LIVE_SQUASH_UNION/var/lib/apt/lists
-mount $VERBOSE -t aufs -o br=$HOST_SOURCE_BRANCH none $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
+mount $VERBOSE -o bind /var/cache/apt/archives $LIVE_SQUASH_UNION/var/cache/apt/archives
+mount $VERBOSE -o bind /var/lib/apt/lists $LIVE_SQUASH_UNION/var/lib/apt/lists
+mount $VERBOSE -o bind $HOST_SOURCE_BRANCH $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANCH
 }
 
 prepare_live_iso() {
 
-echo     fuser $LIVE_SQUASH_UNION -c -kill
 fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
-sleep 1
+sleep  $SLEEP_TIME
 umount $VERBOSE $LIVE_SQUASH_UNION/proc || true
 umount $VERBOSE $LIVE_SQUASH_UNION/sys || true
 umount $VERBOSE $LIVE_SQUASH_UNION/dev/pts|| true
@@ -779,23 +755,23 @@ esac
 
 case $PACKAGE_TYPE in
   local) add_repositories ; install_dependencies ;;
-  demo)  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  min)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
-  dev)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -a -d ;;
+  demo)  chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -a -d ;;
+  min)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -a -d ;;
+  dev)   chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -a -d ;;
 esac
 
 case $PACKAGE_TYPE in
   local) if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi ;;
-  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
-  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -u ; fi ;;
+  demo)  if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -u ; fi ;;
+  min)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -u ; fi ;;
+  dev)   if [ $UPDATE_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -u ; fi ;;
 esac
 
 case $PACKAGE_TYPE in
   local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
-  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
-  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME -b ; fi ;;
+  demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
+  min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
+  dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
 esac
 
 case $PACKAGE_TYPE in
