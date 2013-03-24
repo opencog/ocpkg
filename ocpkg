@@ -70,6 +70,7 @@ DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_UPDATE_OPENCOG=true		
 DEFAULT_BUILD_OPENCOG=true		
+DEFAULT_TEST_OPENCOG=true		
 
 UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
 UBUNTU_URL=http://releases.ubuntu.com/12.04/
@@ -197,7 +198,6 @@ PACKAGES_REMOVE="
 		gnome-games-data \
 		aisleriot \
 		deja-dup \
-		banshee \
 		gwibber \
 		oneconf \
 		shotwell \
@@ -209,7 +209,6 @@ PACKAGES_REMOVE="
 		sane-utils \
 		printer-driver-hpcups \
 		printer-driver-hpijs \
-		printer-driver-foo2zjs \
 		hplip \
 		hplip-data \
 		libgutenprint2 \
@@ -228,7 +227,6 @@ PACKAGES_REMOVE="
 		ttf-indic-fonts-core \
 		ttf-wqy-microhei \
 		fonts-takao-pgothic \
-		cmap-adobe-japan1 \
 		libpurple0 \
 		brltty \
 		liblouis-data \
@@ -309,7 +307,6 @@ PACKAGES_EXDEV="
 		zlib1g-dev \
 		python-bzrlib \
 		linux-headers-generic \
-		linux-headers-3.2.0-22 \
 		"
 
 # SECTION 2: Command line option handling
@@ -350,8 +347,8 @@ while getopts ":i:o:j:s:c:l:r:adunbtrvh" flag ; do
     d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
     u)	UPDATE_OPENCOG=true ;;			#git pull
     n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress git update
-    b)	BUILD_OPENCOG=true ;;			#TRUE, false : mostly for testing
-    t)	TEST_OPENCOG=true ;;			#TRUE, false : mostly for testing
+    b)	unset DEFAULT_BUILD_OPENCOG ;;		#suppress build
+    t)	unset DEFAULT_TEST_OPENCOG ;;           #suppress test
     p)	REINSTALL_PACKAGES=true ;; 
     v)	unset QUIET ;; 
     h)	usage ;; 
@@ -585,8 +582,8 @@ apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_REMOVE
 
 keep_source() {
 MESSAGE="$PACKAGE_TYPE install type: Keeping source code..." ; message 
-chroot $LIVE_SQUASH_UNION chown -R 999 $LIVE_SOURCE_BRANCH $LIVE_BUILD_DIR	 #999=ubuntu user
-chroot $LIVE_SQUASH_UNION mkdir -p /home/$LIVE_USERNAME/Desktop/
+chroot $LIVE_SQUASH_UNION chown -R 999 $LIVE_SOURCE_BRANCH $LIVE_BUILD_DIR || true
+chroot $LIVE_SQUASH_UNION mkdir -p /home/$LIVE_USERNAME/Desktop/ || true
 chroot $LIVE_SQUASH_UNION ln -s "$LIVE_SOURCE_BRANCH" "/home/$LIVE_USERNAME/Desktop/$LIVE_DESKTOP_SOURCE" || true
 }
 
@@ -606,13 +603,13 @@ remove_dev_debs() {
 MESSAGE="$PACKAGE_TYPE install type: Removing development packages..." ; message 
 #chroot $LIVE_SQUASH_UNION apt-get $QUIET -y remove $PACKAGES_BUILD $PACKAGES_EXDEV --auto-remove 
 chroot $LIVE_SQUASH_UNION apt-get --no-upgrade --assume-yes purge $PACKAGES_BUILD $PACKAGES_EXDEV --auto-remove 
-chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove
+chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove --assume-yes
 }
 
 remove_doc_debs() {
 MESSAGE="$PACKAGE_TYPE install type: Removing documentation packages..." ; message 
 chroot $LIVE_SQUASH_UNION apt-get --no-upgrade --assume-yes purge $PACKAGES_DOC --auto-remove 
-chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove
+chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove --assume-yes
 }
 
 install_package_tools() {
@@ -739,10 +736,11 @@ fi
 
 # option flag conditionals are finished, so set defaults
 
-if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
-if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
 if [ ! $ADD_REPOSITORIES ] ; then ADD_REPOSITORIES=$DEFAULT_ADD_REPOSITORIES; fi 
 if [ ! $INSTALL_DEPENDENCIES ] ; then INSTALL_DEPENDENCIES=$DEFAULT_INSTALL_DEPENDENCIES; fi 
+if [ ! $UPDATE_OPENCOG ] ; then UPDATE_OPENCOG=$DEFAULT_UPDATE_OPENCOG; fi 
+if [ ! $BUILD_OPENCOG ] ; then BUILD_OPENCOG=$DEFAULT_BUILD_OPENCOG; fi 
+if [ ! $TEST_OPENCOG ] ; then TEST_OPENCOG=$DEFAULT_TEST_OPENCOG; fi 
 
 # package type selected when invoked as 'ocpkg'
 
