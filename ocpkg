@@ -389,7 +389,7 @@ chroot $LIVE_SQUASH_UNION /bin/bash -l
 cleanup_squash() {
 if [ -n "$LIVE_SQUASH_UNION" ]; then
   MESSAGE="Cleaning up squash temp space..." ; message
-  fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
+  fuser  $VERBOSE --mount $LIVE_SQUASH_UNION -kill
   sleep  $SLEEP_TIME
   umount $VERBOSE $LIVE_SQUASH_UNION/var/lib/apt/lists		|| true
   umount $VERBOSE $LIVE_SQUASH_UNION/var/cache/apt/archives	|| true
@@ -399,7 +399,7 @@ if [ -n "$LIVE_SQUASH_UNION" ]; then
   umount $VERBOSE $LIVE_SQUASH_UNION$LIVE_BUILD_DIR		|| true
   umount $VERBOSE $LIVE_SQUASH_UNION$LIVE_SOURCE_BRANCH		|| true
   MESSAGE="Killing processes..." ; message
-  fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
+  fuser  $VERBOSE --mount $LIVE_SQUASH_UNION -kill
   sleep  $SLEEP_TIME
   umount -v -f $VERBOSE $LIVE_SQUASH_UNION			|| true
   rmdir  $VERBOSE $LIVE_SQUASH_UNION				|| true
@@ -494,7 +494,7 @@ fi
 
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
-if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME ; then
+if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH; then
   MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
@@ -509,14 +509,15 @@ exit 1
 fi
 OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
 mkdir -p $OPENCOG_SOURCE_DIR || true
-if [ ! "$(ls -A $OPENCOG_SOURCE_DIR)" ]; then
+if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
   MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
   git clone git://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
 else
   if [ $UPDATE_OPENCOG ] ; then
     MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
     cd $OPENCOG_SOURCE_DIR
-    git pull git://github.com/opencog/opencog
+    git pull 
+    cd -
   fi
 fi
 }
@@ -601,7 +602,6 @@ rm -rf $LIVE_SQUASH_UNION$LIVE_BUILD_DIR || true
 
 remove_dev_debs() {
 MESSAGE="$PACKAGE_TYPE install type: Removing development packages..." ; message 
-#chroot $LIVE_SQUASH_UNION apt-get $QUIET -y remove $PACKAGES_BUILD $PACKAGES_EXDEV --auto-remove 
 chroot $LIVE_SQUASH_UNION apt-get --no-upgrade --assume-yes purge $PACKAGES_BUILD $PACKAGES_EXDEV --auto-remove 
 chroot $LIVE_SQUASH_UNION apt-get $QUIET autoremove --assume-yes
 }
@@ -692,7 +692,7 @@ mount $VERBOSE -o bind $HOST_SOURCE_BRANCH $LIVE_SQUASH_UNION/$LIVE_SOURCE_BRANC
 
 prepare_live_iso() {
 
-fuser  $VERBOSE $LIVE_SQUASH_UNION -c -kill
+fuser  $VERBOSE --mount $LIVE_SQUASH_UNION -kill
 sleep  $SLEEP_TIME
 umount $VERBOSE $LIVE_SQUASH_UNION/proc || true
 umount $VERBOSE $LIVE_SQUASH_UNION/sys || true
