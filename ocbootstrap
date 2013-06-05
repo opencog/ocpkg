@@ -35,12 +35,12 @@ CHROOT_DIR=/var/$CHROOT_DISTRO
 
 if [ ! $(which debootstrap) ] ; then
   if [ $(which dpkg) ] ; then 
-    wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39_all.deb
-    dpkg -i debootstrap_1.0.39_all.deb
+           wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.48_all.deb
+    dpkg -i debootstrap_1.0.48_all.deb
   else
-    wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.39.tar.gz
-    tar zxvf debootstrap_1.0.39.tar.gz
-    cd debootstrap-1.0.39/
+    wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.48.tar.gz
+    tar zxvf debootstrap_1.0.48.tar.gz
+    cd debootstrap-1.0.48/
     make devices.tar.gz
     export DEBOOTSTRAP_DIR=$(pwd)
     export PATH=$PATH:$DEBOOTSTRAP_DIR
