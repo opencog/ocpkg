@@ -156,11 +156,6 @@ PACKAGES_BUILD="
 		#liblua5.1-0-dev \
 
 PACKAGES_RUNTIME="	
-		libboost-system1.46.1 \
-		libboost-filesystem1.46.1 \
-		libboost-thread1.46.1 \
-		libboost-signals1.46.1 \
-		libboost-regex1.46.1 \
 		unixodbc \
 		"
 
