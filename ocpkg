@@ -765,7 +765,6 @@ case $PACKAGE_TYPE in
 esac
 
 case $PACKAGE_TYPE in
-  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
   demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
