@@ -90,7 +90,7 @@ LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
 LIVE_BUILD_DIR=$HOST_BUILD_DIR
 
 VERBOSE="-v"				#for mount, umount, rm, etc.
-QUIET="-qq" 				#for apt-get
+QUIET="" 				#for apt-get
 
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
@@ -128,14 +128,19 @@ PACKAGES_BUILD="
 		libicu-dev \
 		libbz2-dev \
 		cython \
+		python-dev \
 		python-zmq \
 		python-matplotlib \
 		python-nose \
 		python-numpy \
-		python-setuptools \
-		python-distutils-extra \
 		python-scipy \
 		python-mock \
+		python-flask \
+                python-pyparsing \
+                python-dateutil \
+                python-six \
+                python-tornado \
+                python-wsgiref \
 		libboost-all-dev \
 		libgsl0-dev \
 		libxmlrpc-c3-dev \
@@ -151,7 +156,6 @@ PACKAGES_BUILD="
 		libexpat1-dev \
 		libsdl-gfx1.2-dev \
 		libssl-dev \
-		python-dev \
 		"
 		#liblua5.1-0-dev \
 
