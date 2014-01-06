@@ -96,8 +96,14 @@ LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
 REPOSITORIES="		
 		ppa:opencog-dev/ppa \
+                ppa:chris-lea/zeromq \
+		ppa:chris-lea/python-flask \
+                ppa:chris-lea/python-itsdangerous \
+                ppa:chris-lea/python-simplejson \
+                ppa:gandelman-a/test-catalog \
 		"
 		#opencog-dev: cxxtest
+		#gandelman: python-flask-restful
 
 PACKAGES_TOOLS="	
 		squashfs-tools \
@@ -120,11 +126,12 @@ PACKAGES_ADMIN="
 		"
 
 PACKAGES_BUILD="	
-		build-essential \
+                build-essential \
 		cmake \
 		cxxtest \
 		rlwrap \
 		guile-1.8-dev \
+		binutils-dev \
 		libicu-dev \
 		libbz2-dev \
 		cython \
@@ -135,7 +142,9 @@ PACKAGES_BUILD="
 		python-numpy \
 		python-scipy \
 		python-mock \
+		python-simplejson \
 		python-flask \
+		python-flask-restful \
                 python-pyparsing \
                 python-dateutil \
                 python-six \
@@ -149,7 +158,7 @@ PACKAGES_BUILD="
 		tcl-dev \
 		tcsh \
 		uuid-dev \
-		libzmq-dev \
+		libzmq3-dev \
 		libprotoc-dev \
 		protobuf-compiler \
 		libcurl4-gnutls-dev \
@@ -473,15 +482,11 @@ trap quit_trap  INT HUP QUIT TERM
 # SECTION 4: Function Definitions
 
 add_repositories() {
-if [ -f /etc/apt/sources.list.d/opencog-dev-ppa-precise.list ] ; then 
-  MESSAGE="opencog-dev software repository exists, skipping adding repositories..." ; message
-else
-  MESSAGE="Adding software repositories..." ; message
-  for REPO in $REPOSITORIES ; do 
-    sudo apt-add-repository -y $REPO
-  done
-  sudo apt-get $QUIET --assume-yes update 
-fi
+MESSAGE="Adding software repositories..." ; message
+for REPO in $REPOSITORIES ; do 
+  sudo apt-add-repository -y $REPO
+done
+sudo apt-get $QUIET --assume-yes update 
 }
 
 install_admin() {
