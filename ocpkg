@@ -130,7 +130,7 @@ PACKAGES_BUILD="
 		cmake \
 		cxxtest \
 		rlwrap \
-		guile-1.8-dev \
+		guile-2.0-dev \
 		binutils-dev \
 		libicu-dev \
 		libbz2-dev \
