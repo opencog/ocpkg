@@ -69,7 +69,7 @@ DEFAULT_PACKAGE_TYPE=local
 DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_UPDATE_OPENCOG=true		
-DEFAULT_BUILD_OPENCOG=true		
+DEFAULT_BUILD_OPENCOG=false		
 DEFAULT_TEST_OPENCOG=true		
 
 UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
@@ -750,6 +750,7 @@ if [ ! $TEST_OPENCOG ] ; then TEST_OPENCOG=$DEFAULT_TEST_OPENCOG; fi
 # package type selected when invoked as 'ocpkg'
 
 case $PACKAGE_TYPE in
+  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
   demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   dev)	install_package_tools; locate_live_iso ; mount_live_iso 
