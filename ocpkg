@@ -750,7 +750,6 @@ if [ ! $TEST_OPENCOG ] ; then TEST_OPENCOG=$DEFAULT_TEST_OPENCOG; fi
 # package type selected when invoked as 'ocpkg'
 
 case $PACKAGE_TYPE in
-  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
   demo)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   min)	install_package_tools; locate_live_iso ; mount_live_iso ; remove_packages ;;
   dev)	install_package_tools; locate_live_iso ; mount_live_iso 
@@ -772,6 +771,7 @@ case $PACKAGE_TYPE in
 esac
 
 case $PACKAGE_TYPE in
+  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
   demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
