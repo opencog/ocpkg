@@ -69,8 +69,8 @@ DEFAULT_PACKAGE_TYPE=local
 DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true	
 DEFAULT_UPDATE_OPENCOG=true		
-DEFAULT_BUILD_OPENCOG=true		
-DEFAULT_TEST_OPENCOG=true		
+#DEFAULT_BUILD_OPENCOG=true		
+#DEFAULT_TEST_OPENCOG=true		
 
 UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
 UBUNTU_URL=http://releases.ubuntu.com/12.04/
@@ -130,7 +130,7 @@ PACKAGES_BUILD="
 		cmake \
 		cxxtest \
 		rlwrap \
-		guile-1.8-dev \
+		guile-2.0-dev \
 		binutils-dev \
 		libicu-dev \
 		libbz2-dev \
@@ -342,7 +342,7 @@ else
 fi 
 }
 
-while getopts ":i:o:j:s:c:l:r:adubnxtrvh" flag ; do
+while getopts ":i:o:j:s:c:l:r:adubtnxrvh" flag ; do
   case $flag in
     i)	INPUT_ISO_NAME="$OPTARG" ;;          
     o)	OUTPUT_ISO_NAME="$OPTARG" ;;          
@@ -355,9 +355,9 @@ while getopts ":i:o:j:s:c:l:r:adubnxtrvh" flag ; do
     d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
     u)	UPDATE_OPENCOG=true ;;			#git pull
     b)	BUILD_OPENCOG=true ;;			#build opencog
+    t)	TEST_OPENCOG=true ;;                    #test opencog
     n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress git update
     x)	unset DEFAULT_BUILD_OPENCOG ;;		#suppress build
-    t)	unset DEFAULT_TEST_OPENCOG ;;           #suppress test
     p)	REINSTALL_PACKAGES=true ;; 
     v)	unset QUIET ;; 
     h)	usage ;; 
@@ -771,6 +771,7 @@ case $PACKAGE_TYPE in
 esac
 
 case $PACKAGE_TYPE in
+  local) if [ $BUILD_OPENCOG ] ; then build_opencog ; fi ;;
   demo)  if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   min)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
   dev)   if [ $BUILD_OPENCOG ] ; then chroot $LIVE_SQUASH_UNION $PATH_PREFIX/bin/$TOOL_NAME $VERBOSE -b ; fi ;;
