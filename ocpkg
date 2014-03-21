@@ -101,6 +101,7 @@ REPOSITORIES="
                 ppa:chris-lea/python-itsdangerous \
                 ppa:chris-lea/python-simplejson \
                 ppa:gandelman-a/test-catalog \
+		ppa:chris-lea/cython \
 		"
 		#opencog-dev: cxxtest
 		#gandelman: python-flask-restful
@@ -151,6 +152,7 @@ PACKAGES_BUILD="
                 python-tornado \
                 python-wsgiref \
 		libboost-all-dev \
+		libjson-spirit-dev \
 		libgsl0-dev \
 		libxmlrpc-c3-dev \
 		unixodbc-dev \
@@ -159,6 +161,7 @@ PACKAGES_BUILD="
 		tcsh \
 		uuid-dev \
 		libzmq3-dev \
+		libtbb-dev \
 		libprotoc-dev \
 		protobuf-compiler \
 		libcurl4-gnutls-dev \
