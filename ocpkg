@@ -44,6 +44,8 @@ declare -A PACKAGE_DESCRIPTION=(
 
 PATH_PREFIX=/usr/local
 CURRENT_DIR=$(pwd)
+SOURCE_DIR=""
+BUILD_DIR=""
 
 if [ "$USER" == "root" ] ; then
  HOST_SOURCE_BRANCH=$PATH_PREFIX/src/opencog
@@ -62,8 +64,8 @@ DEFAULT_PACKAGE_TYPE=local
 DEFAULT_ADD_REPOSITORIES=true
 DEFAULT_INSTALL_DEPENDENCIES=true
 DEFAULT_UPDATE_OPENCOG=true
-#DEFAULT_BUILD_OPENCOG=true
-#DEFAULT_TEST_OPENCOG=true
+DEFAULT_BUILD_OPENCOG=false
+DEFAULT_TEST_OPENCOG=false
 
 # TBD: update for Ubuntu 14.04
 UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
@@ -84,7 +86,7 @@ LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
 LIVE_BUILD_DIR=$HOST_BUILD_DIR
 
 VERBOSE="-v"				#for mount, umount, rm, etc.
-QUIET="" 				#for apt-get
+QUIET="-qq" 				#for apt-get
 
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
@@ -321,23 +323,20 @@ PACKAGES_EXDEV="
 # SECTION 2: Command line option handling
 
 usage() {
-if [ "$SELF_NAME" == "setup.sh" ] ; then
+if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo "Usage: $SELF_NAME OPTION"
   echo " -r Add software repositories"
-  echo " -d Install base build dependencies"
+  echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
   echo " -c Install Cogutils"
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
   echo " -m Install MOSES"
+  echo " -b Build source code in git worktree found @ $PWD"
+  echo " -e Build examples in git worktree found @ $PWD"
+  echo " -t Run tests of source code in git worktree found @ $PWD"
+  echo " -v Verbose output for 'apt-get' commands"
   echo " -h This help message"
-elif [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  echo "Usage: $SELF_NAME OPTION"
-  echo " -a Add software repositories"
-  echo " -d Install all build dependencies"
-  echo " -u Update OpenCog source at $HOST_SOURCE_BRANCH"
-  echo " -b Build OpenCog"
-  echo " -t Test OpenCog"
 else
   echo "Usage: $SELF_NAME [OPTIONS] [PACKAGE-TYPE]"
   echo "  PACKAGE-TYPES:"
@@ -355,16 +354,20 @@ fi
 
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
-if [ "$SELF_NAME" == "setup.sh" ] ; then
-  while getopts "adpcrlmh" flag ; do
+if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
+  while getopts "abdepcrtlmhv" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
-      p)	INSTALL_PYTHON_PACKAGES=true ;;
+      p)	INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
       c)	INSTALL_COGUTIL=true ;;
       a)	INSTALL_ATOMSPACE=true ;;
       l)	INSTALL_LINK_GRAMMAR=true ;;
       m)	INSTALL_MOSES=true ;;
+      b)	BUILD_SOURCE=true ;;
+      e)	BUILD_EXAMPLES=true ;;
+      t)	TEST_SOURCE=true ;;
+      v)	unset QUIET ;;
       h)	usage ;;
       \?)	usage ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -404,6 +407,7 @@ echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 
 PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
 
+# This handles ./ocpkg runs, for e.g. `./ocpkg debs`
 if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
  case $1 in
    debs)  PACKAGE_TYPE=$1 ;;
@@ -412,6 +416,7 @@ if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
    kvm)   PACKAGE_TYPE=$1 ;;
    min)   PACKAGE_TYPE=$1 ;;
    local) PACKAGE_TYPE=$1 ;;
+   docker) PACKAGE_TYPE=$1 ;;
    *)	  MESSAGE="Package type not recognized."; message ; usage ; exit 1 ;;
  esac
  MESSAGE="Package type: $PACKAGE_TYPE : ${PACKAGE_DESCRIPTION[$PACKAGE_TYPE]}" ; message
@@ -548,12 +553,13 @@ cd build/
 cmake ..
 make -j$(nproc)
 sudo make install
+sudo ldconfig
 cd ../..
 rm -rf master.tar.gz cogutils-master/
 }
 
 # Install Python Packages
-install_python_packages(){
+install_opencog_python_packages(){
 MESSAGE="Installing python packages...." ; message
 cd /tmp
 # cleaning up remnants from previous install failures, if any.
@@ -561,6 +567,68 @@ rm -f requirements.txt*
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm -f requirements.txt*
+}
+
+# The following sets the source & build directory for a project
+set_source_and_build_dir() {
+if [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
+    SOURCE_DIR=$(git rev-parse --show-toplevel)
+    MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
+    if [ -d $SOURCE_DIR/build ]; then
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+    else
+        mkdir $SOURCE_DIR/build
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+    fi
+else
+    MESSAGE="Exiting $SELF_NAME as git worktree is not detected run inside \
+a git worktree" ; message
+    exit 1
+fi
+}
+
+# Build function for opencog, atomspace, moses & cogutils repos
+build_source() {
+set_source_and_build_dir
+if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+    rm $BUILD_DIR/CMakeCache.txt
+    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+fi
+MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+cmake -B$BUILD_DIR -H$SOURCE_DIR
+MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
+make -C $BUILD_DIR -j$MAKE_JOBS
+}
+
+# Build examples function for opencog, atomspace, moses & cogutils repos
+build_examples() {
+set_source_and_build_dir
+if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+    rm $BUILD_DIR/CMakeCache.txt
+    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+fi
+MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+cmake -B$BUILD_DIR -H$SOURCE_DIR
+MESSAGE="make -C $BUILD_DIR examples" ; message
+make -C $BUILD_DIR examples
+}
+
+# Run tests function for opencog, atomspace, moses & cogutils repos
+test_source() {
+set_source_and_build_dir
+if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+    rm $BUILD_DIR/CMakeCache.txt
+    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+fi
+MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+cmake -B$BUILD_DIR -H$SOURCE_DIR
+MESSAGE="make -C $BUILD_DIR test" ; message
+make -C $BUILD_DIR test
 }
 
 # Install AtomSpace
@@ -577,6 +645,7 @@ cd build/
 cmake ..
 make -j$(nproc)
 sudo make install
+sudo ldconfig
 cd ../..
 rm -rf master.tar.gz atomspace-master/
 }
@@ -623,7 +692,8 @@ rm -rf link-grammar-5.*/
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH; then
-  MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
+ # commented out the message b/c it is displayed on ctrl + c
+ # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
 # test for and fix Ubuntu 14.04 libiberty-dev includefile bug
@@ -677,6 +747,7 @@ case $PACKAGE_TYPE in
 esac
 
 }
+
 
 install_ghc_global() {
 if type -p ghc > /dev/null && [[ $(ghc --version) =~ "version 7.8.4" ]];
@@ -875,38 +946,20 @@ cleanup_iso
 
 # This is mainly for configuring workspaces depending on the type
 # of project being worked on.
-if [ "$SELF_NAME" == "setup.sh" ] ; then
+if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
-    if [ $INSTALL_PYTHON_PACKAGES ] ; then install_python_packages ; fi
+    if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
+    if [ $BUILD_SOURCE ] ; then build_source ; fi
+    if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
+    if [ $TEST_SOURCE ] ; then test_source ; fi
     if [ $UNKNOWN_FLAGS ] ; then usage ; fi
     if [ $NO_ARGS ] ; then usage ; fi
 exit 0
-fi
-
-if [ "$SELF_NAME" == "install-dependencies-trusty" ] ; then
-  add_repositories
-  install_dependencies
-  install_python_packages
-  install_link_grammar
-  install_cogutil
-  install_atomspace
-  exit 0
-fi
-
-if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
- if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
- if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
- if [ $UPDATE_OPENCOG ] ; then update_opencog_source ; fi
- if [ $BUILD_OPENCOG ] ; then build_opencog ; fi
- if [ $REINSTALL_PACKAGES ] ; then reinstall_removed ; fi
- if [ $UNKNOWN_FLAGS ] ; then usage ; fi
- if [ $NO_ARGS ] ; then usage ; fi
- exit 0
 fi
 
 # option flag conditionals are finished, so set defaults
