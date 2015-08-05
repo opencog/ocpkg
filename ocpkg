@@ -554,8 +554,8 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
-cd ../..
 rm -rf master.tar.gz cogutils-master/
+cd $CURRENT_DIR
 }
 
 # Install Python Packages
@@ -567,6 +567,7 @@ rm -f requirements.txt*
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm -f requirements.txt*
+cd $CURRENT_DIR
 }
 
 # The following sets the source & build directory for a project
@@ -646,8 +647,8 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
-cd ../..
 rm -rf master.tar.gz atomspace-master/
+cd $CURRENT_DIR
 }
 
 # Install MOSES
@@ -665,8 +666,8 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
-cd ../..
 rm -rf master.tar.gz moses-master/
+cd $CURRENT_DIR
 }
 
 # Install Link-Grammar
@@ -685,8 +686,8 @@ cd build
 make -j$(nproc)
 sudo make install
 sudo ldconfig
-cd ../..
 rm -rf link-grammar-5.*/
+cd $CURRENT_DIR
 }
 
 install_dependencies() {
