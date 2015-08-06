@@ -554,6 +554,7 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
 rm -rf master.tar.gz cogutils-master/
 cd $CURRENT_DIR
 }
@@ -647,6 +648,7 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
 rm -rf master.tar.gz atomspace-master/
 cd $CURRENT_DIR
 }
@@ -666,6 +668,7 @@ cmake ..
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
 rm -rf master.tar.gz moses-master/
 cd $CURRENT_DIR
 }
@@ -686,6 +689,7 @@ cd build
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
 rm -rf link-grammar-5.*/
 cd $CURRENT_DIR
 }
