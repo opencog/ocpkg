@@ -571,6 +571,23 @@ rm -f requirements.txt*
 cd $CURRENT_DIR
 }
 
+# Install Haskell Dependencies
+install_opencog_haskell_dependencies(){
+MESSAGE="Installing haskell dependencies...." ; message
+cd /tmp
+install_ghc_global
+#Stack setup must me run in user space.
+if [ "$EUID" -ne 0 ]
+then
+    wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
+    stack setup
+    rm stack.yaml
+else
+    echo "Please run without sudo. Stack need to be run in user space."
+fi
+cd $CURRENT_DIR
+}
+
 # The following sets the source & build directory for a project
 set_source_and_build_dir() {
 if [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
@@ -706,7 +723,7 @@ source /etc/lsb-release
 if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
   sudo sed -i s:"ansidecl.h":\<libiberty/ansidecl.h\>:g /usr/include/bfd.h || true
 fi
-install_ghc_global
+install_opencog_haskell_dependencies;
 }
 
 update_opencog_source() {
@@ -753,7 +770,6 @@ esac
 
 }
 
-
 install_ghc_global() {
 if type -p ghc > /dev/null && [[ $(ghc --version) =~ "version 7.8.4" ]];
 then
@@ -764,7 +780,7 @@ else
   tar xpvf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
   cd ghc-7.8.4
   (./configure && sudo make install) ||\
-  MESSAGE="Global ghc installation failed. It will be locally installed by Stack."; message
+  (MESSAGE="Global ghc installation failed. It will be locally installed by Stack."; message)
   cd ..
   rm -rf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz ghc-7.8.4/
 fi
