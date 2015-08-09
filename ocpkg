@@ -576,7 +576,11 @@ install_opencog_haskell_dependencies(){
 MESSAGE="Installing haskell dependencies...." ; message
 cd /tmp
 install_ghc_global
-#Stack setup must me run in user space.
+# Stack setup must me run in user space:
+# "stack setup" looks for proper ghc version in the system according to the
+# information provided by stack.yaml. If it is not installed, it attempts to install
+# proper ghc version on user space (~/.stack/...). Because of that, it must not
+# be run as root.
 if [ "$EUID" -ne 0 ]
 then
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
@@ -777,7 +781,7 @@ then
 else
   MESSAGE="Installing ghc-7.8.4..."; message
   wget https://www.haskell.org/ghc/dist/7.8.4/ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
-  tar xpvf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
+  tar -xvf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
   cd ghc-7.8.4
   (./configure && sudo make install) ||\
   (MESSAGE="Global ghc installation failed. It will be locally installed by Stack."; message)
