@@ -335,6 +335,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
+  echo " -j [jobs] override number of auto-detected make jobs"
   echo " -v Verbose output for 'apt-get' commands"
   echo " -h This help message"
 else
@@ -355,7 +356,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdepcrtlmhv" flag ; do
+  while getopts "abdepcrtlmhv:j:" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -368,6 +369,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
+      j)	MAKE_JOBS="$OPTARG" ;;
       h)	usage ;;
       \?)	usage ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -624,6 +626,7 @@ MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 cmake -B$BUILD_DIR -H$SOURCE_DIR
 MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
 make -C $BUILD_DIR -j$MAKE_JOBS
+MESSAGE="Finished building source" ; message
 }
 
 # Build examples function for opencog, atomspace, moses & cogutils repos
@@ -636,8 +639,9 @@ fi
 MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
 cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR examples" ; message
-make -C $BUILD_DIR examples
+MESSAGE="make -C $BUILD_DIR  -j$MAKE_JOBS examples" ; message
+make -C $BUILD_DIR -j$MAKE_JOBS examples
+MESSAGE="Finished building examples" ; message
 }
 
 # Run tests function for opencog, atomspace, moses & cogutils repos
@@ -650,8 +654,9 @@ fi
 MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
 cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR test" ; message
-make -C $BUILD_DIR test
+MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
+make -C $BUILD_DIR -j$MAKE_JOBS test
+MESSAGE="Finished building & running tests" ; message
 }
 
 # Install AtomSpace
