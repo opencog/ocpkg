@@ -92,6 +92,7 @@ LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
 REPOSITORIES="
 		ppa:opencog-dev/ppa \
+        ppa:hvr/ghc \
 		"
 		#opencog-dev: cxxtest
 		#gandelman: python-flask-restful
@@ -163,6 +164,7 @@ PACKAGES_BUILD="
 		libfreetype6-dev \
 		libatlas-base-dev \
 		gfortran \
+        ghc-7.8.4 \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
@@ -328,6 +330,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
+  echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -c Install Cogutils"
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
@@ -335,6 +338,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
+  echo " -j [jobs] override number of auto-detected make jobs"
   echo " -v Verbose output for 'apt-get' commands"
   echo " -h This help message"
 else
@@ -352,10 +356,16 @@ else
 fi
 }
 
+
+# TODO: change octool usage to 'octool project command' format. Where projects
+# are opencog, atomspace, cogutils... & commands are setup(for workspace),
+# package(for docker,deb, rpm). Each will have various options/sub-commands.
+#if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
+
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdepcrtlmhv" flag ; do
+  while getopts "abdepcrstlmhvj:" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -368,6 +378,8 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
+      j)	MAKE_JOBS="$OPTARG" ;;
+      s)    HASKELL_STACK_SETUP=true;;
       h)	usage ;;
       \?)	usage ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -408,7 +420,7 @@ echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 PACKAGE_TYPE=$DEFAULT_PACKAGE_TYPE
 
 # This handles ./ocpkg runs, for e.g. `./ocpkg debs`
-if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
+if [ $1 ] && [ "$SELF_NAME" != "ocpkg" ] ; then
  case $1 in
    debs)  PACKAGE_TYPE=$1 ;;
    dev)   PACKAGE_TYPE=$1 ;;
@@ -572,10 +584,9 @@ cd $CURRENT_DIR
 }
 
 # Install Haskell Dependencies
-install_opencog_haskell_dependencies(){
-MESSAGE="Installing haskell dependencies...." ; message
+install_haskell_dependencies(){
+MESSAGE="Installing haskell dependencies in user space...." ; message
 cd /tmp
-install_ghc_global
 # Stack setup must me run in user space:
 # "stack setup" looks for proper ghc version in the system according to the
 # information provided by stack.yaml. If it is not installed, it attempts to install
@@ -587,7 +598,7 @@ then
     stack setup
     rm stack.yaml
 else
-    echo "Please run without sudo. Stack need to be run in user space."
+    echo "Please run without sudo. Stack need to be run in non-root user space."
 fi
 cd $CURRENT_DIR
 }
@@ -624,6 +635,7 @@ MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 cmake -B$BUILD_DIR -H$SOURCE_DIR
 MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
 make -C $BUILD_DIR -j$MAKE_JOBS
+MESSAGE="Finished building source" ; message
 }
 
 # Build examples function for opencog, atomspace, moses & cogutils repos
@@ -636,8 +648,9 @@ fi
 MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
 cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR examples" ; message
-make -C $BUILD_DIR examples
+MESSAGE="make -C $BUILD_DIR  -j$MAKE_JOBS examples" ; message
+make -C $BUILD_DIR -j$MAKE_JOBS examples
+MESSAGE="Finished building examples" ; message
 }
 
 # Run tests function for opencog, atomspace, moses & cogutils repos
@@ -650,8 +663,9 @@ fi
 MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
 cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR test" ; message
-make -C $BUILD_DIR test
+MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
+make -C $BUILD_DIR -j$MAKE_JOBS test
+MESSAGE="Finished building & running tests" ; message
 }
 
 # Install AtomSpace
@@ -727,7 +741,9 @@ source /etc/lsb-release
 if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
   sudo sed -i s:"ansidecl.h":\<libiberty/ansidecl.h\>:g /usr/include/bfd.h || true
 fi
-install_opencog_haskell_dependencies;
+
+# The follwoing symlink is for haskell.
+sudo ln -s /opt/ghc/7.8.4/bin/ghc /usr/local/bin/ghc
 }
 
 update_opencog_source() {
@@ -772,22 +788,6 @@ case $PACKAGE_TYPE in
   dev)	exit 0;;
 esac
 
-}
-
-install_ghc_global() {
-if type -p ghc > /dev/null && [[ $(ghc --version) =~ "version 7.8.4" ]];
-then
-  MESSAGE="Ghc-7.8.4 found."; message
-else
-  MESSAGE="Installing ghc-7.8.4..."; message
-  wget https://www.haskell.org/ghc/dist/7.8.4/ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
-  tar -xvf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz
-  cd ghc-7.8.4
-  (./configure && sudo make install) ||\
-  (MESSAGE="Global ghc installation failed. It will be locally installed by Stack."; message)
-  cd ..
-  rm -rf ghc-7.8.4-x86_64-unknown-linux-centos65.tar.xz ghc-7.8.4/
-fi
 }
 
 locate_live_iso() {
@@ -970,10 +970,11 @@ cleanup_iso
 # SECTION 5: Main Program (MAIN main)
 
 # This is mainly for configuring workspaces depending on the type
-# of project being worked on.
+# of project being worked on. The order here matters.
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
+    if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
