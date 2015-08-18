@@ -743,7 +743,7 @@ if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
 fi
 
 # The follwoing symlink is for haskell.
-sudo ln -s /opt/ghc/7.8.4/bin/ghc /usr/local/bin/ghc
+sudo ln -fs /opt/ghc/7.8.4/bin/* /usr/local/bin/
 }
 
 update_opencog_source() {
