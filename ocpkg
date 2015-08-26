@@ -597,6 +597,8 @@ then
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     stack setup
     rm stack.yaml
+    # hscolour is necessary for haddock documentation.
+    stack build hscolour --copy-bins
 else
     echo "Please run without sudo. Stack need to be run in non-root user space."
 fi
