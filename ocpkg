@@ -596,9 +596,9 @@ if [ "$EUID" -ne 0 ]
 then
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     stack setup
-    rm stack.yaml
     # hscolour is necessary for haddock documentation.
     stack build hscolour --copy-bins
+    rm stack.yaml
 else
     echo "Please run without sudo. Stack need to be run in non-root user space."
 fi
