@@ -595,10 +595,11 @@ cd /tmp
 if [ "$EUID" -ne 0 ]
 then
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
+    wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
     stack setup
     # hscolour is necessary for haddock documentation.
     stack build hscolour --copy-bins
-    rm stack.yaml
+    rm stack.yaml opencog-atomspace.cabal
 else
     echo "Please run without sudo. Stack need to be run in non-root user space."
 fi
