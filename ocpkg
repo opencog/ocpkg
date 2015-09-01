@@ -594,34 +594,43 @@ cd $CURRENT_DIR
 # Install Haskell Dependencies
 install_haskell_dependencies(){
 if ! is_x68_64_trusty; then
-  MESSAGE="You have a 32bit machine or ubuntu version different to 14.04 trusty,
-  so you should install haskell dependencies on your own.
-  Follow stack installation on: https://github.com/commercialhaskell/stack/wiki/Downloads#linux ";
-  message
+  MESSAGE="Installing stack for haskell "; message
+  # Just in case curl isn't installed
+  sudo apt-get install -y curl
+  cd /tmp
+  rm -rf stack*
+  wget $(curl -s  https://api.github.com/repos/commercialhaskell/stack/releases/latest | awk '/browser_download_url/&&/i386-linux.gz/' | head -n 1 | cut -d '"' -f 4)
+  gzip -d stack*i386-linux.gz
+  mv stack* stack
+  chmod 755 stack
+  sudo mv stack /usr/bin/stack
+  rm -f stack*
+  cd $CURRENT_DIR
 else
   MESSAGE="Installing haskell dependencies in user space...." ; message
   # Install stack.
   add_stack_repository
   sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
-  cd /tmp
-  # Stack setup must me run in user space:
-  # "stack setup" looks for proper ghc version in the system according to the
-  # information provided by stack.yaml. If it is not installed, it attempts to install
-  # proper ghc version on user space (~/.stack/...). Because of that, it must not
-  # be run as root.
-  if [ "$EUID" -ne 0 ]
-  then
+fi
+
+# Stack setup must me run in user space:
+# "stack setup" looks for proper ghc version in the system according to the
+# information provided by stack.yaml. If it is not installed, it attempts to install
+# proper ghc version on user space (~/.stack/...). Because of that, it must not
+# be run as root.
+if [ "$EUID" -ne 0 ] ; then
+    cd /tmp
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
     stack setup
+
     # hscolour is necessary for haddock documentation.
     stack build hscolour --copy-bins
     rm stack.yaml opencog-atomspace.cabal
-  else
+    cd $CURRENT_DIR
+else
     echo "Please run without sudo. Stack need to be run in non-root user space."
-  fi
 fi
-cd $CURRENT_DIR
 }
 
 # The following sets the source & build directory for a project
