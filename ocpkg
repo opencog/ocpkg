@@ -602,7 +602,7 @@ else
   MESSAGE="Installing haskell dependencies in user space...." ; message
   # Install stack.
   add_stack_repository
-  sudo apt-get $QUIET --no-upgrade --assume-yes install stack
+  sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
   cd /tmp
   # Stack setup must me run in user space:
   # "stack setup" looks for proper ghc version in the system according to the
