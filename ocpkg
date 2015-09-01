@@ -132,7 +132,6 @@ PACKAGES_BUILD="
 		libiberty-dev \
 		libicu-dev \
 		libbz2-dev \
-		stack \
 		cython \
 		python-dev \
 		python-zmq \
@@ -529,6 +528,16 @@ trap quit_trap  INT HUP QUIT TERM
 
 # SECTION 4: Function Definitions
 
+is_x68_64_trusty() {
+OSREL=$(sed -n 's/DISTRIB_CODENAME=\(.*\)/\1/p' /etc/lsb-release);
+ARCH=$(uname -m);
+if [ "$OSREL" == "trusty" -a "$ARCH" == "x86_64" ]; then
+  return 0
+else
+  return 1
+fi
+}
+
 add_stack_repository() {
 wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
 echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main' | sudo tee /etc/apt/sources.list.d/fpco.list
@@ -536,7 +545,6 @@ echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main' | sudo tee /
 
 add_repositories() {
 MESSAGE="Adding software repositories..." ; message
-add_stack_repository
 for REPO in $REPOSITORIES ; do
   sudo apt-add-repository -y $REPO
 done
@@ -585,23 +593,33 @@ cd $CURRENT_DIR
 
 # Install Haskell Dependencies
 install_haskell_dependencies(){
-MESSAGE="Installing haskell dependencies in user space...." ; message
-cd /tmp
-# Stack setup must me run in user space:
-# "stack setup" looks for proper ghc version in the system according to the
-# information provided by stack.yaml. If it is not installed, it attempts to install
-# proper ghc version on user space (~/.stack/...). Because of that, it must not
-# be run as root.
-if [ "$EUID" -ne 0 ]
-then
+if ! is_x68_64_trusty; then
+  MESSAGE="You have a 32bit machine or ubuntu version different to 14.04 trusty,
+  so you should install haskell dependencies on your own.
+  Follow stack installation on: https://github.com/commercialhaskell/stack/wiki/Downloads#linux ";
+  message
+else
+  MESSAGE="Installing haskell dependencies in user space...." ; message
+  # Install stack.
+  add_stack_repository
+  sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
+  cd /tmp
+  # Stack setup must me run in user space:
+  # "stack setup" looks for proper ghc version in the system according to the
+  # information provided by stack.yaml. If it is not installed, it attempts to install
+  # proper ghc version on user space (~/.stack/...). Because of that, it must not
+  # be run as root.
+  if [ "$EUID" -ne 0 ]
+  then
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
     stack setup
     # hscolour is necessary for haddock documentation.
     stack build hscolour --copy-bins
     rm stack.yaml opencog-atomspace.cabal
-else
+  else
     echo "Please run without sudo. Stack need to be run in non-root user space."
+  fi
 fi
 cd $CURRENT_DIR
 }
