@@ -163,7 +163,9 @@ PACKAGES_BUILD="
 		libfreetype6-dev \
 		libatlas-base-dev \
 		gfortran \
-        ghc-7.8.4 \
+	        ghc-7.8.4 \
+		gearman \
+		libgearman-dev \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
