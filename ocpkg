@@ -699,6 +699,13 @@ MESSAGE="Finished building examples" ; message
 
 # Run tests function for opencog, atomspace, moses & cogutils repos
 test_source() {
+#check if gearman service is running, start it if not
+if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
+then
+    MESSAGE="gearman-job-server is running!!!";message
+else
+sudo /etc/init.d/gearman-job-server start
+fi	
 set_source_and_build_dir
 if [ -a $BUILD_DIR/CMakeCache.txt ]; then
     rm $BUILD_DIR/CMakeCache.txt
