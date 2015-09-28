@@ -603,6 +603,7 @@ if ! is_x68_64_trusty; then
   rm -rf stack*
   wget $(curl -s  https://api.github.com/repos/commercialhaskell/stack/releases/latest | awk '/browser_download_url/&&/i386-linux.tar.gz/' | head -n 1 | cut -d '"' -f 4)
   tar xfz stack*i386-linux.tar.gz
+  rm stack*i386-linux.tar.gz
   mv stack* stack
   chmod 755 stack
   sudo mv stack /usr/bin/stack
