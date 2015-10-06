@@ -796,6 +796,7 @@ source /etc/lsb-release
 if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
   sudo sed -i s:"ansidecl.h":\<libiberty/ansidecl.h\>:g /usr/include/bfd.h || true
 fi
+}
 
 update_opencog_source() {
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
