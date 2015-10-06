@@ -92,7 +92,6 @@ LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
 REPOSITORIES="
 		ppa:opencog-dev/ppa \
-        ppa:hvr/ghc \
 		"
 		#opencog-dev: cxxtest
 		#gandelman: python-flask-restful
@@ -163,7 +162,6 @@ PACKAGES_BUILD="
 		libfreetype6-dev \
 		libatlas-base-dev \
 		gfortran \
-	        ghc-7.8.4 \
 		gearman \
 		libgearman-dev \
 		"
@@ -793,10 +791,6 @@ source /etc/lsb-release
 if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
   sudo sed -i s:"ansidecl.h":\<libiberty/ansidecl.h\>:g /usr/include/bfd.h || true
 fi
-
-# The follwoing symlink is for haskell.
-sudo ln -fs /opt/ghc/7.8.4/bin/* /usr/local/bin/
-}
 
 update_opencog_source() {
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
