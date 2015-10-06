@@ -586,7 +586,12 @@ cd /tmp
 # cleaning up remnants from previous install failures, if any.
 rm -f requirements.txt*
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
-sudo pip install -U -r /tmp/requirements.txt
+# scipy, numpy & matplotlib if installed using python-pip will take a long time
+# as they have to be built before being installed. And the arrifacts of the
+# build occupies a lot of space blotting the docker image. Thus instead a
+# system instllation is made.
+sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
+sudo apt-get install -y python-matplotlib python-numpy python-scipy
 rm -f requirements.txt*
 cd $CURRENT_DIR
 }
@@ -704,7 +709,7 @@ then
     MESSAGE="gearman-job-server is running!!!";message
 else
 sudo /etc/init.d/gearman-job-server start
-fi	
+fi
 set_source_and_build_dir
 if [ -a $BUILD_DIR/CMakeCache.txt ]; then
     rm $BUILD_DIR/CMakeCache.txt
