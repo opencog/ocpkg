@@ -327,6 +327,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
+  echo " -i Install build-job artifacts"
   echo " -c Install Cogutils"
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
@@ -361,7 +362,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdepcrstlmhvj:" flag ; do
+  while getopts "abdeipcrstlmhvj:" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -376,6 +377,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       v)	unset QUIET ;;
       j)	MAKE_JOBS="$OPTARG" ;;
       s)    HASKELL_STACK_SETUP=true;;
+      i)    INSTALL_BUILD=true ;;
       h)	usage ;;
       \?)	usage ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -720,6 +722,14 @@ make -C $BUILD_DIR -j$MAKE_JOBS test
 MESSAGE="Finished building & running tests" ; message
 }
 
+# Install build job artifacts
+install_build() {
+MESSAGE="Starting installation" ; message
+sudo make install 1> /dev/null
+sudo ldconfig
+MESSAGE="Finished installation" ; message
+}
+
 # Install AtomSpace
 install_atomspace(){
 MESSAGE="Installing atomspace...." ; message
@@ -1032,6 +1042,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then test_source ; fi
+    if [ $INSTALL_BUILD ] ; then install_build ; fi
     if [ $UNKNOWN_FLAGS ] ; then usage ; fi
     if [ $NO_ARGS ] ; then usage ; fi
 exit 0
