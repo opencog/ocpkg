@@ -12,6 +12,9 @@ set -e
 # Environment Variables
 SELF_NAME=$(basename $0)
 
+# Fedora version
+FEDORA_VERSION=$(cat /etc/issue | head -n 1 | cut -d " " -f 3)
+
 # Some tools
 PACKAGES_TOOLS="
         git \
@@ -149,10 +152,10 @@ rm -rf master.tar.gz atomspace-master/
 # as well as dependencies required for running opencog with other services.
 install_dependencies() {
 MESSAGE="Updating Package db...." ; message
-dnf updateinfo
+$PM updateinfo
 
 MESSAGE="Installing OpenCog build dependencies...." ; message
-if !  (sudo dnf -y install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS)
+if !  (sudo $PM -y install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS)
 then
   MESSAGE="Error installing some of dependencies... :( :("  ; message
   exit 1
@@ -162,12 +165,14 @@ install_json_spirit
 
 # Install Haskell Dependencies
 install_haskell_dependencies(){
-if ! is_x68_64_fedora_22; then
 MESSAGE="Installing haskell dependencies in user space...." ; message
 # Install stack.
-curl -sSL https://s3.amazonaws.com/download.fpcomplete.com/fedora/22/fpco.repo | sudo tee /etc/yum.repos.d/fpco.repo
-sudo dnf -y install stack
+if [ "$FEDORA_VERSION" == "22" ]; then
+    curl -sSL https://s3.amazonaws.com/download.fpcomplete.com/fedora/22/fpco.repo | sudo tee /etc/yum.repos.d/fpco.repo
+elif [ "$FEDORA_VERSION" == "21" ]; then
+    curl -sSL https://s3.amazonaws.com/download.fpcomplete.com/fedora/21/fpco.repo | sudo tee /etc/yum.repos.d/fpco.repo
 fi
+sudo $PM -y install stack
 
 # Notes
 # 1. Stack setup must me run in user space:
@@ -213,6 +218,13 @@ echo " -h This help message"
 }
 
 # Main Program
+# Choose package manager
+if [ "$FEDORA_VERSION" == "22" ]; then
+    PM=dnf
+elif [ "$FEDORA_VERSION" == "21" ]; then
+    PM=yum
+fi
+
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 while getopts "dpcalsh" flag ; do
