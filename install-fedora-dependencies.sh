@@ -41,6 +41,7 @@ PACKAGES_BUILD="
         python-zmq \
         boost-devel \
         zeromq-devel \
+        cppzmq-devel \
         tbb-devel \
         binutils-devel \
         gsl-devel \
