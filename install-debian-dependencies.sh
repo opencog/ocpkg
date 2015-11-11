@@ -129,12 +129,17 @@ fi
 
 # Main Program
 install_dependencies
+install_python_packages
 
-read -p "Dependencies installed, would you like to attempt an autoinstall of opencog? (y/n) " instprompt
-if [ $instprompt !== "y"]
+echo "Dependencies installed, we can clone OpenCog, Atomspace, etc to the current directory if you like.
+read -p "Download Opencog source to current path? (y/n) " gitclone
+if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
 then
+	git clone https://github.com/opencog/opencog.git
+	git clone https://github.com/opencog/atomspace.git
+	git clone https://github.com/opencog/cogutils.git
+else
+	echo "Download of OpenCog aborted."
 	exit
 fi
-git clone https://github.com/opencog/opencog.git
-git clone https://github.com/opencog/atomspace.git
-git clone https://github.com/opencog/cogutils.git
+
