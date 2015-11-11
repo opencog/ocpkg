@@ -136,7 +136,7 @@ fi
 install_dependencies
 install_python_packages
 
-echo "Dependencies installed, we can clone OpenCog, Atomspace, etc to the current directory if you like.
+echo "Dependencies installed, we can clone OpenCog, Atomspace, etc to the current directory if you like."
 read -p "Download Opencog source to current path? (y/n) " gitclone
 if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
 then
