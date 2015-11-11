@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# This script is used for installing the dependencies required for
-# building opencog on debian.The script has been tested using docker
-# image debian:testing.
-# It is provided for those on 32-bit system or don't want to use
+#Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process.
+#Script is designed to interactively install opencog on a clean Debian Jessie environment.
 # If you encounter an issue don't hesitate to supply a patch on github.
 
 # trap errors
@@ -124,10 +122,19 @@ if ! (apt-get -y install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS); the
   MESSAGE="Error installing some of the dependencies... :( :("  ; message
   exit 1
 fi
-install_python_packages
-install_cogutil
-install_atomspace
+#install_python_packages
+#install_cogutil
+#install_atomspace
 }
 
 # Main Program
 install_dependencies
+
+read -p "Dependencies installed, would you like to attempt an autoinstall of opencog? (y/n) " instprompt
+if [ $instprompt !== "y"]
+then
+	exit
+fi
+git clone https://github.com/opencog/opencog.git
+git clone https://github.com/opencog/atomspace.git
+git clone https://github.com/opencog/cogutils.git
