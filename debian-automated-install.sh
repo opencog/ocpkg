@@ -6,3 +6,8 @@
 #Author: Noah Bliss
 #Last editor: 
 #Last updated on: 11/11/2015
+
+#Add menu here. Skip menu if variables were attached when run. 
+#1.) Just install dependencies. Prompt to download OpenCog from Github at the end.
+#2.) Dependencies, then install OpenCog without MOSES
+#3.) Dependencies, OpenCog with MOSES.
