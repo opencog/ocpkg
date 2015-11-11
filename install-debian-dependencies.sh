@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-#Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process.
-#Script is designed to interactively install opencog on a clean Debian Jessie environment.
+#Script is designed to interactively install opencog dependencies on a clean Debian Jessie environment.
+#Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process/Debian Python issues.
+#Repaired apt/python deps installs. 
+#Disabled cogutil/atomspace build/install to make "Installing_OpenCog_for_Noobs" intructions valid.
+#Script then optionally does a git clone from the OpenCog github.
 # If you encounter an issue don't hesitate to supply a patch on github.
 
 # trap errors
