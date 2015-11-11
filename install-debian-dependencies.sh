@@ -90,6 +90,8 @@ rm -rf master.tar.gz cogutils-master/
 install_python_packages(){
 MESSAGE="Installing python packages...." ; message
 cd /tmp
+#Fix for sslv3 Debian error
+sudo easy_install --upgrade pip
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm requirements.txt
@@ -142,4 +144,6 @@ else
 	echo "Download of OpenCog aborted."
 	exit
 fi
+
+echo "You should now be able to build according to the OpenCog for noobs instructions. Good luck!"
 
