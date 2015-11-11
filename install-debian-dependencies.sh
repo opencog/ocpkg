@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# This script is used for installing the dependencies required for
-# building opencog on debian.The script has been tested using docker
-# image debian:testing.
-# It is provided for those on 32-bit system or don't want to use
+#Script is designed to interactively install opencog dependencies on a clean Debian Jessie environment.
+#Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process/Debian Python issues.
+#Repaired apt/python deps installs. 
+#Disabled cogutil/atomspace build/install to make "Installing_OpenCog_for_Noobs" intructions valid.
+#Script then optionally does a git clone from the OpenCog github.
 # If you encounter an issue don't hesitate to supply a patch on github.
 
 # trap errors
@@ -92,6 +93,8 @@ rm -rf master.tar.gz cogutils-master/
 install_python_packages(){
 MESSAGE="Installing python packages...." ; message
 cd /tmp
+#Fix for sslv3 Debian error
+sudo easy_install --upgrade pip
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm requirements.txt
@@ -124,10 +127,27 @@ if ! (apt-get -y install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS); the
   MESSAGE="Error installing some of the dependencies... :( :("  ; message
   exit 1
 fi
-install_python_packages
-install_cogutil
-install_atomspace
+#install_python_packages
+#install_cogutil
+#install_atomspace
 }
 
 # Main Program
 install_dependencies
+install_python_packages
+
+printf '\n \n'
+echo "Dependencies installed, we can clone OpenCog, Atomspace, etc to the current directory if you like."
+read -p "Download Opencog source to current path? (y/n) " gitclone
+if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
+then
+	git clone https://github.com/opencog/opencog.git
+	git clone https://github.com/opencog/atomspace.git
+	git clone https://github.com/opencog/cogutils.git
+else
+	echo "Download of OpenCog aborted."
+	exit
+fi
+
+echo "You should now be able to build according to the OpenCog for noobs instructions. Good luck!"
+
