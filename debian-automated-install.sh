@@ -7,6 +7,9 @@
 #Last editor: 
 #Last updated on: 11/11/2015
 
+#Prompt for root
+[ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
+
 #Add menu here. Skip menu if variables were attached when run. 
 #1.) Just install dependencies. Prompt to download OpenCog from Github at the end.
 #2.) Dependencies, then install OpenCog without MOSES
