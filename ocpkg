@@ -147,7 +147,6 @@ PACKAGES_BUILD="
 		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
-		libgsl0-dev \
 		unixodbc-dev \
 		uuid-dev \
 		libprotoc-dev \

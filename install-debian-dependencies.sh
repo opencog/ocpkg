@@ -2,7 +2,7 @@
 #
 #Script is designed to interactively install opencog dependencies on a clean Debian Jessie environment.
 #Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process/Debian Python issues.
-#Repaired apt/python deps installs. 
+#Repaired apt/python deps installs.
 #Disabled cogutil/atomspace build/install to make "Installing_OpenCog_for_Noobs" intructions valid.
 #Script then optionally does a git clone from the OpenCog github.
 # If you encounter an issue don't hesitate to supply a patch on github.
@@ -47,7 +47,6 @@ PACKAGES_BUILD="
 		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
-		libgsl0-dev \
 		unixodbc-dev \
 		uuid-dev \
 		libprotoc-dev \
@@ -150,4 +149,3 @@ else
 fi
 
 echo "You should now be able to build according to the OpenCog for noobs instructions. Good luck!"
-

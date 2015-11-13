@@ -44,7 +44,6 @@ PACKAGES_BUILD="
         cppzmq-devel \
         tbb-devel \
         binutils-devel \
-        gsl-devel \
         unixODBC-devel \
         uuid-devel \
         protobuf-c \
