@@ -73,6 +73,8 @@ echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 install_json_spirit(){
 MESSAGE="Installing json-spirit library...." ; message
 cd /tmp
+# cleaning up remnants from previous install failures, if any.
+rm -rf json-spirit_4.05.orig.tar.gz json_spirit_v4_05
 export BOOST_ROOT=/usr/include/boost/
 wget http://http.debian.net/debian/pool/main/j/json-spirit/json-spirit_4.05.orig.tar.gz
 tar -xvf json-spirit_4.05.orig.tar.gz
@@ -90,6 +92,8 @@ rm -rf json-spirit_4.05.orig.tar.gz json_spirit_v4_05
 install_opencog_python_packages(){
 MESSAGE="Installing python packages...." ; message
 cd /tmp
+# cleaning up remnants from previous install failures, if any.
+rm requirements.txt
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm requirements.txt
@@ -99,6 +103,8 @@ rm requirements.txt
 install_cogutil(){
 MESSAGE="Installing cogutils...." ; message
 cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz cogutils-master/
 wget https://github.com/opencog/cogutils/archive/master.tar.gz
 tar -xvf master.tar.gz
 cd cogutils-master/
@@ -136,6 +142,8 @@ cd $CURRENT_DIR
 install_atomspace(){
 MESSAGE="Installing atomspace...." ; message
 cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz atomspace-master/
 wget https://github.com/opencog/atomspace/archive/master.tar.gz
 tar -xvf master.tar.gz
 cd atomspace-master/

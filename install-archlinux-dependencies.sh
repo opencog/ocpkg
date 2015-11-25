@@ -2,10 +2,10 @@
 #
 # This script is used for installing the dependencies required for
 # building opencog on archlinux.The script has been tested using docker
-# image base/archlinux:latest & l3iggs/archlinux
+# image pritunl/archlinux.
 # It is provided for those on 32-bit system or don't want to use
 # If you encounter an issue don't hesitate to supply a patch on github.
-
+# TODO :  Add function for installing haskell dependencies.
 # trap errors
 set -e
 
@@ -67,6 +67,8 @@ echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 install_json_spirit(){
 MESSAGE="Installing json-spirit library...." ; message
 cd /tmp
+# cleaning up remnants from previous install failures, if any.
+rm -rf json-spirit_4.05.orig.tar.gz json_spirit_v4_05
 export BOOST_ROOT=/usr/include/boost/
 wget http://http.debian.net/debian/pool/main/j/json-spirit/json-spirit_4.05.orig.tar.gz
 tar -xvf json-spirit_4.05.orig.tar.gz
@@ -84,24 +86,28 @@ rm -rf json-spirit_4.05.orig.tar.gz json_spirit_v4_05
 install_cogutil(){
 MESSAGE="Installing cogutils...." ; message
 cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz cogutils-master/
 wget https://github.com/opencog/cogutils/archive/master.tar.gz
 tar -xvf master.tar.gz
 cd cogutils-master/
 mkdir build
 cd build/
 cmake ..
-make -j$(nproc)
+make -j"$(nproc)"
 sudo make install
 cd ../..
 rm -rf master.tar.gz cogutils-master/
 }
 
 # Install Python Packages
-install_python_packages(){
+install_opencog_python_packages(){
 MESSAGE="Installing python packages...." ; message
 cd /tmp
+# cleaning up remnants from previous install failures, if any.
+rm requirements.txt
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
-sudo pip install -U -r /tmp/requirements.txt
+sudo pip install -v -U -r /tmp/requirements.txt
 rm requirements.txt
 }
 
@@ -109,6 +115,8 @@ rm requirements.txt
 install_atomspace(){
 MESSAGE="Installing atomspace...." ; message
 cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz atomspace-master/
 wget https://github.com/opencog/atomspace/archive/master.tar.gz
 tar -xvf master.tar.gz
 cd atomspace-master/
@@ -129,11 +137,63 @@ if !  pacman -S --noconfirm $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS; t
   MESSAGE="Error installing some of dependencies... :( :("  ; message
   exit 1
 fi
-install_python_packages
+
 install_json_spirit
-install_cogutil
-install_atomspace
+}
+
+# Install Link-Grammar
+install_link_grammar(){
+MESSAGE="Installing Link-Grammar...." ; message
+cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf link-grammar-5.*/
+wget -r --no-parent -nH --cut-dirs=2 http://www.abisource.com/downloads/link-grammar/current/
+tar -zxf current/link-grammar-5*.tar.gz
+rm -r current
+cd link-grammar-5.*/
+mkdir build
+cd build
+../configure
+make -j"$(nproc)"
+sudo make install
+sudo ldconfig
+cd /tmp/
+rm -rf link-grammar-5.*/
+cd $CURRENT_DIR
+}
+
+usage() {
+echo "Usage: $SELF_NAME OPTION"
+echo " -d Install base/system build dependencies"
+echo " -p Install opencog python build dependencies"
+echo " -c Install Cogutils"
+echo " -a Install Atomspace"
+echo " -l Install Link Grammar"
+echo " -h This help message"
 }
 
 # Main Program
-install_dependencies
+if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
+
+while getopts "dpcalsh" flag ; do
+    case $flag in
+      d)    INSTALL_DEPENDENCIES=true ;; #base development packages
+      p)    INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
+      c)    INSTALL_COGUTIL=true ;;
+      a)    INSTALL_ATOMSPACE=true ;;
+      l)    INSTALL_LINK_GRAMMAR=true ;;
+      h)    usage ;;
+      \?)    usage ;;
+      *)  UNKNOWN_FLAGS=true ;;
+    esac
+done
+
+if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
+if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then
+    install_opencog_python_packages
+fi
+if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
+if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
+if [ $UNKNOWN_FLAGS ] ; then usage ; fi
+if [ $NO_ARGS ] ; then usage ; fi
