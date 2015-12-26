@@ -799,6 +799,28 @@ rm -rf link-grammar-5.*/
 cd $CURRENT_DIR
 }
 
+# Installs cpprest that is needed by pattern-miner
+# https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
+install_cpprest(){
+MESSAGE="Installing cpprest...." ; message
+cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz*  cpprestsdk-master
+wget https://github.com/Microsoft/cpprestsdk/archive/master.tar.gz
+tar -xvf master.tar.gz
+cd /cpprestsdk-master/Release
+mkdir build.release
+cd build.release
+CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+cd /tmp/
+rm -rf master.tar.gz*  cpprestsdk-master
+cd $CURRENT_DIR
+}
+
+# Install system dependencies
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH; then
@@ -806,6 +828,7 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACK
  # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
+install_cpprest
 # test for and fix Ubuntu 14.04 libiberty-dev includefile bug
 source /etc/lsb-release
 if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
