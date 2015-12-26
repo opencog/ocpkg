@@ -143,6 +143,7 @@ PACKAGES_BUILD="
 		libboost-serialization-dev \
 		libboost-thread-dev \
 		libboost-system-dev \
+		libboost-random-dev \
 		libjson-spirit-dev \
 		libzmq3-dev \
 		libtbb-dev \
