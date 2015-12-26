@@ -809,7 +809,7 @@ cd /tmp/
 rm -rf master.tar.gz*  cpprestsdk-master
 wget https://github.com/Microsoft/cpprestsdk/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd /cpprestsdk-master/Release
+cd cpprestsdk-master/Release
 mkdir build.release
 cd build.release
 CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
