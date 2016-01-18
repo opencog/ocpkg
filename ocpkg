@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ## @file		ocpkg
-## @copyright		OpenCog Foundation (2012,2013,2014)
+## @copyright		OpenCog Foundation (2012,2013,2014,2015)
 ## @author		David Hart <dhart@opencog.org>
 ## @section DESCRIPTION	A script to download, build, test, install and package OpenCog
 ## @section LICENSE	Permission to copy and modify is granted under the GPL
