@@ -133,29 +133,10 @@ PACKAGES_EXDEV="
         python-bzrlib \
         linux-headers-generic \
         "
-  --disable-legacy-registry=false
-usage() {
-    printf "Usage: $SELF_NAME [OPTION] \n"
-    printf "Options: \n"
-    printf "  -r Add software repositories \n"
-    printf "  -d Install base/system build dependencies \n"
-    printf "  -p Install python build dependencies \n"
-    printf "  -s Install haskell build dependencies in user space \n"
-    printf "  -i Install build-job artifacts \n"
-    printf "  -c Install Cogutils \n"
-    printf "  -a Install Atomspace \n"
-    printf "  -l Install Link Grammar \n"
-    printf "  -m Install MOSES \n"
-    printf "  -b Build source code in git worktree found @ $PWD \n"
-    printf "  -e Build examples in git worktree found @ $PWD \n"
-    printf "  -t Run tests of source code in git worktree found @ $PWD \n"
-    printf "  -j [jobs] override number of auto-detected make jobs \n"
-    printf "  -v Verbose output for 'apt-get' commands \n"
-    printf "  -h This help message \n"
-}
+
 
 message() {
-    printf -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+    printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
 }
 
 is_x68_64_trusty() {
@@ -490,59 +471,96 @@ update_opencog_source() {
     fi
 }
 
-build_opencog() {
-    mkdir -p -v $LIVE_BUILD_DIR || true
-    cd $LIVE_BUILD_DIR
-    MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
-    cmake $LIVE_SOURCE_BRANCH
-    MESSAGE="make -j$MAKE_JOBS" ; message
-    make -j$MAKE_JOBS
+# build_opencog() {
+#     mkdir -p -v $LIVE_BUILD_DIR || true
+#     cd $LIVE_BUILD_DIR
+#     MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
+#     cmake $LIVE_SOURCE_BRANCH
+#     MESSAGE="make -j$MAKE_JOBS" ; message
+#     make -j$MAKE_JOBS
+#
+#     if [ $TEST_OPENCOG ] ; then
+#       make test
+#     fi
+#
+#     case $PACKAGE_TYPE in
+#       min)    MESSAGE="Installing OpenCog..." ; message
+#          make install; exit 0;;
+#       demo)    MESSAGE="Installing OpenCog..." ; message
+#           make install; exit 0;;
+#       dev)    exit 0;;
+#     esac
+#
+# }
 
-    if [ $TEST_OPENCOG ] ; then
-      make test
-    fi
-
-    case $PACKAGE_TYPE in
-      min)    MESSAGE="Installing OpenCog..." ; message
-         make install; exit 0;;
-      demo)    MESSAGE="Installing OpenCog..." ; message
-          make install; exit 0;;
-      dev)    exit 0;;
-    esac
-
+usage() {
+    printf "Usage: %s %s [OPTION] \n" $SELF_NAME $COMMAND_MODE_CHOSEN
+    printf "Options: \n"
+    printf "  -r Add software repositories \n"
+    printf "  -d Install base/system build dependencies \n"
+    printf "  -p Install python build dependencies \n"
+    printf "  -s Install haskell build dependencies in user space \n"
+    printf "  -i Install build-job artifacts \n"
+    printf "  -c Install Cogutils \n"
+    printf "  -a Install Atomspace \n"
+    printf "  -l Install Link Grammar \n"
+    printf "  -m Install MOSES \n"
+    printf "  -b Build source code in git worktree found @ %s \n" $PWD
+    printf "  -e Build examples in git worktree found @ %s \n" $PWD
+    printf "  -t Run tests of source code in git worktree found @ %s \n" $PWD
+    printf "  -j [jobs] override number of auto-detected make jobs \n"
+    printf "  -v Verbose output for 'apt-get' commands \n"
+    printf "  -h This help message \n"
 }
 
-
+# Main Program (MAIN main):
 # TODO: change octool usage to 'octool project command' format. Where projects
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
-#if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
+declare -A COMMAND_MODE_DESCRIPTION=(
+    #simple is compatible previous octool
+    [simple]="Intended for deployment and backward compatability"
+    [dev]="This mode is WIP and is intended for developers"
+)
 
-if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
+case $1 in
+    simple) COMMAND_MODE_CHOSEN=simple ;;
+    dev) COMMAND_MODE_CHOSEN=dev ;;
+    *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}" ; message
+       exit 1 ;;
+esac
 
-while getopts "abdeipcrstlmhvj:" flag ; do
-    case $flag in
-      r) ADD_REPOSITORIES=true ;;
-      d) INSTALL_DEPENDENCIES=true ;; #base development packages
-      p) INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
-      c) INSTALL_COGUTIL=true ;;
-      a) INSTALL_ATOMSPACE=true ;;
-      l) INSTALL_LINK_GRAMMAR=true ;;
-      m) INSTALL_MOSES=true ;;
-      b) BUILD_SOURCE=true ;;
-      e) BUILD_EXAMPLES=true ;;
-      t) TEST_SOURCE=true ;;
-      v) unset QUIET ;;
-      j) MAKE_JOBS="$OPTARG" ;;
-      s) HASKELL_STACK_SETUP=true;;
-      i) INSTALL_BUILD=true ;;
-      h) usage ;;
-      \?) usage ;;
-      *)  UNKNOWN_FLAGS=true ;;
-    esac
-done
+case $COMMAND_MODE_CHOSEN in
+    simple)
+        echo $# "argument nu"
+        shift
+        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
+        while getopts "abdeipcrstlmhvj:" flag ; do
+            case $flag in
+              r) ADD_REPOSITORIES=true ;;
+              d) INSTALL_DEPENDENCIES=true ;;
+              p) INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
+              c) INSTALL_COGUTIL=true ;;
+              a) INSTALL_ATOMSPACE=true ;;
+              l) INSTALL_LINK_GRAMMAR=true ;;
+              m) INSTALL_MOSES=true ;;
+              b) BUILD_SOURCE=true ;;
+              e) BUILD_EXAMPLES=true ;;
+              t) TEST_SOURCE=true ;;
+              v) unset QUIET ;;
+              j) MAKE_JOBS="$OPTARG" ;;
+              s) HASKELL_STACK_SETUP=true;;
+              i) INSTALL_BUILD=true ;;
+              h) usage ;;
+              \?) usage ;;
+              *)  UNKNOWN_FLAGS=true ;;
+            esac
+        done
+        ;;
+    dev) printf "WIP comming soon :-) \n" ;;
+esac
 
-# Main Program (MAIN main):
+
 # This is mainly for configuring workspaces depending on the type
 # of project being worked on. The order here matters.
 if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
@@ -558,5 +576,4 @@ if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
 if [ $TEST_SOURCE ] ; then test_source ; fi
 if [ $INSTALL_BUILD ] ; then install_build ; fi
 if [ $UNKNOWN_FLAGS ] ; then usage ; fi
-if [ $NO_ARGS ] ; then usage ; fi
 exit 0
