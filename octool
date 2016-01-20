@@ -133,28 +133,29 @@ PACKAGES_EXDEV="
         python-bzrlib \
         linux-headers-generic \
         "
-
+  --disable-legacy-registry=false
 usage() {
-    echo "Usage: $SELF_NAME OPTION"
-    echo " -r Add software repositories"
-    echo " -d Install base/system build dependencies"
-    echo " -p Install python build dependencies"
-    echo " -s Install haskell build dependencies in user space. Don't use sudo"
-    echo " -i Install build-job artifacts"
-    echo " -c Install Cogutils"
-    echo " -a Install Atomspace"
-    echo " -l Install Link Grammar"
-    echo " -m Install MOSES"
-    echo " -b Build source code in git worktree found @ $PWD"
-    echo " -e Build examples in git worktree found @ $PWD"
-    echo " -t Run tests of source code in git worktree found @ $PWD"
-    echo " -j [jobs] override number of auto-detected make jobs"
-    echo " -v Verbose output for 'apt-get' commands"
-    echo " -h This help message"
+    printf "Usage: $SELF_NAME [OPTION] \n"
+    printf "Options: \n"
+    printf "  -r Add software repositories \n"
+    printf "  -d Install base/system build dependencies \n"
+    printf "  -p Install python build dependencies \n"
+    printf "  -s Install haskell build dependencies in user space \n"
+    printf "  -i Install build-job artifacts \n"
+    printf "  -c Install Cogutils \n"
+    printf "  -a Install Atomspace \n"
+    printf "  -l Install Link Grammar \n"
+    printf "  -m Install MOSES \n"
+    printf "  -b Build source code in git worktree found @ $PWD \n"
+    printf "  -e Build examples in git worktree found @ $PWD \n"
+    printf "  -t Run tests of source code in git worktree found @ $PWD \n"
+    printf "  -j [jobs] override number of auto-detected make jobs \n"
+    printf "  -v Verbose output for 'apt-get' commands \n"
+    printf "  -h This help message \n"
 }
 
 message() {
-    echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
+    printf -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
 }
 
 is_x68_64_trusty() {
@@ -281,7 +282,8 @@ install_haskell_dependencies(){
         rm stack.yaml opencog-atomspace.cabal
         cd $CURRENT_DIR
     else
-        echo "Please run without sudo. Stack need to be run in non-root user space."
+        printf "Please run without sudo. Stack need to be run in non-root user space."
+        exit 1
     fi
 }
 
@@ -468,7 +470,7 @@ install_dependencies() {
 
 update_opencog_source() {
     if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
-      echo -n
+      printf "\n"
     else
       MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
     exit 1
