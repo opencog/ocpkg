@@ -15,9 +15,7 @@ MAKE_JOBS=$(($PROCESSORS+0))
 VERBOSE="-v"
 QUIET="-qq"
 
-REPOSITORIES="
-        ppa:opencog-dev/ppa \
-        "
+REPOSITORIES=""
 
 PACKAGES_FETCH="
         python-pip \
@@ -494,7 +492,7 @@ update_opencog_source() {
 # }
 
 usage() {
-    printf "Usage: %s %s [OPTION] \n" $SELF_NAME $COMMAND_MODE_CHOSEN
+    printf "Usage: %s %s [OPTION] project\n" $SELF_NAME $COMMAND_MODE_CHOSEN
     printf "Options: \n"
     printf "  -r Add software repositories \n"
     printf "  -d Install base/system build dependencies \n"
@@ -517,10 +515,16 @@ usage() {
 # TODO: change octool usage to 'octool project command' format. Where projects
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
+#
 declare -A COMMAND_MODE_DESCRIPTION=(
     #simple is compatible previous octool
     [simple]="Intended for deployment and backward compatability"
-    [dev]="This mode is WIP and is intended for developers"
+    # TODO Dev should be distro aware, that is, arch vs debian vs fedora
+    # shouldn't be an issue. If a dependancy doesn't exist through the distro
+    # then it should build from source.
+    [dev]="This mode is for configuring development space"
+    [build]="This is for building sources"
+    [run]="Run test or cogserver or some other thing"
 )
 
 case $1 in
@@ -532,7 +536,6 @@ esac
 
 case $COMMAND_MODE_CHOSEN in
     simple)
-        echo $# "argument nu"
         shift
         if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "abdeipcrstlmhvj:" flag ; do
