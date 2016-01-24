@@ -316,6 +316,21 @@ build_examples() {
     MESSAGE="Finished building examples" ; message
 }
 
+# Build tests function for opencog, atomspace, moses & cogutils repos
+build_tests() {
+    set_source_and_build_dir
+    if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+        rm $BUILD_DIR/CMakeCache.txt
+        MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+    fi
+    MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+    #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+    cmake -B$BUILD_DIR -H$SOURCE_DIR
+    MESSAGE="make -C $BUILD_DIR  -j$MAKE_JOBS tests" ; message
+    make -C $BUILD_DIR -j$MAKE_JOBS tests
+    MESSAGE="Finished building tests" ; message
+}
+
 # Run tests function for opencog, atomspace, moses & cogutils repos
 test_source() {
     #check if gearman service is running, start it if not
@@ -530,6 +545,7 @@ declare -A COMMAND_MODE_DESCRIPTION=(
 case $1 in
     simple) COMMAND_MODE_CHOSEN=simple ;;
     dev) COMMAND_MODE_CHOSEN=dev ;;
+    build) COMMAND_MODE_CHOSEN=build ;;
     *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}" ; message
        exit 1 ;;
 esac
@@ -561,6 +577,23 @@ case $COMMAND_MODE_CHOSEN in
         done
         ;;
     dev) printf "WIP comming soon :-) \n" ;;
+    build)
+        shift
+        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
+        while getopts "aehstj:" flag ; do
+            case $flag in
+              a) BUILD_ALL=true ;;
+              s) BUILD_SOURCE=true ;;
+              e) BUILD_EXAMPLES=true ;;
+              t) BUILD_TESTS=true ;;
+              j) MAKE_JOBS="$OPTARG" ;;
+              h) usage ;;
+              \?) usage ;;
+              *)  UNKNOWN_FLAGS=true ;;
+            esac
+        done
+        ;;
+    *) echo "Try the defaults" ; exit 1;;
 esac
 
 
@@ -574,8 +607,14 @@ if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
 if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
 if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
 if [ $INSTALL_MOSES ] ; then install_moses ; fi
+if [ $BUILD_ALL ] ; then
+    build_source
+    build_examples
+    build_tests
+fi
 if [ $BUILD_SOURCE ] ; then build_source ; fi
 if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
+if [ $BUILD_TESTS ] ; then build_tests ; fi
 if [ $TEST_SOURCE ] ; then test_source ; fi
 if [ $INSTALL_BUILD ] ; then install_build ; fi
 if [ $UNKNOWN_FLAGS ] ; then usage ; fi
