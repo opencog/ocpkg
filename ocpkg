@@ -162,6 +162,7 @@ PACKAGES_BUILD="
 		gearman \
 		libgearman-dev \
 		ros-indigo-octomap \
+        ccache \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
