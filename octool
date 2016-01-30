@@ -435,6 +435,31 @@ update_opencog_source() {
     fi
 }
 
+run_cogserver() {
+    CWD=$PWD
+    if [ "$OPENCOG_SOURCE_DIR" != "" ] ; then
+        BRANCH_DIR="$OPENCOG_SOURCE_DIR"
+        if [[ $# == 0 ]]; then # No argument
+            BUILD_DIR_NAME=build
+        elif [[ $# == 1 ]]; then # One argument
+            BUILD_DIR_NAME="$1"
+        else # More than one command line arguments
+            echo "Usage: $0 [BUILD_DIR_NAME=build]"
+            exit 1
+        fi
+
+        BUILD_DIR="${BRANCH_DIR}/${BUILD_DIR_NAME}"
+        cd $BUILD_DIR
+
+        "./opencog/cogserver/server/cogserver" \
+            -c "${BRANCH_DIR}/lib/development.conf"
+    else
+        echo "OPENCOG_SOURCE_DIR environment variable is not set."
+    fi
+    cd $CWD
+}
+
+
 # build_opencog() {
 #     mkdir -p -v $LIVE_BUILD_DIR || true
 #     cd $LIVE_BUILD_DIR
@@ -497,6 +522,7 @@ case $1 in
     simple) COMMAND_MODE_CHOSEN=simple ;;
     dev) COMMAND_MODE_CHOSEN=dev ;;
     build) COMMAND_MODE_CHOSEN=build ;;
+    run) COMMAND_MODE_CHOSEN=run ;;
     *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}" ; message
        exit 1 ;;
 esac
@@ -543,6 +569,15 @@ case $COMMAND_MODE_CHOSEN in
               *)  UNKNOWN_FLAGS=true ;;
             esac
         done
+        ;;
+    run)
+        shift
+        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
+        case $1 in
+            cogserver) run_cogserver ;;
+            *) MESSAGE="Only option is 'cogserver'" ; message
+               exit 1 ;;
+        esac
         ;;
     *) echo "Try the defaults" ; exit 1;;
 esac
