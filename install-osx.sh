@@ -64,7 +64,7 @@ sed -i '1i\
 
 # Edit PyMindAgent.cc to make OS X compatible
 file="./opencog/opencog/cogserver/modules/python/PyMindAgent.cc"
-ssed -i '1i\
+sed -i '1i\
 #include <Python.h>\
 ' $file
 sed -i '0,/if __GNUC__/s/if __GNUC__/if __GNUC__ \&\& INIT_PRIORITY \&\& ((GCC_VERSION >= 40300) || (CLANG_VERSION >= 20900))/' $file
