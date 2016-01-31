@@ -459,29 +459,6 @@ run_cogserver() {
     cd $CWD
 }
 
-
-# build_opencog() {
-#     mkdir -p -v $LIVE_BUILD_DIR || true
-#     cd $LIVE_BUILD_DIR
-#     MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
-#     cmake $LIVE_SOURCE_BRANCH
-#     MESSAGE="make -j$MAKE_JOBS" ; message
-#     make -j$MAKE_JOBS
-#
-#     if [ $TEST_OPENCOG ] ; then
-#       make test
-#     fi
-#
-#     case $PACKAGE_TYPE in
-#       min)    MESSAGE="Installing OpenCog..." ; message
-#          make install; exit 0;;
-#       demo)    MESSAGE="Installing OpenCog..." ; message
-#           make install; exit 0;;
-#       dev)    exit 0;;
-#     esac
-#
-# }
-
 usage() {
     printf "Usage: %s %s [OPTION] project\n" $SELF_NAME $COMMAND_MODE_CHOSEN
     printf "Options: \n"
@@ -508,9 +485,9 @@ usage() {
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #
 declare -A COMMAND_MODE_DESCRIPTION=(
-    #simple is compatible previous octool
-    [simple]="Intended for deployment and backward compatability"
-    # TODO Dev should be distro aware, that is, arch vs debian vs fedora
+    # 'ci' is compatible previous octool
+    [ci]="Intended for continuese integration. It is the default mode"
+    # TODO 'dev' should be distro aware, that is, arch vs debian vs fedora
     # shouldn't be an issue. If a dependancy doesn't exist through the distro
     # then it should build from source.
     [dev]="This mode is for configuring development space"
@@ -518,18 +495,29 @@ declare -A COMMAND_MODE_DESCRIPTION=(
     [run]="Run test or cogserver or some other thing"
 )
 
-case $1 in
-    simple) COMMAND_MODE_CHOSEN=simple ;;
-    dev) COMMAND_MODE_CHOSEN=dev ;;
-    build) COMMAND_MODE_CHOSEN=build ;;
-    run) COMMAND_MODE_CHOSEN=run ;;
-    *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}" ; message
-       exit 1 ;;
-esac
+# Choose command mode.
+if [ $# -eq 0 ] ; then
+    # TODO: This sets ci as the default mode. Once this script is more
+    # mature default mode should be disabled.
+    COMMAND_MODE_CHOSEN=ci
+else
+    case $1 in
+        ci) COMMAND_MODE_CHOSEN=ci ;;
+        dev) COMMAND_MODE_CHOSEN=dev ;;
+        build) COMMAND_MODE_CHOSEN=build ;;
+        run) COMMAND_MODE_CHOSEN=run ;;
+        *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
+           message
+           exit 0 ;;
+    esac
+fi
 
+# Print what mode the script is running in
+MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
+
+#
 case $COMMAND_MODE_CHOSEN in
-    simple)
-        shift
+    ci)
         if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
@@ -579,7 +567,7 @@ case $COMMAND_MODE_CHOSEN in
                exit 1 ;;
         esac
         ;;
-    *) echo "Try the defaults" ; exit 1;;
+    *) echo "There is a bug in the script please report." ; exit 1;;
 esac
 
 
@@ -588,15 +576,17 @@ esac
 if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
 if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
 if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
-if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
+if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then
+    install_opencog_python_packages
+fi
 if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
 if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
 if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
 if [ $INSTALL_MOSES ] ; then install_moses ; fi
 if [ $BUILD_ALL ] ; then
-    build_source
-    build_examples
-    build_tests
+    BUILD_SOURCE=true
+    BUILD_EXAMPLES=true
+    BUILD_TESTS=true
 fi
 if [ $BUILD_SOURCE ] ; then build_source ; fi
 if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
