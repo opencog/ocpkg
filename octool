@@ -481,9 +481,11 @@ else
         dev) COMMAND_MODE_CHOSEN=dev ;;
         build) COMMAND_MODE_CHOSEN=build ;;
         run) COMMAND_MODE_CHOSEN=run ;;
-        *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
-           message
-           exit 0 ;;
+        *) COMMAND_MODE_CHOSEN=ci ;;
+        # TODO: Replace with the following when full migration is done.
+        # *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
+        #    message
+        #    exit 0 ;;
     esac
 fi
 
