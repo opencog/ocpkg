@@ -18,71 +18,59 @@ QUIET="-qq"
 REPOSITORIES=""
 
 PACKAGES_FETCH="
-        python-pip \
-        git \
-            "
+    python-pip \
+    git \
+    wget \
+    "
 
 PACKAGES_BUILD="
-        build-essential \
-        cmake \
-        cxxtest \
-        rlwrap \
-        guile-2.0-dev \
-        libiberty-dev \
-        libicu-dev \
-        libbz2-dev \
-        cython \
-        python-dev \
-        python-zmq \
-        python-simplejson \
-        libboost-date-time-dev \
-        libboost-filesystem-dev \
-        libboost-math-dev \
-        libboost-program-options-dev \
-        libboost-regex-dev \
-        libboost-serialization-dev \
-        libboost-thread-dev \
-        libboost-system-dev \
-        libboost-random-dev \
-        libjson-spirit-dev \
-        libzmq3-dev \
-        libtbb-dev \
-        binutils-dev \
-        unixodbc-dev \
-        uuid-dev \
-        libprotoc-dev \
-        protobuf-compiler \
-        libsdl-gfx1.2-dev \
-        libssl-dev \
-        tcl-dev \
-        tcsh \
-        libfreetype6-dev \
-        libatlas-base-dev \
-        gfortran \
-        gearman \
-        libgearman-dev \
-        ros-indigo-octomap \
-        ccache \
-        "
+    build-essential \
+    cmake \
+    cxxtest \
+    rlwrap \
+    guile-2.0-dev \
+    libiberty-dev \
+    libicu-dev \
+    libbz2-dev \
+    cython \
+    python-dev \
+    python-zmq \
+    python-simplejson \
+    libboost-date-time-dev \
+    libboost-filesystem-dev \
+    libboost-math-dev \
+    libboost-program-options-dev \
+    libboost-regex-dev \
+    libboost-serialization-dev \
+    libboost-thread-dev \
+    libboost-system-dev \
+    libboost-random-dev \
+    libjson-spirit-dev \
+    libzmq3-dev \
+    libtbb-dev \
+    binutils-dev \
+    unixodbc-dev \
+    uuid-dev \
+    libprotoc-dev \
+    protobuf-compiler \
+    libsdl-gfx1.2-dev \
+    libssl-dev \
+    tcl-dev \
+    tcsh \
+    libfreetype6-dev \
+    libatlas-base-dev \
+    gfortran \
+    libgearman-dev \
+    ros-indigo-octomap \
+    ccache \
+    "
 
 PACKAGES_RUNTIME="
-        unixodbc \
-        odbc-postgresql \
-        postgresql-client \
-        "
-
-PACKAGES_DOC="
-        ubuntu-docs \
-        libglib2.0-doc \
-        libpango1.0-doc \
-        libgtk-3-doc \
-        texlive-latex-base-doc \
-        python-doc \
-        devhelp-common \
-        texlive-doc-base \
-        doxygen \
-        dot2tex \
-        "
+    unixodbc \
+    odbc-postgresql \
+    postgresql-client \
+    gearman \
+    "
 
 message() {
     printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
@@ -114,14 +102,6 @@ add_repositories() {
     sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net:80 --recv-key 0xB01FA116
 
     sudo apt-get $QUIET --assume-yes update
-}
-
-install_admin() {
-    MESSAGE="Installing sysadmin tools...." ; message
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; then
-      MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
-      exit 1
-    fi
 }
 
 # Install cogutils
@@ -217,7 +197,7 @@ install_haskell_dependencies(){
     fi
 }
 
-# The following sets the source & build directory for a project
+# The following sets the source & build directory for a git project
 set_source_and_build_dir() {
     if [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
         SOURCE_DIR=$(git rev-parse --show-toplevel)
@@ -286,6 +266,7 @@ build_tests() {
 test_source() {
     #check if gearman service is running, start it if not
     if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
+    # TODO: This should be done in cmake
     then
         MESSAGE="gearman-job-server is running!!!";message
     else
@@ -378,6 +359,7 @@ install_link_grammar(){
 
 # Installs cpprest that is needed by pattern-miner
 # https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
+# TODO: Remove this when a move is made to Ubuntu >= 15.10
 install_cpprest(){
     MESSAGE="Installing cpprest...." ; message
     cd /tmp/
@@ -413,15 +395,8 @@ install_dependencies() {
     fi
 }
 
-update_opencog_source() {
-    if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
-      printf "\n"
-    else
-      MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
-    exit 1
-    fi
-    OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
-    mkdir -p $OPENCOG_SOURCE_DIR || true
+update_source() {
+    set_source_and_build_dir
     if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
       MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
       git clone https://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
