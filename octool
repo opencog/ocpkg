@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 ## @file        octool
-## @copyright        OpenCog Foundation 2016
-## @section DESCRIPTION    A script to download, build, test, install and
-##          configure OpenCog projects
+## @copyright   OpenCog Foundation 2016
+## @section     DESCRIPTION    A script to download, build, test, install and
+##                             configure OpenCog projects
 
 # trap errors
 set -e
@@ -71,6 +71,9 @@ PACKAGES_RUNTIME="
     postgresql-client \
     gearman \
     "
+
+# OpenCog's cmake configured projects. These are mainly C++ projects.
+OPENCOG_CMAKE_PROJECTS=(cogutils atomspace opencog moses)
 
 message() {
     printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
@@ -197,23 +200,53 @@ install_haskell_dependencies(){
     fi
 }
 
-# The following sets the source & build directory for a git project
-set_source_and_build_dir() {
-    if [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
-        SOURCE_DIR=$(git rev-parse --show-toplevel)
-        MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
-        if [ -d $SOURCE_DIR/build ]; then
-            BUILD_DIR=$SOURCE_DIR/build
-            MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
-        else
-            mkdir $SOURCE_DIR/build
-            BUILD_DIR=$SOURCE_DIR/build
-            MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+# Checks if the given argument is a path to the root of one of opencog's c++
+# projects.
+#
+# $1 = path to a directory
+is_opencog_cmake_project_root() {
+    local DIR_NAME=${1##*/}
+    local DIR_NAME=${DIR_NAME%-master}
+
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$DIR_NAME" ] &&
+           ([ -d "$1/opencog" ] || [ -d "$1/moses" ]); then
+            return 0
         fi
-    else
-        MESSAGE="Exiting $SELF_NAME as git worktree is not detected run inside \
-    a git worktree" ; message
+    done
+
+    return 1
+}
+
+# Checks if the $PWD is a part of a git repo or the tar extract of opencog's
+# cmake configured source codes from github.
+set_source_and_build_dir() {
+    # Set source directory path
+    if is_opencog_cmake_project_root $PWD ; then
+        SOURCE_DIR=$PWD
+        MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
+    elif [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
+        local GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
+        if is_opencog_cmake_project_root $GIT_ROOT_DIR ; then
+            SOURCE_DIR=$GIT_ROOT_DIR
+            MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
+        fi
+    fi
+
+    # Check if the SOURCE_DIR is set.
+    if [ -z "$SOURCE_DIR" ]; then
+        MESSAGE="Is not a yet known as opencog project" ; message
         exit 1
+    fi
+
+    # Set build directory path
+    if [ -d $SOURCE_DIR/build ]; then
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+    else
+        mkdir $SOURCE_DIR/build
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
     fi
 }
 
@@ -224,8 +257,9 @@ build_source() {
         rm $BUILD_DIR/CMakeCache.txt
         MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
     fi
-    MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+
     #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+    MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
     cmake -B$BUILD_DIR -H$SOURCE_DIR
     MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
     make -C $BUILD_DIR -j$MAKE_JOBS
@@ -454,7 +488,9 @@ usage() {
     printf "  -h This help message \n"
 }
 
-# Main Program (MAIN main):
+########################
+##    Main Program    ##
+########################
 # TODO: change octool usage to 'octool project command' format. Where projects
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
@@ -495,6 +531,7 @@ MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
 #
 case $COMMAND_MODE_CHOSEN in
     ci)
+
         if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
