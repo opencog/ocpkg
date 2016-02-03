@@ -725,7 +725,7 @@ MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
 #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
 cmake -B$BUILD_DIR -H$SOURCE_DIR
 MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
-make -C $BUILD_DIR -j$MAKE_JOBS test ARGS=-j$MAKE_JOBS
+make -C $BUILD_DIR -j$MAKE_JOBS test #ARGS=-j$MAKE_JOBS
 MESSAGE="Finished building & running tests" ; message
 }
 
