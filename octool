@@ -107,26 +107,6 @@ add_repositories() {
     sudo apt-get $QUIET --assume-yes update
 }
 
-# Install cogutils
-install_cogutil(){
-    MESSAGE="Installing cogutils...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz* cogutils-master
-    wget https://github.com/opencog/cogutils/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd cogutils-master/
-    mkdir build
-    cd build/
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz cogutils-master/
-    cd $CURRENT_DIR
-}
-
 # Install Python Packages
 install_opencog_python_packages(){
     MESSAGE="Installing python packages...." ; message
@@ -218,7 +198,7 @@ is_opencog_cmake_project_root() {
     return 1
 }
 
-# Checks if the $PWD is a part of a git repo or the tar extract of opencog's
+# Checks if the $PWD is a part of a git repo or the tar extract of OpenCog's
 # cmake configured source codes from github.
 set_source_and_build_dir() {
     # Set source directory path
@@ -235,7 +215,7 @@ set_source_and_build_dir() {
 
     # Check if the SOURCE_DIR is set.
     if [ -z "$SOURCE_DIR" ]; then
-        MESSAGE="Is not a yet known as opencog project" ; message
+        MESSAGE="Is not yet known as an OpenCog project" ; message
         exit 1
     fi
 
@@ -306,6 +286,7 @@ test_source() {
     else
     sudo /etc/init.d/gearman-job-server start
     fi
+
     set_source_and_build_dir
     if [ -a $BUILD_DIR/CMakeCache.txt ]; then
         rm $BUILD_DIR/CMakeCache.txt
@@ -324,50 +305,42 @@ install_build() {
     set_source_and_build_dir
     MESSAGE="Starting installation" ; message
     cd $BUILD_DIR
-    sudo make install 1> /dev/null
+    sudo make install
     sudo ldconfig
     cd $CURRENT_DIR
     MESSAGE="Finished installation" ; message
 }
 
-# Install AtomSpace
-install_atomspace(){
-    MESSAGE="Installing atomspace...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz* atomspace-master
-    wget https://github.com/opencog/atomspace/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd atomspace-master/
-    mkdir build
-    cd build/
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz atomspace-master/
-    cd $CURRENT_DIR
-}
+# Builds and installs the project, with the name of the given argument, if
+# it is on of OpenCog's c++ projects.
+#
+# $1 = path to a directory
+install_opencog_cmake_project() {
+    # Check if it is a valid project
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$1" ] ; then
+            local INSTALL_PROJECT="YES"
+            break
+        fi
+    done
 
-# Install MOSES
-install_moses(){
-    MESSAGE="Installing MOSES...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz*  moses-master
-    wget https://github.com/opencog/moses/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd moses-master/
-    mkdir build
-    cd build
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz moses-master/
-    cd $CURRENT_DIR
+    if [ "$INSTALL_PROJECT" == "YES" ]; then
+        MESSAGE="Installing $1 ...." ; message
+        cd /tmp/
+        # cleaning up remnants from previous install failures, if any.
+        rm -rf master.tar.gz* "$1-master"
+        wget https://github.com/opencog/$1/archive/master.tar.gz
+        tar -xvf master.tar.gz
+        cd "$1-master/"
+        build_source
+        install_build
+        cd /tmp/
+        rm -rf master.tar.gz "$1-master"
+        cd $CURRENT_DIR
+    else
+        MESSAGE="Is not yet known as an OpenCog project" ; message
+    fi
+
 }
 
 # Install Link-Grammar
@@ -429,6 +402,7 @@ install_dependencies() {
     fi
 }
 
+# TODO: Make this generic for all projects
 update_source() {
     set_source_and_build_dir
     if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
@@ -528,11 +502,11 @@ fi
 # Print what mode the script is running in
 MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
 
-#
+shift
+if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
+
 case $COMMAND_MODE_CHOSEN in
     ci)
-
-        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
               r) ADD_REPOSITORIES=true ;;
@@ -555,10 +529,7 @@ case $COMMAND_MODE_CHOSEN in
             esac
         done
         ;;
-    dev) printf "WIP comming soon :-) \n" ;;
     build)
-        shift
-        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "aehstj:" flag ; do
             case $flag in
               a) BUILD_ALL=true ;;
@@ -572,9 +543,8 @@ case $COMMAND_MODE_CHOSEN in
             esac
         done
         ;;
+    dev) printf "WIP comming soon :-) \n" ;;
     run)
-        shift
-        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         case $1 in
             cogserver) run_cogserver ;;
             *) MESSAGE="Only option is 'cogserver'" ; message
@@ -593,10 +563,16 @@ if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
 if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then
     install_opencog_python_packages
 fi
-if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
-if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+if [ $INSTALL_COGUTIL ] ; then
+    install_opencog_cmake_project cogutils
+fi
+if [ $INSTALL_ATOMSPACE ] ; then
+    install_opencog_cmake_project atomspace
+fi
 if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
-if [ $INSTALL_MOSES ] ; then install_moses ; fi
+if [ $INSTALL_MOSES ] ; then
+    install_opencog_cmake_project moses
+fi
 if [ $BUILD_ALL ] ; then
     BUILD_SOURCE=true
     BUILD_EXAMPLES=true
