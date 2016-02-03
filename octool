@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 ## @file        octool
-## @copyright        OpenCog Foundation 2016
-## @section DESCRIPTION    A script to download, build, test, install and
-##          configure OpenCog projects
+## @copyright   OpenCog Foundation 2016
+## @section     DESCRIPTION    A script to download, build, test, install and
+##                             configure OpenCog projects
 
 # trap errors
 set -e
@@ -18,71 +18,62 @@ QUIET="-qq"
 REPOSITORIES=""
 
 PACKAGES_FETCH="
-        python-pip \
-        git \
-            "
+    python-pip \
+    git \
+    wget \
+    "
 
 PACKAGES_BUILD="
-        build-essential \
-        cmake \
-        cxxtest \
-        rlwrap \
-        guile-2.0-dev \
-        libiberty-dev \
-        libicu-dev \
-        libbz2-dev \
-        cython \
-        python-dev \
-        python-zmq \
-        python-simplejson \
-        libboost-date-time-dev \
-        libboost-filesystem-dev \
-        libboost-math-dev \
-        libboost-program-options-dev \
-        libboost-regex-dev \
-        libboost-serialization-dev \
-        libboost-thread-dev \
-        libboost-system-dev \
-        libboost-random-dev \
-        libjson-spirit-dev \
-        libzmq3-dev \
-        libtbb-dev \
-        binutils-dev \
-        unixodbc-dev \
-        uuid-dev \
-        libprotoc-dev \
-        protobuf-compiler \
-        libsdl-gfx1.2-dev \
-        libssl-dev \
-        tcl-dev \
-        tcsh \
-        libfreetype6-dev \
-        libatlas-base-dev \
-        gfortran \
-        gearman \
-        libgearman-dev \
-        ros-indigo-octomap \
-        ccache \
-        "
+    build-essential \
+    cmake \
+    cxxtest \
+    rlwrap \
+    guile-2.0-dev \
+    libiberty-dev \
+    libicu-dev \
+    libbz2-dev \
+    cython \
+    python-dev \
+    python-zmq \
+    python-simplejson \
+    libboost-date-time-dev \
+    libboost-filesystem-dev \
+    libboost-math-dev \
+    libboost-program-options-dev \
+    libboost-regex-dev \
+    libboost-serialization-dev \
+    libboost-thread-dev \
+    libboost-system-dev \
+    libboost-random-dev \
+    libjson-spirit-dev \
+    libzmq3-dev \
+    libtbb-dev \
+    binutils-dev \
+    unixodbc-dev \
+    uuid-dev \
+    libprotoc-dev \
+    protobuf-compiler \
+    libsdl-gfx1.2-dev \
+    libssl-dev \
+    tcl-dev \
+    tcsh \
+    libfreetype6-dev \
+    libatlas-base-dev \
+    gfortran \
+    libgearman-dev \
+    ros-indigo-octomap \
+    ccache \
+    "
 
 PACKAGES_RUNTIME="
-        unixodbc \
-        odbc-postgresql \
-        postgresql-client \
-        "
+    unixodbc \
+    odbc-postgresql \
+    postgresql-client \
+    gearman \
+    "
 
-PACKAGES_DOC="
-        ubuntu-docs \
-        libglib2.0-doc \
-        libpango1.0-doc \
-        libgtk-3-doc \
-        texlive-latex-base-doc \
-        python-doc \
-        devhelp-common \
-        texlive-doc-base \
-        doxygen \
-        dot2tex \
-        "
+# OpenCog's cmake configured projects. These are mainly C++ projects.
+OPENCOG_CMAKE_PROJECTS=(cogutils atomspace opencog moses)
 
 message() {
     printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
@@ -114,34 +105,6 @@ add_repositories() {
     sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net:80 --recv-key 0xB01FA116
 
     sudo apt-get $QUIET --assume-yes update
-}
-
-install_admin() {
-    MESSAGE="Installing sysadmin tools...." ; message
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; then
-      MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
-      exit 1
-    fi
-}
-
-# Install cogutils
-install_cogutil(){
-    MESSAGE="Installing cogutils...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz* cogutils-master
-    wget https://github.com/opencog/cogutils/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd cogutils-master/
-    mkdir build
-    cd build/
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz cogutils-master/
-    cd $CURRENT_DIR
 }
 
 # Install Python Packages
@@ -217,23 +180,53 @@ install_haskell_dependencies(){
     fi
 }
 
-# The following sets the source & build directory for a project
-set_source_and_build_dir() {
-    if [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
-        SOURCE_DIR=$(git rev-parse --show-toplevel)
-        MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
-        if [ -d $SOURCE_DIR/build ]; then
-            BUILD_DIR=$SOURCE_DIR/build
-            MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
-        else
-            mkdir $SOURCE_DIR/build
-            BUILD_DIR=$SOURCE_DIR/build
-            MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+# Checks if the given argument is a path to the root of one of opencog's c++
+# projects.
+#
+# $1 = path to a directory
+is_opencog_cmake_project_root() {
+    local DIR_NAME=${1##*/}
+    local DIR_NAME=${DIR_NAME%-master}
+
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$DIR_NAME" ] &&
+           ([ -d "$1/opencog" ] || [ -d "$1/moses" ]); then
+            return 0
         fi
-    else
-        MESSAGE="Exiting $SELF_NAME as git worktree is not detected run inside \
-    a git worktree" ; message
+    done
+
+    return 1
+}
+
+# Checks if the $PWD is a part of a git repo or the tar extract of OpenCog's
+# cmake configured source codes from github.
+set_source_and_build_dir() {
+    # Set source directory path
+    if is_opencog_cmake_project_root $PWD ; then
+        SOURCE_DIR=$PWD
+        MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
+    elif [ "$(git rev-parse --is-inside-work-tree)" == true ] ; then
+        local GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
+        if is_opencog_cmake_project_root $GIT_ROOT_DIR ; then
+            SOURCE_DIR=$GIT_ROOT_DIR
+            MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
+        fi
+    fi
+
+    # Check if the SOURCE_DIR is set.
+    if [ -z "$SOURCE_DIR" ]; then
+        MESSAGE="Is not yet known as an OpenCog project" ; message
         exit 1
+    fi
+
+    # Set build directory path
+    if [ -d $SOURCE_DIR/build ]; then
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
+    else
+        mkdir $SOURCE_DIR/build
+        BUILD_DIR=$SOURCE_DIR/build
+        MESSAGE="Build Directory is set to $SOURCE_DIR/build" ; message
     fi
 }
 
@@ -244,8 +237,9 @@ build_source() {
         rm $BUILD_DIR/CMakeCache.txt
         MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
     fi
-    MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+
     #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+    MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
     cmake -B$BUILD_DIR -H$SOURCE_DIR
     MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
     make -C $BUILD_DIR -j$MAKE_JOBS
@@ -286,11 +280,13 @@ build_tests() {
 test_source() {
     #check if gearman service is running, start it if not
     if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
+    # TODO: This should be done in cmake
     then
         MESSAGE="gearman-job-server is running!!!";message
     else
     sudo /etc/init.d/gearman-job-server start
     fi
+
     set_source_and_build_dir
     if [ -a $BUILD_DIR/CMakeCache.txt ]; then
         rm $BUILD_DIR/CMakeCache.txt
@@ -300,7 +296,7 @@ test_source() {
     #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
     cmake -B$BUILD_DIR -H$SOURCE_DIR
     MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
-    make -C $BUILD_DIR -j$MAKE_JOBS test
+    make -C $BUILD_DIR -j$MAKE_JOBS test ARGS=-j$MAKE_JOBS
     MESSAGE="Finished building & running tests" ; message
 }
 
@@ -309,50 +305,42 @@ install_build() {
     set_source_and_build_dir
     MESSAGE="Starting installation" ; message
     cd $BUILD_DIR
-    sudo make install 1> /dev/null
+    sudo make install
     sudo ldconfig
     cd $CURRENT_DIR
     MESSAGE="Finished installation" ; message
 }
 
-# Install AtomSpace
-install_atomspace(){
-    MESSAGE="Installing atomspace...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz* atomspace-master
-    wget https://github.com/opencog/atomspace/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd atomspace-master/
-    mkdir build
-    cd build/
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz atomspace-master/
-    cd $CURRENT_DIR
-}
+# Builds and installs the project, with the name of the given argument, if
+# it is on of OpenCog's c++ projects.
+#
+# $1 = path to a directory
+install_opencog_cmake_project() {
+    # Check if it is a valid project
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$1" ] ; then
+            local INSTALL_PROJECT="YES"
+            break
+        fi
+    done
 
-# Install MOSES
-install_moses(){
-    MESSAGE="Installing MOSES...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz*  moses-master
-    wget https://github.com/opencog/moses/archive/master.tar.gz
-    tar -xvf master.tar.gz
-    cd moses-master/
-    mkdir build
-    cd build
-    cmake ..
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf master.tar.gz moses-master/
-    cd $CURRENT_DIR
+    if [ "$INSTALL_PROJECT" == "YES" ]; then
+        MESSAGE="Installing $1 ...." ; message
+        cd /tmp/
+        # cleaning up remnants from previous install failures, if any.
+        rm -rf master.tar.gz* "$1-master"
+        wget https://github.com/opencog/$1/archive/master.tar.gz
+        tar -xvf master.tar.gz
+        cd "$1-master/"
+        build_source
+        install_build
+        cd /tmp/
+        rm -rf master.tar.gz "$1-master"
+        cd $CURRENT_DIR
+    else
+        MESSAGE="Is not yet known as an OpenCog project" ; message
+    fi
+
 }
 
 # Install Link-Grammar
@@ -378,6 +366,7 @@ install_link_grammar(){
 
 # Installs cpprest that is needed by pattern-miner
 # https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
+# TODO: Remove this when a move is made to Ubuntu >= 15.10
 install_cpprest(){
     MESSAGE="Installing cpprest...." ; message
     cd /tmp/
@@ -413,15 +402,9 @@ install_dependencies() {
     fi
 }
 
-update_opencog_source() {
-    if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
-      printf "\n"
-    else
-      MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
-    exit 1
-    fi
-    OPENCOG_SOURCE_DIR=$LIVE_SOURCE_BRANCH
-    mkdir -p $OPENCOG_SOURCE_DIR || true
+# TODO: Make this generic for all projects
+update_source() {
+    set_source_and_build_dir
     if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
       MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
       git clone https://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
@@ -435,27 +418,29 @@ update_opencog_source() {
     fi
 }
 
-# build_opencog() {
-#     mkdir -p -v $LIVE_BUILD_DIR || true
-#     cd $LIVE_BUILD_DIR
-#     MESSAGE="cmake $LIVE_SOURCE_BRANCH" ; message
-#     cmake $LIVE_SOURCE_BRANCH
-#     MESSAGE="make -j$MAKE_JOBS" ; message
-#     make -j$MAKE_JOBS
-#
-#     if [ $TEST_OPENCOG ] ; then
-#       make test
-#     fi
-#
-#     case $PACKAGE_TYPE in
-#       min)    MESSAGE="Installing OpenCog..." ; message
-#          make install; exit 0;;
-#       demo)    MESSAGE="Installing OpenCog..." ; message
-#           make install; exit 0;;
-#       dev)    exit 0;;
-#     esac
-#
-# }
+run_cogserver() {
+    CWD=$PWD
+    if [ "$OPENCOG_SOURCE_DIR" != "" ] ; then
+        BRANCH_DIR="$OPENCOG_SOURCE_DIR"
+        if [[ $# == 0 ]]; then # No argument
+            BUILD_DIR_NAME=build
+        elif [[ $# == 1 ]]; then # One argument
+            BUILD_DIR_NAME="$1"
+        else # More than one command line arguments
+            echo "Usage: $0 [BUILD_DIR_NAME=build]"
+            exit 1
+        fi
+
+        BUILD_DIR="${BRANCH_DIR}/${BUILD_DIR_NAME}"
+        cd $BUILD_DIR
+
+        "./opencog/cogserver/server/cogserver" \
+            -c "${BRANCH_DIR}/lib/development.conf"
+    else
+        echo "OPENCOG_SOURCE_DIR environment variable is not set."
+    fi
+    cd $CWD
+}
 
 usage() {
     printf "Usage: %s %s [OPTION] project\n" $SELF_NAME $COMMAND_MODE_CHOSEN
@@ -477,15 +462,17 @@ usage() {
     printf "  -h This help message \n"
 }
 
-# Main Program (MAIN main):
+########################
+##    Main Program    ##
+########################
 # TODO: change octool usage to 'octool project command' format. Where projects
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #
 declare -A COMMAND_MODE_DESCRIPTION=(
-    #simple is compatible previous octool
-    [simple]="Intended for deployment and backward compatability"
-    # TODO Dev should be distro aware, that is, arch vs debian vs fedora
+    # 'ci' is compatible previous octool
+    [ci]="Intended for continuese integration. It is the default mode"
+    # TODO 'dev' should be distro aware, that is, arch vs debian vs fedora
     # shouldn't be an issue. If a dependancy doesn't exist through the distro
     # then it should build from source.
     [dev]="This mode is for configuring development space"
@@ -493,18 +480,33 @@ declare -A COMMAND_MODE_DESCRIPTION=(
     [run]="Run test or cogserver or some other thing"
 )
 
-case $1 in
-    simple) COMMAND_MODE_CHOSEN=simple ;;
-    dev) COMMAND_MODE_CHOSEN=dev ;;
-    build) COMMAND_MODE_CHOSEN=build ;;
-    *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}" ; message
-       exit 1 ;;
-esac
+# Choose command mode.
+if [ $# -eq 0 ] ; then
+    # TODO: This sets ci as the default mode. Once this script is more
+    # mature default mode should be disabled.
+    COMMAND_MODE_CHOSEN=ci
+else
+    case $1 in
+        ci) COMMAND_MODE_CHOSEN=ci ;;
+        dev) COMMAND_MODE_CHOSEN=dev ;;
+        build) COMMAND_MODE_CHOSEN=build ;;
+        run) COMMAND_MODE_CHOSEN=run ;;
+        *) COMMAND_MODE_CHOSEN=ci ;;
+        # TODO: Replace with the following when full migration is done.
+        # *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
+        #    message
+        #    exit 0 ;;
+    esac
+fi
+
+# Print what mode the script is running in
+MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
+
+shift
+if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
 
 case $COMMAND_MODE_CHOSEN in
-    simple)
-        shift
-        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
+    ci)
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
               r) ADD_REPOSITORIES=true ;;
@@ -527,10 +529,7 @@ case $COMMAND_MODE_CHOSEN in
             esac
         done
         ;;
-    dev) printf "WIP comming soon :-) \n" ;;
     build)
-        shift
-        if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
         while getopts "aehstj:" flag ; do
             case $flag in
               a) BUILD_ALL=true ;;
@@ -544,7 +543,15 @@ case $COMMAND_MODE_CHOSEN in
             esac
         done
         ;;
-    *) echo "Try the defaults" ; exit 1;;
+    dev) printf "WIP comming soon :-) \n" ;;
+    run)
+        case $1 in
+            cogserver) run_cogserver ;;
+            *) MESSAGE="Only option is 'cogserver'" ; message
+               exit 1 ;;
+        esac
+        ;;
+    *) echo "There is a bug in the script please report." ; exit 1;;
 esac
 
 
@@ -553,15 +560,23 @@ esac
 if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
 if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
 if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
-if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
-if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
-if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then
+    install_opencog_python_packages
+fi
+if [ $INSTALL_COGUTIL ] ; then
+    install_opencog_cmake_project cogutils
+fi
+if [ $INSTALL_ATOMSPACE ] ; then
+    install_opencog_cmake_project atomspace
+fi
 if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
-if [ $INSTALL_MOSES ] ; then install_moses ; fi
+if [ $INSTALL_MOSES ] ; then
+    install_opencog_cmake_project moses
+fi
 if [ $BUILD_ALL ] ; then
-    build_source
-    build_examples
-    build_tests
+    BUILD_SOURCE=true
+    BUILD_EXAMPLES=true
+    BUILD_TESTS=true
 fi
 if [ $BUILD_SOURCE ] ; then build_source ; fi
 if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
