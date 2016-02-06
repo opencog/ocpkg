@@ -418,6 +418,22 @@ update_source() {
     fi
 }
 
+# This is for fast updating the octool behavior in docker images instead of
+# waiting for rebuilding the docker images, as the system dependencies rarely
+# change.
+# TODO: make it path/symlink independent
+update_octool() {
+    echo ${BASH_SOURCE[0]}
+     if [ "${BASH_SOURCE[0]}" == "/tmp/octool" ] &&
+         wget -q --spider https://github.com/opencog/ocpkg/blob/master/octool
+         then
+         MESSAGE="Updating octool ...." ; message
+         sudo rm /tmp/octool
+         wget -pO /tmp/octool \
+            https://raw.githubusercontent.com/opencog/ocpkg/master/octool
+    fi
+}
+
 run_cogserver() {
     CWD=$PWD
     if [ "$OPENCOG_SOURCE_DIR" != "" ] ; then
@@ -506,7 +522,7 @@ shift
 if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
 
 case $COMMAND_MODE_CHOSEN in
-    ci)
+    ci) update_octool
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
               r) ADD_REPOSITORIES=true ;;
