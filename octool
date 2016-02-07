@@ -209,6 +209,9 @@ set_source_and_build_dir() {
         local GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
         if is_opencog_cmake_project_root $GIT_ROOT_DIR ; then
             SOURCE_DIR=$GIT_ROOT_DIR
+            # IS_GIT_WORKTREE is used to differentiate git version controled
+            # directories from tar-balled download of source.
+            IS_GIT_WORKTREE="yes"
             MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
         fi
     fi
@@ -402,19 +405,20 @@ install_dependencies() {
     fi
 }
 
-# TODO: Make this generic for all projects
+# Updates a git source directory if it is one of the opencog cmake projects.
 update_source() {
     set_source_and_build_dir
-    if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
-      MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-      git clone https://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
-    else
-      if [ $UPDATE_OPENCOG ] ; then
-        MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-        cd $OPENCOG_SOURCE_DIR
-        git pull
+    if [ "$IS_GIT_WORKTREE" == "yes" ] ; then
+        cd $SOURCE_DIR
+        REPO="$(git remote -v  | head -1 | cut -d "/" -f 2 | cut -d "." -f 1)"
+        INITIAL_BRANCH="$(git describe --contains --all HEAD)"
+
+        MESSAGE="Updating $REPO source at $SOURCE_DIR..." ; message
+        git stash
+        git checkout master
+        git pull upstream master
+        git checkout $INITIAL_BRANCH
         cd -
-      fi
     fi
 }
 
