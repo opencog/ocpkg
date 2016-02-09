@@ -280,7 +280,7 @@ build_tests() {
 }
 
 # Run tests function for opencog, atomspace, moses & cogutils repos
-test_source() {
+run_tests() {
     #check if gearman service is running, start it if not
     if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
     # TODO: This should be done in cmake
@@ -538,7 +538,7 @@ case $COMMAND_MODE_CHOSEN in
               m) INSTALL_MOSES=true ;;
               b) BUILD_SOURCE=true ;;
               e) BUILD_EXAMPLES=true ;;
-              t) TEST_SOURCE=true ;;
+              t) RUN_TESTS=true ;;
               v) unset QUIET ;;
               j) MAKE_JOBS="$OPTARG" ;;
               s) HASKELL_STACK_SETUP=true;;
@@ -567,6 +567,7 @@ case $COMMAND_MODE_CHOSEN in
     run)
         case $1 in
             cogserver) run_cogserver ;;
+            tests) run_tests ;;
             *) MESSAGE="Only option is 'cogserver'" ; message
                exit 1 ;;
         esac
@@ -601,7 +602,7 @@ fi
 if [ $BUILD_SOURCE ] ; then build_source ; fi
 if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
 if [ $BUILD_TESTS ] ; then build_tests ; fi
-if [ $TEST_SOURCE ] ; then test_source ; fi
+if [ $RUN_TESTS ] ; then run_tests ; fi
 if [ $INSTALL_BUILD ] ; then install_build ; fi
 if [ $UNKNOWN_FLAGS ] ; then usage ; fi
 exit 0
