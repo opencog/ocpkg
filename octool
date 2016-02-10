@@ -462,8 +462,8 @@ run_cogserver() {
     cd $CWD
 }
 
-usage() {
-    printf "Usage: %s %s [OPTION] project\n" $SELF_NAME $COMMAND_MODE_CHOSEN
+ci_help() {
+    printf "Usage: %s %s [OPTIONS] \n\n" $SELF_NAME $COMMAND_MODE_CHOSEN
     printf "Options: \n"
     printf "  -r Add software repositories \n"
     printf "  -d Install base/system build dependencies \n"
@@ -482,6 +482,22 @@ usage() {
     printf "  -h This help message \n"
 }
 
+# Help
+octool_help() {
+    printf "Usage: %s [ -h | --help ] <COMMAND> [OPTIONS] \n\n" $SELF_NAME
+    printf "Options: \n"
+    printf "  -h, --help    Print this help \n\n"
+    printf "Available COMMANDS are: \n"
+
+    for i in "${!COMMAND_DESCRIPTIONS[@]}" ; do
+        printf "  %s    %s \n" "$i"  "${COMMAND_DESCRIPTIONS[$i]}"
+    done
+}
+
+usage() {
+    echo "wip :-)"
+}
+
 ########################
 ##    Main Program    ##
 ########################
@@ -489,28 +505,29 @@ usage() {
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #
-declare -A COMMAND_MODE_DESCRIPTION=(
-    # 'ci' is compatible previous octool
-    [ci]="Intended for continuese integration. It is the default mode"
+declare -A COMMAND_DESCRIPTIONS=(
+    [build]="This is for building sources"
+    # 'ci' is compatible with previous octool
+    [ci]="   Intended for continuese integration."
     # TODO 'dev' should be distro aware, that is, arch vs debian vs fedora
     # shouldn't be an issue. If a dependancy doesn't exist through the distro
     # then it should build from source.
-    [dev]="This mode is for configuring development space"
-    [build]="This is for building sources"
-    [run]="Run test or cogserver or some other thing"
+    [dev]="  This mode is for configuring development space"
+    [run]="  Run test or cogserver or some other thing"
 )
+
 
 # Choose command mode.
 if [ $# -eq 0 ] ; then
-    # TODO: This sets ci as the default mode. Once this script is more
-    # mature default mode should be disabled.
-    COMMAND_MODE_CHOSEN=ci
+    octool_help
+    exit 0
 else
     case $1 in
         ci) COMMAND_MODE_CHOSEN=ci ;;
         dev) COMMAND_MODE_CHOSEN=dev ;;
         build) COMMAND_MODE_CHOSEN=build ;;
         run) COMMAND_MODE_CHOSEN=run ;;
+        --help | -h) octool_help ; exit 0 ;;
         *) COMMAND_MODE_CHOSEN=ci ;;
         # TODO: Replace with the following when full migration is done.
         # *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
@@ -521,12 +538,11 @@ fi
 
 # Print what mode the script is running in
 MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
-
 shift
-if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
 
 case $COMMAND_MODE_CHOSEN in
-    ci) update_octool
+    ci) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
+        update_octool
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
               r) ADD_REPOSITORIES=true ;;
@@ -543,13 +559,13 @@ case $COMMAND_MODE_CHOSEN in
               j) MAKE_JOBS="$OPTARG" ;;
               s) HASKELL_STACK_SETUP=true;;
               i) INSTALL_BUILD=true ;;
-              h) usage ;;
-              \?) usage ;;
+              h) ci_help ;;
+              \?) ci_help ;;
               *)  UNKNOWN_FLAGS=true ;;
             esac
         done
         ;;
-    build)
+    build) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
         while getopts "aehstj:" flag ; do
             case $flag in
               a) BUILD_ALL=true ;;
@@ -564,12 +580,12 @@ case $COMMAND_MODE_CHOSEN in
         done
         ;;
     dev) printf "WIP comming soon :-) \n" ;;
-    run)
+    run) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
         case $1 in
             cogserver) run_cogserver ;;
             tests) run_tests ;;
             *) MESSAGE="Only option is 'cogserver'" ; message
-               exit 1 ;;
+               exit 0 ;;
         esac
         ;;
     *) echo "There is a bug in the script please report." ; exit 1;;
