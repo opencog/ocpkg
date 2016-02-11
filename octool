@@ -180,6 +180,19 @@ install_haskell_dependencies(){
     fi
 }
 
+# Checks if the given argument is a name one of opencog's c++ projects.
+#
+# $1 = project name
+is_opencog_cmake_project() {
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$1" ] ; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Checks if the given argument is a path to the root of one of opencog's c++
 # projects.
 #
@@ -317,17 +330,9 @@ install_build() {
 # Builds and installs the project, with the name of the given argument, if
 # it is on of OpenCog's c++ projects.
 #
-# $1 = path to a directory
+# $1 = project name
 install_opencog_cmake_project() {
-    # Check if it is a valid project
-    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
-        if [ "$i" == "$1" ] ; then
-            local INSTALL_PROJECT="YES"
-            break
-        fi
-    done
-
-    if [ "$INSTALL_PROJECT" == "YES" ]; then
+    if is_opencog_cmake_project "$1"; then
         MESSAGE="Installing $1 ...." ; message
         cd /tmp/
         # cleaning up remnants from previous install failures, if any.
@@ -427,7 +432,6 @@ update_source() {
 # change.
 # TODO: make it path/symlink independent
 update_octool() {
-    echo ${BASH_SOURCE[0]}
      if [ "${BASH_SOURCE[0]}" == "/tmp/octool" ] &&
          wget -q --spider https://github.com/opencog/ocpkg/blob/master/octool
          then
@@ -435,6 +439,65 @@ update_octool() {
          sudo rm /tmp/octool
          wget -pO /tmp/octool \
             https://raw.githubusercontent.com/opencog/ocpkg/master/octool
+    fi
+}
+
+# This is used for setting the file that is used for storing commit sha
+#
+# $1 = project name
+set_opencog_config_file() {
+    # Don't set config file if the effective uid is root.
+    # TODO: Figure out where is the linux file structure appropriate directory
+    # to keep the config files for all users. And add the option to store
+    # in that directory.
+    if [ "$EUID" -eq 0 ] ; then
+         MESSAGE="Config directory isn't created as root user ...." ; message
+         exit 1
+    fi
+
+    # Check if it an opencog cmake project
+    if ! is_opencog_cmake_project "$1" ; then
+        MESSAGE="$1 is not yet known as an OpenCog project" ; message
+        exit 1
+    fi
+
+    # Set the config directory
+    local CONFIG_DIR="$HOME/.config/opencog"
+    CONFIG_FILE="$CONFIG_DIR/$1"
+    if [ -a "$CONFIG_FILE" ] ; then
+        MESSAGE="Config file being used is $CONFIG_FILE" ; message
+    else
+        mkdir -p "$CONFIG_DIR"
+        touch "$CONFIG_FILE"
+        MESSAGE="Config file being used is $CONFIG_FILE" ; message
+    fi
+}
+
+# This is used for update install one of opencog's c++ projects, provided
+# the given argument is a project name for one of opencog's c++ projects.
+# NOTE: github has a limit on the number on unauthenticated hourly api calls.
+#
+# $1 = project name
+update_cmake_project() {
+    if is_opencog_cmake_project "$1" ; then
+        local CURRENT_COMMIT_SHA=$(curl \
+            https://api.github.com/repos/opencog/$1/git/refs/heads/master \
+            |  grep https://api.github.com/repos/opencog/$1/git/commits \
+            | cut -d "/" -f 9)
+    else
+        MESSAGE="$1 is not yet known as an OpenCog project" ; message
+        exit 1
+    fi
+
+    # Check if update is needed and then update
+    set_opencog_config_file "$1"
+    INSTALLED_COMMIT_SHA=$(cat "$CONFIG_FILE")
+    if [ "$CURRENT_COMMIT_SHA" == "$INSTALLED_COMMIT_SHA" ] ; then
+        MESSAGE="$1 installation is up-to-date" ; message
+    else
+        MESSAGE="Updating $1 installation" ; message
+        install_opencog_cmake_project "$1"
+        echo "$CURRENT_COMMIT_SHA" > "$CONFIG_FILE"
     fi
 }
 
