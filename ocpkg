@@ -734,7 +734,7 @@ install_build() {
 set_source_and_build_dir
 MESSAGE="Starting installation" ; message
 cd $BUILD_DIR
-sudo make install 1> /dev/null
+sudo make install
 sudo ldconfig
 cd $CURRENT_DIR
 MESSAGE="Finished installation" ; message
