@@ -180,6 +180,19 @@ install_haskell_dependencies(){
     fi
 }
 
+# Checks if the given argument is a name one of opencog's c++ projects.
+#
+# $1 = project name
+is_opencog_cmake_project() {
+    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
+        if [ "$i" == "$1" ] ; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Checks if the given argument is a path to the root of one of opencog's c++
 # projects.
 #
@@ -209,6 +222,9 @@ set_source_and_build_dir() {
         local GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
         if is_opencog_cmake_project_root $GIT_ROOT_DIR ; then
             SOURCE_DIR=$GIT_ROOT_DIR
+            # IS_GIT_WORKTREE is used to differentiate git version controled
+            # directories from tar-balled download of source.
+            IS_GIT_WORKTREE="yes"
             MESSAGE="Source Directory is set to $SOURCE_DIR" ; message
         fi
     fi
@@ -277,7 +293,7 @@ build_tests() {
 }
 
 # Run tests function for opencog, atomspace, moses & cogutils repos
-test_source() {
+run_tests() {
     #check if gearman service is running, start it if not
     if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
     # TODO: This should be done in cmake
@@ -314,17 +330,9 @@ install_build() {
 # Builds and installs the project, with the name of the given argument, if
 # it is on of OpenCog's c++ projects.
 #
-# $1 = path to a directory
+# $1 = project name
 install_opencog_cmake_project() {
-    # Check if it is a valid project
-    for i in "${OPENCOG_CMAKE_PROJECTS[@]}" ; do
-        if [ "$i" == "$1" ] ; then
-            local INSTALL_PROJECT="YES"
-            break
-        fi
-    done
-
-    if [ "$INSTALL_PROJECT" == "YES" ]; then
+    if is_opencog_cmake_project "$1"; then
         MESSAGE="Installing $1 ...." ; message
         cd /tmp/
         # cleaning up remnants from previous install failures, if any.
@@ -402,19 +410,94 @@ install_dependencies() {
     fi
 }
 
-# TODO: Make this generic for all projects
+# Updates a git source directory if it is one of the opencog cmake projects.
 update_source() {
     set_source_and_build_dir
-    if [ ! "$(ls -A $OPENCOG_SOURCE_DIR/.git)" ]; then
-      MESSAGE="Fetching OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-      git clone https://github.com/opencog/opencog $OPENCOG_SOURCE_DIR
-    else
-      if [ $UPDATE_OPENCOG ] ; then
-        MESSAGE="Updating OpenCog source at $OPENCOG_SOURCE_DIR..." ; message
-        cd $OPENCOG_SOURCE_DIR
-        git pull
+    if [ "$IS_GIT_WORKTREE" == "yes" ] ; then
+        cd $SOURCE_DIR
+        REPO="$(git remote -v  | head -1 | cut -d "/" -f 2 | cut -d "." -f 1)"
+        INITIAL_BRANCH="$(git describe --contains --all HEAD)"
+
+        MESSAGE="Updating $REPO source at $SOURCE_DIR..." ; message
+        git stash
+        git checkout master
+        git pull upstream master
+        git checkout $INITIAL_BRANCH
         cd -
-      fi
+    fi
+}
+
+# This is for fast updating the octool behavior in docker images instead of
+# waiting for rebuilding the docker images, as the system dependencies rarely
+# change.
+# TODO: make it path/symlink independent
+update_octool() {
+     if [ "${BASH_SOURCE[0]}" == "/tmp/octool" ] &&
+         wget -q --spider https://github.com/opencog/ocpkg/blob/master/octool
+         then
+         MESSAGE="Updating octool ...." ; message
+         sudo rm /tmp/octool
+         wget -pO /tmp/octool \
+            https://raw.githubusercontent.com/opencog/ocpkg/master/octool
+    fi
+}
+
+# This is used for setting the file that is used for storing commit sha
+#
+# $1 = project name
+set_opencog_config_file() {
+    # Don't set config file if the effective uid is root.
+    # TODO: Figure out where is the linux file structure appropriate directory
+    # to keep the config files for all users. And add the option to store
+    # in that directory.
+    if [ "$EUID" -eq 0 ] ; then
+         MESSAGE="Config directory isn't created as root user ...." ; message
+         exit 1
+    fi
+
+    # Check if it an opencog cmake project
+    if ! is_opencog_cmake_project "$1" ; then
+        MESSAGE="$1 is not yet known as an OpenCog project" ; message
+        exit 1
+    fi
+
+    # Set the config directory
+    local CONFIG_DIR="$HOME/.config/opencog"
+    CONFIG_FILE="$CONFIG_DIR/$1"
+    if [ -a "$CONFIG_FILE" ] ; then
+        MESSAGE="Config file being used is $CONFIG_FILE" ; message
+    else
+        mkdir -p "$CONFIG_DIR"
+        touch "$CONFIG_FILE"
+        MESSAGE="Config file being used is $CONFIG_FILE" ; message
+    fi
+}
+
+# This is used for update install one of opencog's c++ projects, provided
+# the given argument is a project name for one of opencog's c++ projects.
+# NOTE: github has a limit on the number on unauthenticated hourly api calls.
+#
+# $1 = project name
+update_cmake_project() {
+    if is_opencog_cmake_project "$1" ; then
+        local CURRENT_COMMIT_SHA=$(curl \
+            https://api.github.com/repos/opencog/$1/git/refs/heads/master \
+            |  grep https://api.github.com/repos/opencog/$1/git/commits \
+            | cut -d "/" -f 9)
+    else
+        MESSAGE="$1 is not yet known as an OpenCog project" ; message
+        exit 1
+    fi
+
+    # Check if update is needed and then update
+    set_opencog_config_file "$1"
+    INSTALLED_COMMIT_SHA=$(cat "$CONFIG_FILE")
+    if [ "$CURRENT_COMMIT_SHA" == "$INSTALLED_COMMIT_SHA" ] ; then
+        MESSAGE="$1 installation is up-to-date" ; message
+    else
+        MESSAGE="Updating $1 installation" ; message
+        install_opencog_cmake_project "$1"
+        echo "$CURRENT_COMMIT_SHA" > "$CONFIG_FILE"
     fi
 }
 
@@ -442,8 +525,8 @@ run_cogserver() {
     cd $CWD
 }
 
-usage() {
-    printf "Usage: %s %s [OPTION] project\n" $SELF_NAME $COMMAND_MODE_CHOSEN
+ci_help() {
+    printf "Usage: %s %s [OPTIONS] \n\n" $SELF_NAME $COMMAND_MODE_CHOSEN
     printf "Options: \n"
     printf "  -r Add software repositories \n"
     printf "  -d Install base/system build dependencies \n"
@@ -462,6 +545,22 @@ usage() {
     printf "  -h This help message \n"
 }
 
+# Help
+octool_help() {
+    printf "Usage: %s [ -h | --help ] <COMMAND> [OPTIONS] \n\n" $SELF_NAME
+    printf "Options: \n"
+    printf "  -h, --help    Print this help \n\n"
+    printf "Available COMMANDS are: \n"
+
+    for i in "${!COMMAND_DESCRIPTIONS[@]}" ; do
+        printf "  %s    %s \n" "$i"  "${COMMAND_DESCRIPTIONS[$i]}"
+    done
+}
+
+usage() {
+    echo "wip :-)"
+}
+
 ########################
 ##    Main Program    ##
 ########################
@@ -469,28 +568,29 @@ usage() {
 # are opencog, atomspace, cogutils... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #
-declare -A COMMAND_MODE_DESCRIPTION=(
-    # 'ci' is compatible previous octool
-    [ci]="Intended for continuese integration. It is the default mode"
+declare -A COMMAND_DESCRIPTIONS=(
+    [build]="This is for building sources"
+    # 'ci' is compatible with previous octool
+    [ci]="   Intended for continuese integration."
     # TODO 'dev' should be distro aware, that is, arch vs debian vs fedora
     # shouldn't be an issue. If a dependancy doesn't exist through the distro
     # then it should build from source.
-    [dev]="This mode is for configuring development space"
-    [build]="This is for building sources"
-    [run]="Run test or cogserver or some other thing"
+    [dev]="  This mode is for configuring development space"
+    [run]="  Run test or cogserver or some other thing"
 )
+
 
 # Choose command mode.
 if [ $# -eq 0 ] ; then
-    # TODO: This sets ci as the default mode. Once this script is more
-    # mature default mode should be disabled.
-    COMMAND_MODE_CHOSEN=ci
+    octool_help
+    exit 0
 else
     case $1 in
         ci) COMMAND_MODE_CHOSEN=ci ;;
         dev) COMMAND_MODE_CHOSEN=dev ;;
         build) COMMAND_MODE_CHOSEN=build ;;
         run) COMMAND_MODE_CHOSEN=run ;;
+        --help | -h) octool_help ; exit 0 ;;
         *) COMMAND_MODE_CHOSEN=ci ;;
         # TODO: Replace with the following when full migration is done.
         # *) MESSAGE="Modes available are: ${!COMMAND_MODE_DESCRIPTION[@]}"
@@ -501,12 +601,11 @@ fi
 
 # Print what mode the script is running in
 MESSAGE="Using '$COMMAND_MODE_CHOSEN' command mode" ; message
-
 shift
-if [ $# -eq 0 ] ; then usage ; exit 0 ; fi
 
 case $COMMAND_MODE_CHOSEN in
-    ci)
+    ci) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
+        update_octool
         while getopts "abdeipcrstlmhvj:" flag ; do
             case $flag in
               r) ADD_REPOSITORIES=true ;;
@@ -518,18 +617,18 @@ case $COMMAND_MODE_CHOSEN in
               m) INSTALL_MOSES=true ;;
               b) BUILD_SOURCE=true ;;
               e) BUILD_EXAMPLES=true ;;
-              t) TEST_SOURCE=true ;;
+              t) RUN_TESTS=true ;;
               v) unset QUIET ;;
               j) MAKE_JOBS="$OPTARG" ;;
               s) HASKELL_STACK_SETUP=true;;
               i) INSTALL_BUILD=true ;;
-              h) usage ;;
-              \?) usage ;;
+              h) ci_help ;;
+              \?) ci_help ;;
               *)  UNKNOWN_FLAGS=true ;;
             esac
         done
         ;;
-    build)
+    build) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
         while getopts "aehstj:" flag ; do
             case $flag in
               a) BUILD_ALL=true ;;
@@ -544,11 +643,12 @@ case $COMMAND_MODE_CHOSEN in
         done
         ;;
     dev) printf "WIP comming soon :-) \n" ;;
-    run)
+    run) if [ $# -eq 0 ] ; then ci_help ; exit 0 ; fi
         case $1 in
             cogserver) run_cogserver ;;
+            tests) run_tests ;;
             *) MESSAGE="Only option is 'cogserver'" ; message
-               exit 1 ;;
+               exit 0 ;;
         esac
         ;;
     *) echo "There is a bug in the script please report." ; exit 1;;
@@ -581,7 +681,7 @@ fi
 if [ $BUILD_SOURCE ] ; then build_source ; fi
 if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
 if [ $BUILD_TESTS ] ; then build_tests ; fi
-if [ $TEST_SOURCE ] ; then test_source ; fi
+if [ $RUN_TESTS ] ; then run_tests ; fi
 if [ $INSTALL_BUILD ] ; then install_build ; fi
 if [ $UNKNOWN_FLAGS ] ; then usage ; fi
 exit 0
