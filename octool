@@ -90,8 +90,8 @@ is_x68_64_trusty() {
 }
 
 add_stack_repository() {
-    wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
-    echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main' | sudo tee /etc/apt/sources.list.d/fpco.list
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
+    echo 'deb http://download.fpcomplete.com/ubuntu trusty main'|sudo tee /etc/apt/sources.list.d/fpco.list
 }
 
 add_repositories() {
@@ -144,7 +144,7 @@ install_haskell_dependencies(){
       MESSAGE="Installing haskell dependencies in user space...." ; message
       # Install stack.
       add_stack_repository
-      sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
+      sudo apt-get update && sudo apt-get $QUIET -y install stack
     fi
 
     # Notes
@@ -168,10 +168,10 @@ install_haskell_dependencies(){
         cd /tmp
         wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
         wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
-        stack setup
+        stack --allow-different-user setup
 
         # hscolour is necessary for haddock documentation.
-        stack build hscolour --copy-bins
+        stack --allow-different-user build hscolour --copy-bins
         rm stack.yaml opencog-atomspace.cabal
         cd $CURRENT_DIR
     else
@@ -445,7 +445,7 @@ update_octool() {
 # This is used for setting the file that is used for storing commit sha
 #
 # $1 = project name
-set_opencog_config_file() {
+set_opencog_setup_file() {
     # Don't set config file if the effective uid is root.
     # TODO: Figure out where is the linux file structure appropriate directory
     # to keep the config files for all users. And add the option to store
@@ -490,7 +490,7 @@ update_cmake_project() {
     fi
 
     # Check if update is needed and then update
-    set_opencog_config_file "$1"
+    set_opencog_setup_file "$1"
     INSTALLED_COMMIT_SHA=$(cat "$CONFIG_FILE")
     if [ "$CURRENT_COMMIT_SHA" == "$INSTALLED_COMMIT_SHA" ] ; then
         MESSAGE="$1 installation is up-to-date" ; message

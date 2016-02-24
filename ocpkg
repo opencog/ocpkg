@@ -540,8 +540,8 @@ fi
 }
 
 add_stack_repository() {
-wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
-echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main' | sudo tee /etc/apt/sources.list.d/fpco.list
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
+echo 'deb http://download.fpcomplete.com/ubuntu trusty main'|sudo tee /etc/apt/sources.list.d/fpco.list
 }
 
 add_repositories() {
@@ -622,7 +622,7 @@ else
   MESSAGE="Installing haskell dependencies in user space...." ; message
   # Install stack.
   add_stack_repository
-  sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
+  sudo apt-get update && sudo apt-get $QUIET -y install stack
 fi
 
 # Notes
@@ -646,10 +646,10 @@ if [ "$EUID" -ne 0 ] ; then
     cd /tmp
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
-    stack setup
+    stack --allow-different-user setup
 
     # hscolour is necessary for haddock documentation.
-    stack build hscolour --copy-bins
+    stack --allow-different-user build hscolour --copy-bins
     rm stack.yaml opencog-atomspace.cabal
     cd $CURRENT_DIR
 else
