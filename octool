@@ -445,7 +445,7 @@ update_octool() {
 # This is used for setting the file that is used for storing commit sha
 #
 # $1 = project name
-set_opencog_config_file() {
+set_opencog_setup_file() {
     # Don't set config file if the effective uid is root.
     # TODO: Figure out where is the linux file structure appropriate directory
     # to keep the config files for all users. And add the option to store
@@ -490,7 +490,7 @@ update_cmake_project() {
     fi
 
     # Check if update is needed and then update
-    set_opencog_config_file "$1"
+    set_opencog_setup_file "$1"
     INSTALLED_COMMIT_SHA=$(cat "$CONFIG_FILE")
     if [ "$CURRENT_COMMIT_SHA" == "$INSTALLED_COMMIT_SHA" ] ; then
         MESSAGE="$1 installation is up-to-date" ; message
