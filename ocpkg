@@ -646,10 +646,10 @@ if [ "$EUID" -ne 0 ] ; then
     cd /tmp
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
     wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
-    stack setup
+    stack --allow-different-user setup
 
     # hscolour is necessary for haddock documentation.
-    stack build hscolour --copy-bins
+    stack --allow-different-user build hscolour --copy-bins
     rm stack.yaml opencog-atomspace.cabal
     cd $CURRENT_DIR
 else
