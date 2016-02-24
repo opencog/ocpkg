@@ -90,8 +90,8 @@ is_x68_64_trusty() {
 }
 
 add_stack_repository() {
-    wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
-    echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main' | sudo tee /etc/apt/sources.list.d/fpco.list
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
+    echo 'deb http://download.fpcomplete.com/ubuntu trusty main'|sudo tee /etc/apt/sources.list.d/fpco.list
 }
 
 add_repositories() {
@@ -144,7 +144,7 @@ install_haskell_dependencies(){
       MESSAGE="Installing haskell dependencies in user space...." ; message
       # Install stack.
       add_stack_repository
-      sudo apt-get update && sudo apt-get $QUIET --no-upgrade --assume-yes install stack
+      sudo apt-get update && sudo apt-get $QUIET -y install stack
     fi
 
     # Notes
