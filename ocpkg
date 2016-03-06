@@ -86,7 +86,7 @@ LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
 LIVE_BUILD_DIR=$HOST_BUILD_DIR
 
 VERBOSE="-v"				#for mount, umount, rm, etc.
-QUIET="-qq" 				#for apt-get
+#QUIET="-qq" 				#for apt-get
 
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
