@@ -86,7 +86,7 @@ LIVE_SOURCE_BRANCH=$HOST_SOURCE_BRANCH
 LIVE_BUILD_DIR=$HOST_BUILD_DIR
 
 VERBOSE="-v"				#for mount, umount, rm, etc.
-QUIET="-qq" 				#for apt-get
+#QUIET="-qq" 				#for apt-get
 
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
@@ -553,7 +553,7 @@ done
 
 # Ros repository for opencog/opencog repo
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
-sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net:80 --recv-key 0xB01FA116
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 0xB01FA116
 
 sudo apt-get $QUIET --assume-yes update
 }
