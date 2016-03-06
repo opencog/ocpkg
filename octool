@@ -50,6 +50,7 @@ PACKAGES_BUILD="
     libtbb-dev \
     binutils-dev \
     unixodbc-dev \
+    libpq-dev\
     uuid-dev \
     libprotoc-dev \
     protobuf-compiler \
