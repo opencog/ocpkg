@@ -64,6 +64,7 @@ PACKAGES_BUILD="
     libgearman-dev \
     ros-indigo-octomap \
     ccache \
+    libgsasl7 \
     "
 
 PACKAGES_RUNTIME="

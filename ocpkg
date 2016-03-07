@@ -164,6 +164,7 @@ PACKAGES_BUILD="
 		libgearman-dev \
 		ros-indigo-octomap \
 		ccache \
+		libgsasl7 \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
