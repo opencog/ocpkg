@@ -165,6 +165,8 @@ PACKAGES_BUILD="
 		ros-indigo-octomap \
 		ccache \
 		libgsasl7 \
+		libldap2-dev \
+		krb5-multidev \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
