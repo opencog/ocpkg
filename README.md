@@ -8,6 +8,9 @@ For a quick start using Ubuntu version >= 14.04, run
 ```
  wget http://raw.github.com/opencog/ocpkg/master/ocpkg -O octool && chmod +rx octool && ./octool -h
 ```
+
+For detailed instructions see [here](http://wiki.opencog.org/wikihome/index.php/Building_OpenCog#octool_for_ubuntu)
+
 #### octool-wip
 The separate octool script is not yet ready so use the ocpkg's file renamed as octool. See above.
 
