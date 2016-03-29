@@ -8,9 +8,8 @@ For a quick start using Ubuntu version >= 14.04, run
 ```
  wget http://raw.github.com/opencog/ocpkg/master/ocpkg -O octool && chmod +rx octool && ./octool -h
 ```
-#### octool
-Note: [busybox](https://en.wikipedia.org/wiki/BusyBox) works this way
-Options are available with 'octool -h'.
+#### octool-wip
+The separate octool script is not yet ready so use the ocpkg's file renamed as octool. See above.
 
 #### ocbootstrap
 (This hasn't been tested for a while)
