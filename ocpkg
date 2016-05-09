@@ -613,7 +613,7 @@ if ! is_x68_64_trusty; then
   sudo apt-get install -y curl
   cd /tmp
   rm -rf stack*
-  wget $(curl -s  https://api.github.com/repos/commercialhaskell/stack/releases/latest | awk '/browser_download_url/&&/i386-linux.tar.gz/' | head -n 1 | cut -d '"' -f 4)
+  wget $( curl -s  https://api.github.com/repos/commercialhaskell/stack/releases/latest | awk '/browser_download_url/&&/stack-[0-9\.]*-linux-i386.tar.gz/' | head -n 1 | cut -d '"' -f 4)
   tar xfz stack*i386-linux.tar.gz
   rm stack*i386-linux.tar.gz
   mv stack* stack
