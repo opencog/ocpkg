@@ -43,6 +43,7 @@ then
 #debian
 elif [ "$dist" == "debian" ]
 then
+  echo > /dev/null
   #Nothing weird for Debian. We will continue to the universal install menu.
 elif [ "$dist" == "fedora" ]
 then
