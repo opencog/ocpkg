@@ -112,7 +112,7 @@ then
   read -p "Install CogUtils? (y/n) " cogutils
   read -p "Install AtomSpace? (y/n) " atomspace
   read -p "UNTESTED: Install LinkGrammar? (y/n) " linkgram
-  read -p "UNTESTED: Install Haskell (may error if run as root)? (y/n) " haskell
+  #read -p "UNTESTED: Install Haskell (may error if run as root)? (y/n) " haskell
   
   #COGUTILS
   if [ "$cogutils" == "y" ] || [ "$cogutils" == "Y" ]
@@ -166,10 +166,8 @@ then
     rm -rf link-grammar-5.*/
     cd $CURRENT_DIR
   fi
-  if [ "$haskell" == "y" ] || [ "$haskell" == "Y" ]
-  then
-    
-  
+  #if [ "$haskell" == "y" ] || [ "$haskell" == "Y" ]
+  #then
 
 #Dependencies, then install OpenCog. (L3vi47h4N method)
 elif [ "$choice" == "3" ]
