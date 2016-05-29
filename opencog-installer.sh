@@ -57,7 +57,7 @@ then
   echo "Downloaded install-archlinux-dependencies.sh. Run it with ./install-archlinux-dependencies.sh"
   #Since we aren't installing for Arch via this script, we exit here.
   exit 0
-elif [ "$choice" == "opensuse" ]
+elif [ "$dist" == "opensuse" ]
 then
   wget https://raw.githubusercontent.com/opencog/ocpkg/master/install-opensuse-dependencies.sh && chmod 755 ./install-opensuse-dependencies.sh
   echo "Downloaded install-opensuse-dependencies.sh. Run it with ./install-opensuse-dependencies.sh"
