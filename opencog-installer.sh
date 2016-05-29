@@ -94,7 +94,7 @@ done
 #Just the dependencies.
 if [ "$choice" == "1" ]
 then
-  source <(wget -qO- "https://raw.githubusercontent.com/opencog/ocpkg/master/install-debian-dependencies.sh")
+  source <(wget -qO- "https://raw.githubusercontent.com/opencog/ocpkg/master/debian/install-debian-dependencies.sh")
   exit 0
 #Dependencies, then install OpenCog. (AmeBel method)
 elif [ "$choice" == "2" ]
