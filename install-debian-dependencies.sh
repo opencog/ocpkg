@@ -4,14 +4,14 @@
 #Last Edit 5/28/2016 by Noah Bliss. Major edit. Script is now part of a pair.
 #This script installs the dependencies necessary to build OpenCog on Debian.
 #Removed cogutil/atomspace build/install. They are now handled by debian-automated-install.sh
-# If you encounter an issue don't hesitate to supply a patch on github.
+# If I break. Fix me on github!
 
-# We can handle our own errors.
+#Prompt for root since we are installing stuff.
+[ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
 
-# Environment Variables
-SELF_NAME=$(basename $0)
+# DEFINE PACKAGES TO INSTALL:
 
-# Some tools
+# General System Utilities
 PACKAGES_TOOLS="
 		git \
 		python-pip \
@@ -65,91 +65,21 @@ PACKAGES_RUNTIME="
 		postgresql-client \
 		"
 
-# Template for messages printed.
-message() {
-echo -e "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m"
-}
-
-# Install cogutils
-install_cogutil(){
-MESSAGE="Installing cogutils...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz cogutils-master/
-wget https://github.com/opencog/cogutils/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd cogutils-master/
-mkdir build
-cd build/
-cmake ..
-make -j$(nproc)
-sudo make install
-cd ../..
-rm -rf master.tar.gz cogutils-master/
-}
-
-# Install Python Packages
-install_python_packages(){
-MESSAGE="Installing python packages...." ; message
+#Install the Deps.
+apt-get update
+if ! (apt-get install -y $PACKAGES_TOOLS $PACKAGES_BUILD $PACKAGES_RUNTIME)
+then
+	echo "Installing packages from the Debian repo failed. It's probably your internet, apt sources.list, or we devs need to update a package name."
+	exit 1
+fi	
+#Install the Python Deps.
 cd /tmp
-# cleaning up remnants from previous install failures, if any.
 rm requirements.txt
 #Fix for sslv3 Debian error
 sudo easy_install --upgrade pip
 wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/requirements.txt
 sudo pip install -U -r /tmp/requirements.txt
 rm requirements.txt
-}
-
-# Install AtomSpace
-install_atomspace(){
-MESSAGE="Installing atomspace...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz atomspace-master/
-wget https://github.com/opencog/atomspace/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd atomspace-master/
-mkdir build
-cd build/
-cmake ..
-make -j$(nproc)
-sudo make install
-cd ../..
-rm -rf master.tar.gz atomspace-master/
-}
-
-# Function for installing all required dependenceis for building OpenCog,
-# as well as dependencies required for running opencog with other services.
-install_dependencies() {
-MESSAGE="Updating Package db...." ; message
-apt-get update
-
-MESSAGE="Installing OpenCog build dependencies...." ; message
-if ! (apt-get -y install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_TOOLS); then
-  MESSAGE="Error installing some of the dependencies... :( :("  ; message
-  exit 1
-fi
-#install_python_packages
-#install_cogutil
-#install_atomspace
-}
-
-# Main Program
-install_dependencies
-install_python_packages
 
 printf '\n \n'
-echo "Dependencies installed, we can clone OpenCog, Atomspace, etc to the current directory if you like."
-read -p "Download Opencog source to current path? (y/n) " gitclone
-if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
-then
-	git clone https://github.com/opencog/opencog.git
-	git clone https://github.com/opencog/atomspace.git
-	git clone https://github.com/opencog/cogutils.git
-else
-	echo "Download of OpenCog aborted."
-	exit
-fi
-
-echo "You should now be able to build according to the OpenCog for noobs instructions. Good luck!"
+echo "Prerequisite software installed. We should have everything we need to build OpenCog."
