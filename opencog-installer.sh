@@ -4,6 +4,10 @@
 #This script installs dependencies, downloads OpenCog from Github, compiles and installs it, or if unable to do so, hands-off to the proper program to accomplish those steps.
 #Last editor: Noah Bliss
 #Last updated on: 5/29/2016
+#A few variables quick...
+gauthor=opencog
+rtdr=ocpkg
+branch=master
 
 #Let's start by cleaning off our desk...
 clear
@@ -96,13 +100,13 @@ done
 if [ "$choice" == "1" ]
 then
   #Fetch the dependency script using the dist variable as part of the path.
-  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+  wget https://raw.githubusercontent.com/"$gauthor"/"$rtdr"/"$branch"/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
   exit 0
 #Dependencies, then install OpenCog. (AmeBel method)
 elif [ "$choice" == "2" ]
 then
   #Fetch the dependency script using the dist variable as part of the path.
-  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+  wget https://raw.githubusercontent.com/"$gauthor"/"$rtdr"/"$branch"/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
   read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
   #I need to put a menu-driven selection program here which prompts for which elements of OpenCog a user wants.
   read -p "Install CogUtils? (y/n) " cogutils
@@ -171,7 +175,7 @@ then
 elif [ "$choice" == "3" ]
 then
   #Fetch the dependency script using the dist variable as part of the path.
-  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+  wget https://raw.githubusercontent.com/"$gauthor"/"$rtdr"/"$branch"/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
     read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
         echo "This is still in development. Pressing enter will use git pull to download opencog/atomspace/cogutils to current directory."
         read -p "Download Opencog source to current path? (y/n) " gitclone
