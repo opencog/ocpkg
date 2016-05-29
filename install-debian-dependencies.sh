@@ -2,7 +2,6 @@
 #
 #Script is designed to interactively install opencog dependencies on a clean Debian Jessie environment.
 #Last Edit 5/28/2016 by Noah Bliss. Major edit. Script is now part of a pair.
-#This script installs the dependencies necessary to build OpenCog on Debian.
 #Removed cogutil/atomspace build/install. They are now handled by debian-automated-install.sh
 # If I break. Fix me on github!
 
