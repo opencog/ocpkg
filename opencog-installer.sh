@@ -99,7 +99,7 @@ then
 #Dependencies, then install OpenCog. (AmeBel method)
 elif [ "$choice" == "2" ]
 then
-        
+        echo > /dev/null
 #Dependencies, then install OpenCog. (L3vi47h4N method)
 elif [ "$choice" == "3" ]
 then
