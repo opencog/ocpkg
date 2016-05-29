@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 #
 #Script is designed to interactively install opencog dependencies on a clean Debian Jessie environment.
-#Last Edit 11/11/2015 by Noah Bliss. Forked due to broken build process/Debian Python issues.
-#Repaired apt/python deps installs.
-#Disabled cogutil/atomspace build/install to make "Installing_OpenCog_for_Noobs" intructions valid.
-#Script then optionally does a git clone from the OpenCog github.
+#Last Edit 5/28/2016 by Noah Bliss. Major edit. Script is now part of a pair.
+#This script installs the dependencies necessary to build OpenCog on Debian.
+#Removed cogutil/atomspace build/install. They are now handled by debian-automated-install.sh
 # If you encounter an issue don't hesitate to supply a patch on github.
 
-# trap errors
-set -e
+# We can handle our own errors.
 
 # Environment Variables
 SELF_NAME=$(basename $0)
