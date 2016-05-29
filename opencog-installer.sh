@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #
-#Designed for Debian Jessie, compatible with others.
-#This script either installs dependencies, downloads OpenCog from Github, compiles and installs it, and leaves the build environment or hands off to the proper program to accomplish those steps.
+#A streamlined and interactive method for installing OpenCog in Linux. 
+#This script installs dependencies, downloads OpenCog from Github, compiles and installs it, or if unable to do so, hands-off to the proper program to accomplish those steps.
 #Last editor: Noah Bliss
 #Last updated on: 5/29/2016
 
+#Let's start by cleaning off our desk...
 clear
 
 echo "
@@ -95,15 +96,83 @@ done
 if [ "$choice" == "1" ]
 then
   #Fetch the dependency script using the dist variable as part of the path.
-  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
   exit 0
 #Dependencies, then install OpenCog. (AmeBel method)
 elif [ "$choice" == "2" ]
 then
-        echo > /dev/null
+  #Fetch the dependency script using the dist variable as part of the path.
+  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+  read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
+  #I need to put a menu-driven selection program here which prompts for which elements of OpenCog a user wants.
+  read -p "Install CogUtils? (y/n) " cogutils
+  read -p "Install AtomSpace? (y/n) " atomspace
+  read -p "UNTESTED: Install LinkGrammar? (y/n) " linkgram
+  read -p "UNTESTED: Install Haskell (may error if run as root)? (y/n) " haskell
+  
+  #COGUTILS
+  if [ "$cogutils" == "y" ] || [ "$cogutils" == "Y" ]
+  then
+    cd /tmp/
+    # cleaning up remnants from previous install failures, if any.
+    rm -rf master.tar.gz cogutils-master/
+    wget https://github.com/opencog/cogutils/archive/master.tar.gz
+    tar -xvf master.tar.gz
+    cd cogutils-master/
+    mkdir build
+    cd build/
+    cmake ..
+    make -j"$(nproc)"
+    sudo make install
+    cd ../..
+    rm -rf master.tar.gz cogutils-master/
+  fi
+  if [ "$atomspace" == "y" ] || [ "$atomspace" == "Y" ]
+  then
+    cd /tmp/
+   # cleaning up remnants from previous install failures, if any.
+   rm -rf master.tar.gz atomspace-master/
+  wget https://github.com/opencog/atomspace/archive/master.tar.gz
+  tar -xvf master.tar.gz
+  cd atomspace-master/
+  mkdir build
+  cd build/
+  cmake ..
+  make -j"$(nproc)"
+  sudo make install
+  cd ../..
+  rm -rf master.tar.gz atomspace-master/
+  fi
+  if [ "$linkgram" == "y" ] || [ "$linkgram" == "Y" ]
+  then
+    cd /tmp/
+    # cleaning up remnants from previous install failures, if any.
+    rm -rf link-grammar-5.*/
+    wget -r --no-parent -nH --cut-dirs=2 http://www.abisource.com/downloads/link-grammar/current/
+    tar -zxf current/link-grammar-5*.tar.gz
+    rm -r current
+    cd link-grammar-5.*/
+    mkdir build
+    cd build
+    ../configure
+    make -j"$(nproc)"
+    sudo make install
+    sudo ldconfig
+    cd /tmp/
+    rm -rf link-grammar-5.*/
+    cd $CURRENT_DIR
+  fi
+  if [ "$haskell" == "y" ] || [ "$haskell" == "Y" ]
+  then
+    
+  
+
 #Dependencies, then install OpenCog. (L3vi47h4N method)
 elif [ "$choice" == "3" ]
 then
+  #Fetch the dependency script using the dist variable as part of the path.
+  wget https://raw.githubusercontent.com/opencog/ocpkg/master/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
+    read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
         echo "This is still in development. Pressing enter will use git pull to download opencog/atomspace/cogutils to current directory."
         read -p "Download Opencog source to current path? (y/n) " gitclone
         if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
