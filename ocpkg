@@ -532,10 +532,9 @@ trap quit_trap  INT HUP QUIT TERM
 
 # SECTION 4: Function Definitions
 
-is_x68_64_trusty() {
-OSREL=$(sed -n 's/DISTRIB_CODENAME=\(.*\)/\1/p' /etc/lsb-release);
+is_x68_64() {
 ARCH=$(uname -m);
-if [ "$OSREL" == "trusty" -a "$ARCH" == "x86_64" ]; then
+if [ "$ARCH" == "x86_64" ]; then
   return 0
 else
   return 1
@@ -555,8 +554,7 @@ done
 
 # Ros repository for opencog/opencog repo
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
-sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 0xB01FA116
-
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B01FA116
 sudo apt-get $QUIET --assume-yes update
 }
 
@@ -607,7 +605,7 @@ cd $CURRENT_DIR
 
 # Install Haskell Dependencies
 install_haskell_dependencies(){
-if ! is_x68_64_trusty; then
+if ! is_x68_64; then
   MESSAGE="Installing stack for haskell "; message
   # Just in case curl isn't installed
   sudo apt-get install -y curl
