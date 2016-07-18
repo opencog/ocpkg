@@ -602,6 +602,7 @@ sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
 sudo apt-get install -y python-matplotlib python-numpy python-scipy python
 
 # For sentiment analysis
+# TODO: update depending on https://github.com/opencog/opencog/issues/2285
 sudo pip install -U pyyaml nltk
 sudo python -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
 rm -f requirements.txt*
