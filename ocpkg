@@ -597,8 +597,13 @@ wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/req
 # as they have to be built before being installed. And the arrifacts of the
 # build occupies a lot of space blotting the docker image. Thus instead a
 # system instllation is made.
+# TODO: cleanup the requirements.txt file.
 sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
-sudo apt-get install -y python-matplotlib python-numpy python-scipy
+sudo apt-get install -y python-matplotlib python-numpy python-scipy python
+
+# For sentiment analysis
+sudo pip install -U pyyaml nltk
+sudo python -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
 rm -f requirements.txt*
 cd $CURRENT_DIR
 }
