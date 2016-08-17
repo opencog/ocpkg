@@ -330,6 +330,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo "Usage: $SELF_NAME OPTION"
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
+  echo " -o Install dependencies for the opencog repo only"
   echo " -p Install python build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
@@ -367,10 +368,11 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdeipcrstlmhvj:" flag ; do
+  while getopts "abdeipcrstlmhvj:o" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
+      o)	INSTALL_OPENCOG_DEPENDENCIES=true ;; #base development packages
       p)	INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
       c)	INSTALL_COGUTIL=true ;;
       a)	INSTALL_ATOMSPACE=true ;;
@@ -829,6 +831,24 @@ rm -rf master.tar.gz*  cpprestsdk-master
 cd $CURRENT_DIR
 }
 
+# Install ros-behavior-scripting
+install_rbs(){
+MESSAGE="Installing ros-behavior-scripting ...." ; message
+cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz* ros-behavior-scripting-master
+wget https://github.com/opencog/ros-behavior-scripting/archive/master.tar.gz
+tar -xvf master.tar.gz
+cd ros-behavior-scripting-master/
+mkdir build
+cd build/
+cmake ..
+sudo make install
+cd /tmp/
+rm -rf master.tar.gz ros-behavior-scripting-master/
+cd $CURRENT_DIR
+}
+
 # Install system dependencies
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
@@ -1073,6 +1093,7 @@ cleanup_iso
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
+    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then install_rbs ; fi
     if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi

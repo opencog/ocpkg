@@ -77,7 +77,7 @@ PACKAGES_RUNTIME="
     "
 
 # OpenCog's cmake configured projects. These are mainly C++ projects.
-OPENCOG_CMAKE_PROJECTS=(cogutils atomspace opencog moses)
+OPENCOG_CMAKE_PROJECTS=(cogutils atomspace opencog moses ros-behavior-scripting)
 
 message() {
     printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
