@@ -405,11 +405,6 @@ install_dependencies() {
       exit 1
     fi
     install_cpprest
-    # test for and fix Ubuntu 14.04 libiberty-dev includefile bug
-    source /etc/lsb-release
-    if [ "$DISTRIB_CODENAME" == "trusty" ] ; then
-      sudo sed -i s:"ansidecl.h":\<libiberty/ansidecl.h\>:g /usr/include/bfd.h || true
-    fi
 }
 
 # Updates a git source directory if it is one of the opencog cmake projects.
