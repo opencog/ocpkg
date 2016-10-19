@@ -634,6 +634,13 @@ else
   sudo apt-get update && sudo apt-get $QUIET -y install stack
 fi
 
+wget "https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2"
+tar jfz patchelf-0.9.tar.bz2
+rm patchelf-0.9.tar.bz2
+cd patchelf-0.9
+./configure
+sudo make install
+
 # Notes
 # 1. Stack setup must me run in user space:
 #    "stack setup" looks for proper ghc version in the system according to the
