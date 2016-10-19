@@ -635,8 +635,9 @@ else
 fi
 
 cd /tmp
+rm -rf patchelf*
 wget "https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2"
-tar jfz patchelf-0.9.tar.bz2
+tar -jxf patchelf-0.9.tar.bz2
 rm patchelf-0.9.tar.bz2
 cd patchelf-0.9
 ./configure
