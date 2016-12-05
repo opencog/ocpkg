@@ -825,13 +825,17 @@ cd $CURRENT_DIR
 # Installs cpprest that is needed by pattern-miner
 # https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
 install_cpprest(){
+if [[ -f /usr/local/lib/libcpprest.so.2.9 ]]; then
+  MESSAGE="cpprest is already installed." ; message
+  return
+fi
 MESSAGE="Installing cpprest...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz*  cpprestsdk-master
-wget https://github.com/Microsoft/cpprestsdk/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd cpprestsdk-master/Release
+rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
+wget https://github.com/opencog/cpprestsdk/archive/v2.9.0.tar.gz
+tar -xvf v2.9.0.tar.gz
+cd cpprestsdk-2.9.0/Release
 mkdir build.release
 cd build.release
 CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -839,7 +843,7 @@ make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd /tmp/
-rm -rf master.tar.gz*  cpprestsdk-master
+rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
 cd $CURRENT_DIR
 }
 
