@@ -833,7 +833,7 @@ MESSAGE="Installing cpprest...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
 rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
-wget https://github.com/opencog/cpprestsdk/archive/v2.9.0.tar.gz
+wget https://github.com/Microsoft/cpprestsdk/archive/v2.9.0.tar.gz
 tar -xvf v2.9.0.tar.gz
 cd cpprestsdk-2.9.0/Release
 mkdir build.release
