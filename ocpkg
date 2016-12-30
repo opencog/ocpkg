@@ -866,18 +866,33 @@ cd $CURRENT_DIR
 }
 
 check_apt_installed() {
-# Check if the given debian packages are installed
-statuses=$(dpkg-query -W -f='${db:Status-Abbrev}' "$@")
-if [[ $? != 0 ]]; then
-  return 1
-fi
-for s in $statuses; do
-  if [[ ${s#} == 2 && ${s:1} != 'i' ]]; then
-    return 1
-  fi
-done
-local pkgs=$@
-MESSAGE="Packages $pkgs are already installed"; message
+    # Check if the given debian packages are installed
+    local pkgs=$@
+    local s
+    local v
+    local ver
+    local pkg
+    for pkg in $pkgs; do
+        if [[ ${pkg} =~ .*"=".* ]]; then
+            ver=${pkg##*=}
+            pkg=${pkg%=*}
+            s=$(dpkg-query -W -f='${db:Status-Abbrev}=${Version}' "$pkg")
+            v=${s##*=}
+            s=${s%=*}
+            if [[ $ver != $v || ${#s} != 3 || ${s:1:1} != 'i' ]]; then
+                return 1
+            else
+                MESSAGE="$pkg=$ver is already installed"; message
+            fi
+        else
+            s=$(dpkg-query -W -f='${db:Status-Abbrev}' "$pkg")
+            if [[ ${#s} != 3 || ${s:1:1} != 'i' ]]; then
+                return 1
+            else
+                MESSAGE="$pkg is already installed"; message
+            fi
+        fi
+    done
 }
 
 apt_get_install() {
