@@ -143,7 +143,6 @@ PACKAGES_BUILD="
 		libboost-thread-dev \
 		libboost-system-dev \
 		libboost-random-dev \
-		libjson-spirit-dev \
 		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
