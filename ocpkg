@@ -1116,7 +1116,10 @@ cleanup_iso
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
-    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then install_rbs; download_data ; fi
+    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then
+        echo ""
+        # download_data ;
+    fi
     if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
