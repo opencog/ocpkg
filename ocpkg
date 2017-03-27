@@ -877,14 +877,14 @@ install_cpprest
 
 # Download data
 download_data() {
-  MESSAGE="Installing OpenCog build dependencies...." ; message
-  DOWNLOAD_DIR="$HOME/.opencog"
+  MESSAGE="Downloading OpenCog's sample datasets ...." ; message
+  DOWNLOAD_DIR="/var/opencog/data"
   if [ ! -d "$DOWNLOAD_DIR" ]; then
-    mkdir "$DOWNLOAD_DIR"
+    sudo mkdir -p "$DOWNLOAD_DIR"
   fi
 
   if [ ! -f "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" ]; then
-    wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
+    sudo wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
       https://raw.githubusercontent.com/opencog/test-datasets/master/concept_nodes/gtwc-en-333333-words.scm
   fi
 }
@@ -1116,7 +1116,7 @@ cleanup_iso
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
-    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then install_rbs; download_data ; fi
+    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then download_data ; fi
     if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
