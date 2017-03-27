@@ -877,7 +877,7 @@ install_cpprest
 
 # Download data
 download_data() {
-  MESSAGE="Installing OpenCog build dependencies...." ; message
+  MESSAGE="Downloading OpenCog's sample datasets ...." ; message
   DOWNLOAD_DIR="/var/opencog/data"
   if [ ! -d "$DOWNLOAD_DIR" ]; then
     sudo mkdir -p "$DOWNLOAD_DIR"
