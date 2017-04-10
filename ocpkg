@@ -165,6 +165,9 @@ PACKAGES_BUILD="
 		libgsasl7 \
 		libldap2-dev \
 		krb5-multidev \
+		wordnet \
+		wordnet-dev \
+		wordnet-sense-index \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
@@ -1125,7 +1128,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
-    if [ $TEST_SOURCE ] ; then test_source ; fi
+    if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
     if [ $INSTALL_BUILD ] ; then install_build ; fi
     if [ $UNKNOWN_FLAGS ] ; then usage ; fi
     if [ $NO_ARGS ] ; then usage ; fi
