@@ -165,9 +165,9 @@ PACKAGES_BUILD="
 		libgsasl7 \
 		libldap2-dev \
 		krb5-multidev \
-        wordnet \
-        wordnet-dev \
-        wordnet-sense-index \
+		wordnet \
+		wordnet-dev \
+		wordnet-sense-index \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
