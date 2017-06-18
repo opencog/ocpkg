@@ -545,6 +545,12 @@ else
 fi
 }
 
+get_distro_version() {
+    cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
+}
+
+UBUNTU_VERSION=$(get_distro_version)
+
 add_stack_repository() {
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
 echo 'deb http://download.fpcomplete.com/ubuntu trusty main'|sudo tee /etc/apt/sources.list.d/fpco.list
@@ -875,6 +881,7 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACK
  # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
+if
 install_cpprest
 }
 
