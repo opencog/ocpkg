@@ -608,6 +608,7 @@ wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/req
 # build occupies a lot of space blotting the docker image. Thus instead a
 # system instllation is made.
 # TODO: cleanup the requirements.txt file.
+sudo pip install -U pip
 sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
 sudo apt-get install -y python-matplotlib python-numpy python-scipy python
 
@@ -834,7 +835,7 @@ cd $CURRENT_DIR
 # Installs cpprest that is needed by pattern-miner
 # https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
 install_cpprest(){
-if [[ $UBUNTU_VERSION == "\"14.04\"" ]]; then
+if [[ "$UBUNTU_VERSION" == "\"14.04\"" ]]; then
     if [[ -f /usr/local/lib/libcpprest.so.2.9 ]]; then
         MESSAGE="cpprest is already installed." ; message
         return
@@ -855,8 +856,8 @@ if [[ $UBUNTU_VERSION == "\"14.04\"" ]]; then
     cd /tmp/
     rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
     cd $CURRENT_DIR
-elif [[ $UBUNTU_VERSION == "\"16.04\"" ]]; then
-    sudo apt-get install libcpprest
+elif [[ "$UBUNTU_VERSION" == "\"16.04\"" ]]; then
+    sudo apt-get install -y libcpprest
 fi
 }
 
@@ -888,7 +889,7 @@ if [ "$UBUNTU_VERSION" == "\"14.04\"" ]; then
      # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
       exit 1
     fi
-elif [[ $UBUNTU_VERSION = "\"16.04\"" ]]; then
+elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
     if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-lunar-octomap; then
         exit 1
     fi
