@@ -834,26 +834,30 @@ cd $CURRENT_DIR
 # Installs cpprest that is needed by pattern-miner
 # https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
 install_cpprest(){
-if [[ -f /usr/local/lib/libcpprest.so.2.9 ]]; then
-  MESSAGE="cpprest is already installed." ; message
-  return
+if [[ $UBUNTU_VERSION == "14.04" ]]; then
+    if [[ -f /usr/local/lib/libcpprest.so.2.9 ]]; then
+        MESSAGE="cpprest is already installed." ; message
+        return
+    fi
+    MESSAGE="Installing cpprest...." ; message
+    cd /tmp/
+    # cleaning up remnants from previous install failures, if any.
+    rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
+    wget https://github.com/Microsoft/cpprestsdk/archive/v2.9.0.tar.gz
+    tar -xvf v2.9.0.tar.gz
+    cd cpprestsdk-2.9.0/Release
+    mkdir build.release
+    cd build.release
+    CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
+    make -j$(nproc)
+    sudo make install
+    sudo ldconfig
+    cd /tmp/
+    rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
+    cd $CURRENT_DIR
+elif [[ $UBUNTU_VERSION == "16.04" ]]; then
+    sudo apt-get install libcpprest
 fi
-MESSAGE="Installing cpprest...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
-wget https://github.com/Microsoft/cpprestsdk/archive/v2.9.0.tar.gz
-tar -xvf v2.9.0.tar.gz
-cd cpprestsdk-2.9.0/Release
-mkdir build.release
-cd build.release
-CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
-cd $CURRENT_DIR
 }
 
 # Install ros-behavior-scripting
