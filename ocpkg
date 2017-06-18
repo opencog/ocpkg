@@ -887,7 +887,7 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACK
  # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
   exit 1
 fi
-if
+
 install_cpprest
 }
 
