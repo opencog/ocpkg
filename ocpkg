@@ -562,6 +562,7 @@ for REPO in $REPOSITORIES ; do
 done
 
 # Ros repository for opencog/opencog repo
+# TODO remove this when the reference os is changed to 16.04.
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 # sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B01FA116
 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
@@ -890,7 +891,7 @@ if [ "$UBUNTU_VERSION" == "\"14.04\"" ]; then
       exit 1
     fi
 elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-lunar-octomap; then
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev ; then
         exit 1
     fi
 fi
