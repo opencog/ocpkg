@@ -339,6 +339,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
   echo " -m Install MOSES"
+  echo " -g Install Guile 2.2"
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
@@ -369,7 +370,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdeipcrstlmhvj:o" flag ; do
+  while getopts "abdegipcrstlmhvj:o" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -379,6 +380,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       a)	INSTALL_ATOMSPACE=true ;;
       l)	INSTALL_LINK_GRAMMAR=true ;;
       m)	INSTALL_MOSES=true ;;
+      g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
@@ -862,6 +864,24 @@ elif [[ "$UBUNTU_VERSION" == "\"16.04\"" ]]; then
 fi
 }
 
+install_guile(){
+MESSAGE="Installing guile-2.2...." ; message
+cd /tmp/
+# Clean up remnants from previous install failures, if any.
+rm -rf guile-2.2.2*
+# Install dependency for the build.
+sudo apt-get install -y libunistring-dev
+wget https://ftp.gnu.org/gnu/guile/guile-2.2.2.tar.gz
+tar -xvf guile-2.2.2.tar.gz
+cd guile-2.2.2
+mkdir build
+cd build
+../configure
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+}
+
 # Install ros-behavior-scripting
 install_rbs(){
 MESSAGE="Installing ros-behavior-scripting ...." ; message
@@ -1147,6 +1167,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
+    if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
