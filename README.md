@@ -23,6 +23,11 @@ An IRC bot of some sort, purpose not clear.
 
 Uses debootstrap. Requires ocpkg.
 
+#### octool_rpi
+For installing opencog on a Raspberry Pi Computer running Raspbian. 
+The readme [here](https://github.com/Dagiopia/opencog_rpi/blob/master/README.md) will be helpful.
+
+
 #### Usages
 * To install all dependencies necessary to build OpenCog:
 ```
