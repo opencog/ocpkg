@@ -118,7 +118,6 @@ setup_sys_for_cc () {
     tar -xvf master.tar.gz
     rm master.tar.gz
     for d in * ; do echo $d ; mkdir $d/build_hf ; done
-    #wget https://raw.githubusercontent.com/Dagiopia/cogutils/rpi/arm_gnueabihf_toolchain.cmake
     cd /home/$USER/$CC_TC_DIR 
     #downloading compiler and libraries
     wget https://github.com/opencog/opencog_rpi/archive/master.zip 
