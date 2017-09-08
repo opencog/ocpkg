@@ -73,12 +73,14 @@ export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
 DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.3.10" # https://github.com/opencog/link-grammar/archive/link-grammar-5.3.10.tar.gz
+RELEX_V="1.6.2." # https://github.com/opencog/relex/archive/relex-1.6.2.tar.gz
 
 usage() {
   echo "Usage: $SELF_NAME OPTION"
   echo "Tool for installing necessary packages and preparing environment"
   echo "for OpenCog on a Raspberry PI computer running Raspbian OS."
   echo "  -d   Install base/system dependancies."
+  echo "  -r   Install Relex ( use with -d )"
   echo "  -o   Install OpenCog (precompilled: may be outdated)"
   echo "  -t   Download and Install Cross-Compilling Toolchain"
   echo "  -c   Cross Compile OpenCog (Run on PC!)"
@@ -119,7 +121,7 @@ setup_sys_for_cc () {
     #wget https://raw.githubusercontent.com/Dagiopia/cogutils/rpi/arm_gnueabihf_toolchain.cmake
     cd /home/$USER/$CC_TC_DIR 
     #downloading compiler and libraries
-    wget https://github.com/Dagiopia/opencog_rpi/archive/master.zip 
+    wget https://github.com/opencog/opencog_rpi/archive/master.zip 
     unzip master.zip
     mv opencog_rpi-master opencog_rpi_toolchain
     mv opencog_rpi_toolchain/arm_gnueabihf_toolchain.cmake opencog
@@ -211,6 +213,7 @@ else
   while getopts "dotcvh:" switch ; do
     case $switch in
       d)    INSTALL_DEPS=true ;;
+      r)    INSTALL_RELEX=true ;;
       o)    INSTALL_OC=true ;;
       t)    INSTALL_TC=true ;;
       c)    CC_OPENCOG=true ;;
@@ -250,19 +253,30 @@ if [ $INSTALL_DEPS ] ; then
 		sudo ln -s libtbb.so.2 libtbb.so
 		cd /home/$USER 
 		rm -r tbb_temp 
+		sudo ldconfig 
 
-		#download, compile and instal link-grammar
-		cd /home/$USER/
-		mkdir lg_temp
-		cd lg_temp
-		wget https://github.com/opencog/link-grammar/archive/link-grammar-$LG_V.tar.gz
-		tar -xf link-grammar-$LG_V.tar.gz
-		cd link-grammar-link-grammar-$LG_V
-		./autogen.sh
-		./configure
-		make -j2
-		sudo make install
+		if [ $INSTALL_RELEX ] ; then
+			cd /home/$USER
+			wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
+			tar -xf relex-$RELEX_V.tar.gz
+			cd relex-relex-$RELEX_V/
+			install-scripts/install-ubuntu-dependencies.sh
 
+		else
+			#download, compile and instal link-grammar
+			cd /home/$USER/
+			mkdir lg_temp
+			cd lg_temp
+			wget https://github.com/opencog/link-grammar/archive/link-grammar-$LG_V.tar.gz
+			tar -xf link-grammar-$LG_V.tar.gz
+			cd link-grammar-link-grammar-$LG_V
+			./autogen.sh
+			./configure
+			make -j2
+			sudo make install
+			sudo ldconfig
+		fi
+	
 		printf "${GOOD_COLOR}Done Installing Dependancies!${NORMAL_COLOR}\n"
 
 	else
@@ -272,12 +286,12 @@ if [ $INSTALL_DEPS ] ; then
 fi
 
 if [ $INSTALL_OC ] ; then 
-	echo "Get Compiled files from somewhere"
+	printf "${OKAY_COLOR}Get Compiled files from somewhere${NORMAL_COLOR}"
         download_install_oc
 fi
 
 if [ $INSTALL_TC ] ; then 
-	echo "Downloading Necessary CC Packages"
+	printf "${OKAY_COLOR}Downloading Necessary CC Packages${NORMAL_COLOR}"
 	#make the appropriate directories and git clone the toolchain
 	setup_sys_for_cc
 fi
