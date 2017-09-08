@@ -73,7 +73,7 @@ export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
 DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.3.10" # https://github.com/opencog/link-grammar/archive/link-grammar-5.3.10.tar.gz
-RELEX_V="1.6.2." # https://github.com/opencog/relex/archive/relex-1.6.2.tar.gz
+RELEX_V="1.6.2" # https://github.com/opencog/relex/archive/relex-1.6.2.tar.gz
 
 usage() {
   echo "Usage: $SELF_NAME OPTION"
@@ -210,7 +210,7 @@ if [ $# -eq 0 ] ; then
   printf "${BAD_COLOR}ERROR!! Please specify what to do\n${NORMAL_COLOR}"
   usage
 else
-  while getopts "dotcvh:" switch ; do
+  while getopts "drotcvh:" switch ; do
     case $switch in
       d)    INSTALL_DEPS=true ;;
       r)    INSTALL_RELEX=true ;;
@@ -250,7 +250,7 @@ if [ $INSTALL_DEPS ] ; then
 		sudo cp -r include/serial include/tbb /usr/local/include
 		sudo cp build/linux_armv7*_release/libtbb.so.2 /usr/local/lib/
 		cd /usr/local/lib
-		sudo ln -s libtbb.so.2 libtbb.so
+		sudo ln -sf libtbb.so.2 libtbb.so
 		cd /home/$USER 
 		rm -r tbb_temp 
 		sudo ldconfig 
