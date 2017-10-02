@@ -99,22 +99,22 @@ sudo pip install -U -r /tmp/requirements.txt
 rm requirements.txt
 }
 
-# Install cogutils
+# Install cogutil
 install_cogutil(){
-MESSAGE="Installing cogutils...." ; message
+MESSAGE="Installing cogutil...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz cogutils-master/
-wget https://github.com/opencog/cogutils/archive/master.tar.gz
+rm -rf master.tar.gz cogutil-master/
+wget https://github.com/opencog/cogutil/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd cogutils-master/
+cd cogutil-master/
 mkdir build
 cd build/
 cmake ..
 make -j"$(nproc)"
 sudo make install
 cd ../..
-rm -rf master.tar.gz cogutils-master/
+rm -rf master.tar.gz cogutil-master/
 }
 
 # Install Link-Grammar
@@ -219,7 +219,7 @@ echo "Usage: $SELF_NAME OPTION"
 echo " -d Install base/system build dependencies"
 echo " -p Install opencog python build dependencies"
 echo " -s Install haskell build dependencies in user space. Don't use sudo"
-echo " -c Install Cogutils"
+echo " -c Install Cogutil"
 echo " -a Install Atomspace"
 echo " -l Install Link Grammar"
 echo " -h This help message"

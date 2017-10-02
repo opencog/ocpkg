@@ -45,7 +45,7 @@ source ~/.bash_profile
 # Fetch OpenCog source repositories
 
 log="----------Fetching repositories from git----------"; report
-git clone git://github.com/opencog/cogutils
+git clone git://github.com/opencog/cogutil
 git clone git://github.com/opencog/atomspace
 git clone git://github.com/opencog/moses
 git clone git://github.com/opencog/opencog
@@ -71,8 +71,8 @@ sed -i '0,/if __GNUC__/s/if __GNUC__/if __GNUC__ \&\& INIT_PRIORITY \&\& ((GCC_V
 
 # Make and build repositories
 
-log="----------Building CogUtils----------"; report
-build_repo cogutils
+log="----------Building Cogutil----------"; report
+build_repo cogutil
 log="----------Building atomspace----------"; report
 build_repo atomspace
 log="----------Building MOSES----------"; report

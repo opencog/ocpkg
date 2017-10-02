@@ -335,7 +335,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -p Install python build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
-  echo " -c Install Cogutils"
+  echo " -c Install Cogutil"
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
   echo " -m Install MOSES"
@@ -363,7 +363,7 @@ fi
 
 
 # TODO: change octool usage to 'octool project command' format. Where projects
-# are opencog, atomspace, cogutils... & commands are setup(for workspace),
+# are opencog, atomspace, cogutil... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #if [ $1 ] && [ "$SELF_NAME" != "$TOOL_NAME" ] ; then
 
@@ -579,15 +579,15 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; the
 fi
 }
 
-# Install cogutils
+# Install cogutil
 install_cogutil(){
-MESSAGE="Installing cogutils...." ; message
+MESSAGE="Installing cogutil...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz* cogutils-master
-wget https://github.com/opencog/cogutils/archive/master.tar.gz
+rm -rf master.tar.gz* cogutil-master
+wget https://github.com/opencog/cogutil/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd cogutils-master/
+cd cogutil-master/
 mkdir build
 cd build/
 cmake ..
@@ -595,7 +595,7 @@ make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd /tmp/
-rm -rf master.tar.gz cogutils-master/
+rm -rf master.tar.gz cogutil-master/
 cd $CURRENT_DIR
 }
 
@@ -711,7 +711,7 @@ a git worktree" ; message
 fi
 }
 
-# Build function for opencog, atomspace, moses & cogutils repos
+# Build function for opencog, atomspace, moses & cogutil repos
 build_source() {
 set_source_and_build_dir
 if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -726,7 +726,7 @@ make -C $BUILD_DIR -j$MAKE_JOBS
 MESSAGE="Finished building source" ; message
 }
 
-# Build examples function for opencog, atomspace, moses & cogutils repos
+# Build examples function for opencog, atomspace, moses & cogutil repos
 build_examples() {
 set_source_and_build_dir
 if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -741,7 +741,7 @@ make -C $BUILD_DIR -j$MAKE_JOBS examples
 MESSAGE="Finished building examples" ; message
 }
 
-# Run tests function for opencog, atomspace, moses & cogutils repos
+# Run tests function for opencog, atomspace, moses & cogutil repos
 test_source() {
 #check if gearman service is running, start it if not
 if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
