@@ -77,7 +77,7 @@ PACKAGES_RUNTIME="
     "
 
 # OpenCog's cmake configured projects. These are mainly C++ projects.
-OPENCOG_CMAKE_PROJECTS=(cogutils atomspace opencog moses ros-behavior-scripting)
+OPENCOG_CMAKE_PROJECTS=(cogutil atomspace opencog moses ros-behavior-scripting)
 
 message() {
     printf "\e[1;34m[$SELF_NAME] $MESSAGE\e[0m \n"
@@ -260,7 +260,7 @@ set_source_and_build_dir() {
     fi
 }
 
-# Build function for opencog, atomspace, moses & cogutils repos
+# Build function for opencog, atomspace, moses & cogutil repos
 build_source() {
     set_source_and_build_dir
     if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -276,7 +276,7 @@ build_source() {
     MESSAGE="Finished building source" ; message
 }
 
-# Build examples function for opencog, atomspace, moses & cogutils repos
+# Build examples function for opencog, atomspace, moses & cogutil repos
 build_examples() {
     set_source_and_build_dir
     if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -291,7 +291,7 @@ build_examples() {
     MESSAGE="Finished building examples" ; message
 }
 
-# Build tests function for opencog, atomspace, moses & cogutils repos
+# Build tests function for opencog, atomspace, moses & cogutil repos
 build_tests() {
     set_source_and_build_dir
     if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -306,7 +306,7 @@ build_tests() {
     MESSAGE="Finished building tests" ; message
 }
 
-# Run tests function for opencog, atomspace, moses & cogutils repos
+# Run tests function for opencog, atomspace, moses & cogutil repos
 run_tests() {
     #check if gearman service is running, start it if not
     if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
@@ -542,7 +542,7 @@ ci_help() {
     printf "  -p Install python build dependencies \n"
     printf "  -s Install haskell build dependencies in user space \n"
     printf "  -i Install build-job artifacts \n"
-    printf "  -c Install Cogutils \n"
+    printf "  -c Install Cogutil \n"
     printf "  -a Install Atomspace \n"
     printf "  -l Install Link Grammar \n"
     printf "  -m Install MOSES \n"
@@ -574,7 +574,7 @@ usage() {
 ##    Main Program    ##
 ########################
 # TODO: change octool usage to 'octool project command' format. Where projects
-# are opencog, atomspace, cogutils... & commands are setup(for workspace),
+# are opencog, atomspace, cogutil... & commands are setup(for workspace),
 # package(for docker,deb, rpm). Each will have various options/sub-commands.
 #
 declare -A COMMAND_DESCRIPTIONS=(
@@ -673,7 +673,7 @@ if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then
     install_opencog_python_packages
 fi
 if [ $INSTALL_COGUTIL ] ; then
-    install_opencog_cmake_project cogutils
+    install_opencog_cmake_project cogutil
 fi
 if [ $INSTALL_ATOMSPACE ] ; then
     install_opencog_cmake_project atomspace

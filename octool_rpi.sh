@@ -98,7 +98,7 @@ download_install_oc () {
 
 
 setup_sys_for_cc () {
-    #downloading cogutils, atomspace and opencog source code
+    #downloading cogutil, atomspace and opencog source code
     if [ -d /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME ] ; then
 	sudo rm -rf /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
     fi
@@ -108,7 +108,7 @@ setup_sys_for_cc () {
     mkdir -p /home/$USER/$CC_TC_DIR/opencog
     cd /home/$USER/$CC_TC_DIR/opencog
     rm -rf  *
-    wget https://github.com/opencog/cogutils/archive/master.tar.gz
+    wget https://github.com/opencog/cogutil/archive/master.tar.gz
     tar -xvf master.tar.gz
     rm master.tar.gz
     wget https://github.com/opencog/atomspace/archive/master.tar.gz
@@ -138,9 +138,9 @@ do_cc_for_rpi () {
     fi
     	
     export PATH=$PATH:/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
-    #compiling cogutils
-    cd /home/$USER/$CC_TC_DIR/opencog/cogutils-master/build_hf
-    rm -rf /home/$USER/$CC_TC_DIR/opencog/cogutils-master/build_hf/*
+    #compiling cogutil
+    cd /home/$USER/$CC_TC_DIR/opencog/cogutil-master/build_hf
+    rm -rf /home/$USER/$CC_TC_DIR/opencog/cogutil-master/build_hf/*
     cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install 

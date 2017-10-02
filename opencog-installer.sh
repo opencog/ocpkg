@@ -109,27 +109,27 @@ then
   wget https://raw.githubusercontent.com/"$gauthor"/"$rtdr"/"$branch"/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
   read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
   #I need to put a menu-driven selection program here which prompts for which elements of OpenCog a user wants.
-  read -p "Install CogUtils? (y/n) " cogutils
+  read -p "Install Cogutil? (y/n) " cogutil
   read -p "Install AtomSpace? (y/n) " atomspace
   read -p "UNTESTED: Install LinkGrammar? (y/n) " linkgram
   #read -p "UNTESTED: Install Haskell (may error if run as root)? (y/n) " haskell
   
-  #COGUTILS
-  if [ "$cogutils" == "y" ] || [ "$cogutils" == "Y" ]
+  #COGUTIL
+  if [ "$cogutil" == "y" ] || [ "$cogutil" == "Y" ]
   then
     cd /tmp/
     # cleaning up remnants from previous install failures, if any.
-    rm -rf master.tar.gz cogutils-master/
-    wget https://github.com/opencog/cogutils/archive/master.tar.gz
+    rm -rf master.tar.gz cogutil-master/
+    wget https://github.com/opencog/cogutil/archive/master.tar.gz
     tar -xvf master.tar.gz
-    cd cogutils-master/
+    cd cogutil-master/
     mkdir build
     cd build/
     cmake ..
     make -j"$(nproc)"
     sudo make install
     cd ../..
-    rm -rf master.tar.gz cogutils-master/
+    rm -rf master.tar.gz cogutil-master/
   fi
   if [ "$atomspace" == "y" ] || [ "$atomspace" == "Y" ]
   then
@@ -175,13 +175,13 @@ then
   #Fetch the dependency script using the dist variable as part of the path.
   wget https://raw.githubusercontent.com/"$gauthor"/"$rtdr"/"$branch"/"$dist"/install-"$dist"-dependencies.sh && chmod 755 ./install-"$dist"-dependencies.sh && sudo ./install-"$dist"-dependencies.sh && rm install-"$dist"-dependencies.sh
     read -p "Do not continue if there were errors in fetching the dependencies. Press [ENTER] to continue..."
-        echo "This is still in development. Pressing enter will use git pull to download opencog/atomspace/cogutils to current directory."
+        echo "This is still in development. Pressing enter will use git pull to download opencog/atomspace/cogutil to current directory."
         read -p "Download Opencog source to current path? (y/n) " gitclone
         if [ "$gitclone" == "y" ] || [ "$gitclone" == "Y" ]
         then
           git clone https://github.com/opencog/opencog.git
           git clone https://github.com/opencog/atomspace.git
-          git clone https://github.com/opencog/cogutils.git
+          git clone https://github.com/opencog/cogutil.git
           echo "You should now be able to build according to the OpenCog for noobs instructions. Good luck!"
         else
             echo "Download of OpenCog aborted."

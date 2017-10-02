@@ -82,20 +82,20 @@ cd ../..
 rm -rf json-spirit_4.05.orig.tar.gz json_spirit_v4_05
 }
 
-# Install cogutils
+# Install cogutil
 install_cogutil(){
-MESSAGE="Installing cogutils...." ; message
+MESSAGE="Installing cogutil...." ; message
 cd /tmp/
-wget https://github.com/opencog/cogutils/archive/master.tar.gz
+wget https://github.com/opencog/cogutil/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd cogutils-master/
+cd cogutil-master/
 mkdir build
 cd build/
 cmake ..
 make -j$(nproc)
 sudo make install
 cd ../..
-rm -rf master.tar.gz cogutils-master/
+rm -rf master.tar.gz cogutil-master/
 }
 
 # Install Python Packages
