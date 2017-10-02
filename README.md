@@ -39,7 +39,7 @@ The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) 
  ./octool -rdcv
 ```
 
-* To install all dependencies necessary to build Cogutils:
+* To install all dependencies necessary to build Cogutil:
 ```
  ./octool -rdv
 ```
