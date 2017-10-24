@@ -100,9 +100,9 @@ usage() {
 
 
 download_install_oc () {
-	wget 144.76.153.5/opencog/opencog_rpi.deb
-	sudo dpkg -i opencog_rpi.deb
-	rm opencog_rpi.deb
+	wget 144.76.153.5/opencog/$DEB_PKG_NAME.deb
+	sudo dpkg -i $DEB_PKG_NAME.deb
+	rm $DEB_PKG_NAME.deb
 }
 
 
@@ -157,6 +157,10 @@ do_cc_for_rpi () {
     #compiling atomspace
     cd /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf
     rm -rf /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
+    
+    #till we can cross compile with stack
+    rm /home/$USER/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake 
+
     cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
