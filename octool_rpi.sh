@@ -62,6 +62,16 @@ INSTALL_PACKAGES="
 	libldap2-dev \
 	krb5-multidev "
 
+INSTALL_RELEX_DEPS="
+	swig \
+	zlib1g-dev \
+	wordnet-dev \
+	wordnet-sense-index \
+	openjdk-7-jdk \
+	ant \
+	libcommons-logging-java \
+	libgetopt-java "
+
 
 INSTALL_CC_PACKAGES=" python chrpath "
 
@@ -72,7 +82,7 @@ TOOL_NAME=octool_rpi
 export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
 DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
-LG_V="5.3.10" # https://github.com/opencog/link-grammar/archive/link-grammar-5.3.10.tar.gz
+LG_V="5.4.2" # https://github.com/opencog/link-grammar/archive/link-grammar-5.4.2.tar.gz
 RELEX_V="1.6.2" # https://github.com/opencog/relex/archive/relex-1.6.2.tar.gz
 
 usage() {
@@ -80,7 +90,6 @@ usage() {
   echo "Tool for installing necessary packages and preparing environment"
   echo "for OpenCog on a Raspberry PI computer running Raspbian OS."
   echo "  -d   Install base/system dependancies."
-  echo "  -r   Install Relex ( use with -d )"
   echo "  -o   Install OpenCog (precompilled: may be outdated)"
   echo "  -t   Download and Install Cross-Compilling Toolchain"
   echo "  -c   Cross Compile OpenCog (Run on PC!)"
@@ -91,9 +100,9 @@ usage() {
 
 
 download_install_oc () {
-	wget 144.76.153.5/opencog/opencog_rpi.deb
-	sudo dpkg -i opencog_rpi.deb
-	rm opencog_rpi.deb
+	wget 144.76.153.5/opencog/$DEB_PKG_NAME.deb
+	sudo dpkg -i $DEB_PKG_NAME.deb
+	rm $DEB_PKG_NAME.deb
 }
 
 
@@ -148,6 +157,10 @@ do_cc_for_rpi () {
     #compiling atomspace
     cd /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf
     rm -rf /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
+    
+    #till we can cross compile with stack
+    rm /home/$USER/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake 
+
     cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
@@ -212,7 +225,6 @@ else
   while getopts "drotcvh:" switch ; do
     case $switch in
       d)    INSTALL_DEPS=true ;;
-      r)    INSTALL_RELEX=true ;;
       o)    INSTALL_OC=true ;;
       t)    INSTALL_TC=true ;;
       c)    CC_OPENCOG=true ;;
@@ -227,6 +239,7 @@ fi
 if [ $SHOW_VERBOSE ] ; then
 	printf "${OKAY_COLOR}I will be verbose${NORMAL_COLOR}\n"
 	APT_ARGS=" -V "
+	VERBOSE=" -v "
 else
 	APT_ARGS=" -qq "
 fi
@@ -241,41 +254,58 @@ if [ $INSTALL_DEPS ] ; then
 		#download, compile and install TBB
 		cd /home/$USER/
 		mkdir -p tbb_temp 
+		rm -rf $VERBOSE /home/$USER/tbb_temp/*
 		cd tbb_temp
 		wget https://github.com/01org/tbb/archive/$TBB_V.tar.gz
-		tar -xf $TBB_V.tar.gz
+		tar $VERBOSE -xf $TBB_V.tar.gz
 		cd tbb-$TBB_V
 		make tbb CXXFLAGS+="-DTBB_USE_GCC_BUILTINS=1 -D__TBB_64BIT_ATOMICS=0"
-		sudo cp -r include/serial include/tbb /usr/local/include
-		sudo cp build/linux_armv7*_release/libtbb.so.2 /usr/local/lib/
+		sudo cp $VERBOSE -r include/serial include/tbb /usr/local/include
+		sudo cp $VERBOSE build/linux_armv7*_release/libtbb.so.2 /usr/local/lib/
 		cd /usr/local/lib
-		sudo ln -sf libtbb.so.2 libtbb.so
+		sudo ln $VERBOSE -sf libtbb.so.2 libtbb.so
 		cd /home/$USER 
-		rm -r tbb_temp 
-		sudo ldconfig 
+		rm $VERBOSE -r tbb_temp 
+		sudo ldconfig
 
-		if [ $INSTALL_RELEX ] ; then
-			cd /home/$USER
-			wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
-			tar -xf relex-$RELEX_V.tar.gz
-			cd relex-relex-$RELEX_V/
-			install-scripts/install-ubuntu-dependencies.sh
+		#installing relex deps
+		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
+		
+		
+		#download, compile and instal link-grammar
+		cd /home/$USER/
+		mkdir $VERBOSE -p lg_temp
+		cd lg_temp
+		rm $VERBOSE -rf /home/$USER/lg_temp/*
+		wget https://github.com/opencog/link-grammar/archive/link-grammar-$LG_V.tar.gz
+		tar $VERBOSE -xf link-grammar-$LG_V.tar.gz
+		cd link-grammar-link-grammar-$LG_V
+		./autogen.sh
+		JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf ./configure
+		make -j2
+		sudo make install
+		cd /usr/lib/
+		sudo ln $VERBOSE -sf ../local/lib/liblink-grammar.so.5 liblink-grammar.so.5
+		sudo ldconfig
+		cd /home/$USER/
+		rm $VERBOSE -rf /home/$USER/lg_temp
 
-		else
-			#download, compile and instal link-grammar
-			cd /home/$USER/
-			mkdir lg_temp
-			cd lg_temp
-			wget https://github.com/opencog/link-grammar/archive/link-grammar-$LG_V.tar.gz
-			tar -xf link-grammar-$LG_V.tar.gz
-			cd link-grammar-link-grammar-$LG_V
-			./autogen.sh
-			./configure
-			make -j2
-			sudo make install
-			sudo ldconfig
-		fi
-	
+		#Java wordnet library
+		wget http://downloads.sourceforge.net/project/jwordnet/jwnl/JWNL%201.4/jwnl14-rc2.zip
+		unzip jwnl14-rc2.zip jwnl14-rc2/jwnl.jar
+		sudo mv $VERBOSE  jwnl14-rc2/jwnl.jar /usr/local/share/java/
+		rm $VERBOSE  jwnl14-rc2.zip && rmdir jwnl14-rc2
+		sudo chmod $VERBOSE  0644 /usr/local/share/java/jwnl.jar
+				
+		#installing relex
+		cd /home/$USER
+		wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
+		tar $VERBOSE -xf relex-$RELEX_V.tar.gz
+		cd relex-relex-$RELEX_V/
+		ant build
+		sudo ant install
+
+			
 		printf "${GOOD_COLOR}Done Installing Dependancies!${NORMAL_COLOR}\n"
 
 	else
