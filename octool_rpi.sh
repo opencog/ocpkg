@@ -159,7 +159,7 @@ do_cc_for_rpi () {
     rm -rf /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
     
     #till we can cross compile with stack
-    rm /home/$USER/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake 
+    rm -f /home/$USER/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake 
 
     cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
@@ -180,7 +180,8 @@ do_cc_for_rpi () {
 
     #package into deb
     cd /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/
-    cp -r opencog_rasp $DEB_PKG_NAME
+    sudo rm -rf $DEB_PKG_NAME
+    cp -ur opencog_rasp $DEB_PKG_NAME
     cd /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
     find -P /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME -type l -name "*boost*" -exec rm {} \;
     mkdir ./usr/local/lib/pkgconfig DEBIAN
