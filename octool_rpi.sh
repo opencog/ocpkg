@@ -108,14 +108,14 @@ download_install_oc () {
 
 setup_sys_for_cc () {
     #downloading cogutil, atomspace and opencog source code
-    if [ -d /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME ] ; then
-	sudo rm -rf /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
+    if [ -d $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME ] ; then
+	sudo rm -rf $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
     fi
-    if [ -d /home/$USER/$CC_TC_DIR ] ; then
-    	rm -rf /home/$USER/$CC_TC_DIR/*
+    if [ -d $HOME/$CC_TC_DIR ] ; then
+    	rm -rf $HOME/$CC_TC_DIR/*
     fi
-    mkdir -p /home/$USER/$CC_TC_DIR/opencog
-    cd /home/$USER/$CC_TC_DIR/opencog
+    mkdir -p $HOME/$CC_TC_DIR/opencog
+    cd $HOME/$CC_TC_DIR/opencog
     rm -rf  *
     wget https://github.com/opencog/cogutil/archive/master.tar.gz
     tar -xvf master.tar.gz
@@ -127,9 +127,9 @@ setup_sys_for_cc () {
     tar -xvf master.tar.gz
     rm master.tar.gz
     for d in * ; do echo $d ; mkdir $d/build_hf ; done
-    cd /home/$USER/$CC_TC_DIR 
+    cd $HOME/$CC_TC_DIR
     #downloading compiler and libraries
-    wget https://github.com/opencog/opencog_rpi/archive/master.zip 
+    wget https://github.com/opencog/opencog_rpi/archive/master.zip
     unzip master.zip
     mv opencog_rpi-master opencog_rpi_toolchain
     mv opencog_rpi_toolchain/arm_gnueabihf_toolchain.cmake opencog
@@ -138,51 +138,51 @@ setup_sys_for_cc () {
 
 
 do_cc_for_rpi () {
-    if [ -d /home/$USER/$CC_TC_DIR -a -d /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain -a -d /home/$USER/$CC_TC_DIR/opencog ] ; then
+    if [ -d $HOME/$CC_TC_DIR -a -d $HOME/$CC_TC_DIR/opencog_rpi_toolchain -a -d $HOME/$CC_TC_DIR/opencog ] ; then
 		printf "${GOOD_COLOR}Everything seems to be in order.${NORMAL_COLOR}\n"
     else
-		
+
 		printf "${BAD_COLOR}You do not seem to have the compiler toolchain.\nPlease run:\n\t\t$SELF_NAME -tc \n${NORMAL_COLOR}\n"
 		exit
     fi
-    	
-    export PATH=$PATH:/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
+
+    export PATH=$PATH:$HOME/$CC_TC_DIR/opencog_rpi_toolchain/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
     #compiling cogutil
-    cd /home/$USER/$CC_TC_DIR/opencog/cogutil-master/build_hf
-    rm -rf /home/$USER/$CC_TC_DIR/opencog/cogutil-master/build_hf/*
-    cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    cd $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf
+    rm -rf $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf/*
+    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
-    make install 
+    make install
 
     #compiling atomspace
-    cd /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf
-    rm -rf /home/$USER/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
-    
-    #till we can cross compile with stack
-    rm -f /home/$USER/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake 
+    cd $HOME/$CC_TC_DIR/opencog/atomspace-master/build_hf
+    rm -rf $HOME/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
 
-    cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    #till we can cross compile with stack
+    rm -f $HOME/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake
+
+    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
 
     #compiling opencog
-    cd /home/$USER/$CC_TC_DIR/opencog/opencog-master/build_hf
-    rm -rf /home/$USER/$CC_TC_DIR/opencog/opencog-master/build_hf/*
-    cmake -DCMAKE_TOOLCHAIN_FILE=/home/$USER/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=/home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    cd $HOME/$CC_TC_DIR/opencog/opencog-master/build_hf
+    rm -rf $HOME/$CC_TC_DIR/opencog/opencog-master/build_hf/*
+    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
-    
+
     #correct RPATHS
-    cd /home/$USER/$TC_CC_DIR/
+    cd $HOME/$TC_CC_DIR/
     wget https://raw.githubusercontent.com/Dagiopia/my_helpers/master/batch_chrpath/batch_chrpath.py
-    python batch_chrpath.py /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/needed_libs /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp
+    python batch_chrpath.py $HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local $HOME/$CC_TC_DIR/opencog_rpi_toolchain/needed_libs $HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp
     rm batch_chrpath.py
 
     #package into deb
-    cd /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/
+    cd $HOME/$CC_TC_DIR/opencog_rpi_toolchain/
     sudo rm -rf $DEB_PKG_NAME
     cp -ur opencog_rasp $DEB_PKG_NAME
-    cd /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
+    cd $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
     mkdir ./usr/local/lib/pkgconfig DEBIAN
     echo '''Package: opencog-dev
 Priority: optional
@@ -197,7 +197,7 @@ Description: Artificial General Inteligence Engine for Linux
   emotional.
   This is hopefully the end of task-specific narrow AI.
   This package includes the files necessary for running opencog on RPI3.''' > DEBIAN/control
-     
+
      echo '''#Manually written pkgconfig file for opencog - START
 prefix=/usr/local
 exec_prefix=${prefix}
@@ -212,13 +212,13 @@ Libs: -L${libdir}
      cd ..
      sudo chown -R root:staff $DEB_PKG_NAME
      sudo dpkg-deb --build $DEB_PKG_NAME
-     
+
 
 }
 
 
 
-if [ $# -eq 0 ] ; then 
+if [ $# -eq 0 ] ; then
   printf "${BAD_COLOR}ERROR!! Please specify what to do\n${NORMAL_COLOR}"
   usage
 else
@@ -244,7 +244,7 @@ else
 	APT_ARGS=" -qq "
 fi
 
-if [ $INSTALL_DEPS ] ; then 
+if [ $INSTALL_DEPS ] ; then
 	echo "Install Deps"
 
 	#only allow installation for arm device (RPI)
@@ -252,9 +252,9 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM... Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
 		#download, compile and install TBB
-		cd /home/$USER/
-		mkdir -p tbb_temp 
-		rm -rf $VERBOSE /home/$USER/tbb_temp/*
+		cd $HOME/
+		mkdir -p tbb_temp
+		rm -rf $VERBOSE $HOME/tbb_temp/*
 		cd tbb_temp
 		wget https://github.com/01org/tbb/archive/$TBB_V.tar.gz
 		tar $VERBOSE -xf $TBB_V.tar.gz
@@ -264,19 +264,19 @@ if [ $INSTALL_DEPS ] ; then
 		sudo cp $VERBOSE build/linux_armv7*_release/libtbb.so.2 /usr/local/lib/
 		cd /usr/local/lib
 		sudo ln $VERBOSE -sf libtbb.so.2 libtbb.so
-		cd /home/$USER 
-		rm $VERBOSE -r tbb_temp 
+		cd $HOME
+		rm $VERBOSE -r tbb_temp
 		sudo ldconfig
 
 		#installing relex deps
 		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
-		
-		
+
+
 		#download, compile and instal link-grammar
-		cd /home/$USER/
+		cd $HOME/
 		mkdir $VERBOSE -p lg_temp
 		cd lg_temp
-		rm $VERBOSE -rf /home/$USER/lg_temp/*
+		rm $VERBOSE -rf $HOME/lg_temp/*
 		wget https://github.com/opencog/link-grammar/archive/link-grammar-$LG_V.tar.gz
 		tar $VERBOSE -xf link-grammar-$LG_V.tar.gz
 		cd link-grammar-link-grammar-$LG_V
@@ -287,8 +287,8 @@ if [ $INSTALL_DEPS ] ; then
 		cd /usr/lib/
 		sudo ln $VERBOSE -sf ../local/lib/liblink-grammar.so.5 liblink-grammar.so.5
 		sudo ldconfig
-		cd /home/$USER/
-		rm $VERBOSE -rf /home/$USER/lg_temp
+		cd $HOME/
+		rm $VERBOSE -rf $HOME/lg_temp
 
 		#Java wordnet library
 		wget http://downloads.sourceforge.net/project/jwordnet/jwnl/JWNL%201.4/jwnl14-rc2.zip
@@ -296,16 +296,16 @@ if [ $INSTALL_DEPS ] ; then
 		sudo mv $VERBOSE  jwnl14-rc2/jwnl.jar /usr/local/share/java/
 		rm $VERBOSE  jwnl14-rc2.zip && rmdir jwnl14-rc2
 		sudo chmod $VERBOSE  0644 /usr/local/share/java/jwnl.jar
-				
+
 		#installing relex
-		cd /home/$USER
+		cd $HOME
 		wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
 		tar $VERBOSE -xf relex-$RELEX_V.tar.gz
 		cd relex-relex-$RELEX_V/
 		ant build
 		sudo ant install
 
-			
+
 		printf "${GOOD_COLOR}Done Installing Dependancies!${NORMAL_COLOR}\n"
 
 	else
@@ -314,12 +314,12 @@ if [ $INSTALL_DEPS ] ; then
 
 fi
 
-if [ $INSTALL_OC ] ; then 
+if [ $INSTALL_OC ] ; then
 	printf "${OKAY_COLOR}Get Compiled files from somewhere${NORMAL_COLOR}"
         download_install_oc
 fi
 
-if [ $INSTALL_TC ] ; then 
+if [ $INSTALL_TC ] ; then
 	printf "${OKAY_COLOR}Downloading Necessary CC Packages${NORMAL_COLOR}"
 	#make the appropriate directories and git clone the toolchain
 	setup_sys_for_cc
