@@ -183,7 +183,6 @@ do_cc_for_rpi () {
     sudo rm -rf $DEB_PKG_NAME
     cp -ur opencog_rasp $DEB_PKG_NAME
     cd /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
-    find -P /home/$USER/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME -type l -name "*boost*" -exec rm {} \;
     mkdir ./usr/local/lib/pkgconfig DEBIAN
     echo '''Package: opencog-dev
 Priority: optional
