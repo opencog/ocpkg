@@ -30,7 +30,6 @@ INSTALL_PACKAGES="
 	cython \
 	python-dev \
 	python3-dev \
-	python-zmq \
 	python-simplejson \
 	libboost-date-time-dev \
 	libboost-filesystem-dev \
@@ -42,7 +41,6 @@ INSTALL_PACKAGES="
 	libboost-system-dev \
 	libboost-random-dev \
 	libjson-spirit-dev \
-	libzmq3-dev \
 	binutils-dev \
 	unixodbc-dev \
 	libpq-dev \
@@ -147,6 +145,9 @@ do_cc_for_rpi () {
     fi
 
     export PATH=$PATH:$HOME/$CC_TC_DIR/opencog_rpi_toolchain/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
+    
+    cp -f $HOME/$CC_TC_DIR/opencog_rpi_toolchain/cmake/* $HOME/$CC_TC_DIR/opencog/opencog-master/lib
+    
     #compiling cogutil
     cd $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf
     rm -rf $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf/*
@@ -300,8 +301,8 @@ if [ $INSTALL_DEPS ] ; then
 		#installing relex
 		cd $HOME
 		wget -O relex-1.6.3.zip https://codeload.github.com/opencog/relex/zip/master
-		tar $VERBOSE -xf relex-$RELEX_V.tar.gz
-		cd relex-relex-$RELEX_V/
+		unzip relex-1.6.3.zip
+		cd relex-master
 		ant build
 		sudo ant install
 
