@@ -76,6 +76,8 @@ UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool
 
+GUILEVERSION=2.2.3
+
 PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
 
@@ -339,7 +341,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -a Install Atomspace"
   echo " -l Install Link Grammar"
   echo " -m Install MOSES"
-  echo " -g Install Guile 2.2"
+  echo " -g Install Guile $GUILEVERSION"
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
@@ -865,15 +867,15 @@ fi
 }
 
 install_guile(){
-MESSAGE="Installing guile-2.2...." ; message
+MESSAGE="Installing guile-$GUILEVERSION...." ; message
 cd /tmp/
 # Clean up remnants from previous install failures, if any.
-rm -rf guile-2.2.2*
+rm -rf guile-${GUILEVERSION}*
 # Install dependency for the build.
 sudo apt-get install -y libunistring-dev
-wget https://ftp.gnu.org/gnu/guile/guile-2.2.2.tar.gz
-tar -xvf guile-2.2.2.tar.gz
-cd guile-2.2.2
+wget https://ftp.gnu.org/gnu/guile/guile-$GUILEVERSION.tar.gz
+tar -xvf guile-$GUILEVERSION.tar.gz
+cd guile-$GUILEVERSION
 mkdir build
 cd build
 ../configure
