@@ -863,6 +863,8 @@ if [[ "$UBUNTU_VERSION" == "\"14.04\"" ]]; then
     cd $CURRENT_DIR
 elif [[ "$UBUNTU_VERSION" == "\"16.04\"" ]]; then
     sudo apt-get install -y libcpprest
+elif [[ "$UBUNTU_VERSION" == "\"17.10\"" ]]; then
+    sudo apt-get install -y libcpprest
 fi
 }
 
@@ -902,6 +904,17 @@ rm -rf master.tar.gz ros-behavior-scripting-master/
 cd $CURRENT_DIR
 }
 
+# atomspace unit tests have UTF-8 test cases
+ensure_UTF_installed(){
+    if locale -a | grep -q en_US.utf8
+    then
+	echo UTF-8 locale enabled already
+    else
+        sudo sh -c 'echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen'
+        sudo locale-gen
+    fi
+}
+
 # Install system dependencies
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
@@ -913,9 +926,15 @@ if [ "$UBUNTU_VERSION" == "\"14.04\"" ]; then
       exit 1
     fi
 elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev ; then
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
         exit 1
     fi
+    ensure_UTF_installed
+elif [[ "$UBUNTU_VERSION" = "\"17.10\"" ]]; then
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+        exit 1
+    fi
+    ensure_UTF_installed
 fi
 
 install_cpprest
