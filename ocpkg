@@ -828,7 +828,7 @@ rm -r current
 cd link-grammar-5.*/
 mkdir build
 cd build
-../configure
+../configure --disable-java-bindings
 make -j$(nproc)
 sudo make install
 sudo ldconfig
