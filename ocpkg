@@ -573,6 +573,23 @@ sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C
 sudo apt-get $QUIET --assume-yes update
 }
 
+get_github_latest_release() {
+  local _user="$1"
+  local _repo="$2"
+  local _file_name="$3"
+
+  # Getting the version and also accepting the file-name means that the
+  # download will fail if the release is updated and the file-name has a
+  # reference to the previous release, a hacky annoying reminder. If the
+  # file-name has no reference to the version then all will go well.
+  # TODO: Handle failure gracefully.
+  local _version=$(curl https://github.com/"$_user"/"$_repo"/releases/latest \
+    | cut -d "\"" -f 2 | cut -d "/" -f 8)
+  echo $_user $_repo $_version
+  rm -f $_file_name
+  wget https://github.com/"$_user"/"$_repo"/releases/download/"$_version"/"$_file_name"
+}
+
 install_admin() {
 MESSAGE="Installing sysadmin tools...." ; message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; then
