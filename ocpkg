@@ -128,7 +128,6 @@ PACKAGES_BUILD="
 		cmake \
 		cxxtest \
 		rlwrap \
-		guile-2.0-dev \
 		libiberty-dev \
 		libicu-dev \
 		libbz2-dev \
@@ -169,6 +168,9 @@ PACKAGES_BUILD="
 		wordnet \
 		wordnet-dev \
 		wordnet-sense-index \
+		libatomic-ops-dev\
+		libgmp-dev \
+		libffi-dev \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
@@ -573,6 +575,23 @@ sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C
 sudo apt-get $QUIET --assume-yes update
 }
 
+get_github_latest_release() {
+  local _user="$1"
+  local _repo="$2"
+  local _file_name="$3"
+
+  # Getting the version and also accepting the file-name means that the
+  # download will fail if the release is updated and the file-name has a
+  # reference to the previous release, a hacky annoying reminder. If the
+  # file-name has no reference to the version then all will go well.
+  # TODO: Handle failure gracefully.
+  local _version=$(curl https://github.com/"$_user"/"$_repo"/releases/latest \
+    | cut -d "\"" -f 2 | cut -d "/" -f 8)
+  echo $_user $_repo $_version
+  rm -f $_file_name
+  wget https://github.com/"$_user"/"$_repo"/releases/download/"$_version"/"$_file_name"
+}
+
 install_admin() {
 MESSAGE="Installing sysadmin tools...." ; message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; then
@@ -828,7 +847,7 @@ rm -r current
 cd link-grammar-5.*/
 mkdir build
 cd build
-../configure
+../configure --disable-java-bindings
 make -j$(nproc)
 sudo make install
 sudo ldconfig
@@ -868,6 +887,23 @@ elif [[ "$UBUNTU_VERSION" == "\"17.10\"" ]]; then
 fi
 }
 
+install_bdwgc(){
+MESSAGE="Installing latest bdwgc ...." ; message
+local _dir_name="gc-7.6.4"
+local _file_name="${_dir_name}.tar.gz"
+cd /tmp/
+rm -rf ${_dir_name}*
+get_github_latest_release ivmai bdwgc ${_file_name}
+tar -xvf ${_file_name}
+cd ${_dir_name}
+./configure
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+cd /tmp/
+rm -rf ${_dir_name}*
+}
+
 install_guile(){
 MESSAGE="Installing guile-$GUILEVERSION...." ; message
 cd /tmp/
@@ -884,6 +920,8 @@ cd build
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
+rm -rf guile-${GUILEVERSION}*
 }
 
 # Install ros-behavior-scripting
@@ -938,6 +976,8 @@ elif [[ "$UBUNTU_VERSION" = "\"17.10\"" ]]; then
 fi
 
 install_cpprest
+# Install guile >2.2 also install bdwgc for language-learning
+install_bdwgc && install_guile
 }
 
 # Download data
@@ -1188,7 +1228,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
-    if [ $INSTALL_GUILE ] ; then install_guile ; fi
+    if [ $INSTALL_GUILE ] ; then install_bdwgc && install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
