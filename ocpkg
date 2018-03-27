@@ -920,6 +920,7 @@ cd build
 make -j$(nproc)
 sudo make install
 sudo ldconfig
+cd /tmp/
 rm -rf guile-${GUILEVERSION}*
 }
 
