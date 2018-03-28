@@ -359,6 +359,7 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
+		install_bdwgc # install bdwgc
 		install_guile # install guile
 		install_tbb   # install TBB
 		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
@@ -371,6 +372,7 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${BAD_COLOR}Your Machine is Not ARM7!\n \
 			The dependancy installation is for RPI running raspbian only. \
 			${NORMAL_COLOR}\n"
+		exit
 	fi
 
 fi
@@ -384,6 +386,7 @@ if [ $SETUP_TC ] ; then
 	if [ $(uname -m) == "armv7l" ] ; then
 		printf "${BAD_COLOR}Your Machine is ARM! \n \
 			Let's Cross Compile on a bigger machine.${NORMAL_COLOR}\n"
+		exit
 	else
 		printf "${GOOD_COLOR}okay it's not an ARM machine... \
 			Installing CC packages${NORMAL_COLOR}\n"
@@ -399,6 +402,7 @@ if [ $CC_OPENCOG ] ; then
 	if [ $(uname -m) == "armv7l" ] ; then
 		printf "${BAD_COLOR}Your Machine is ARM! \n \
 			Let's Cross Compile on a bigger machine.${NORMAL_COLOR}\n"
+		exit
 	else
 		printf "${GOOD_COLOR}okay it's not an ARM machine... Installing CC packages${NORMAL_COLOR}\n"
 		PROCEED_CC=true
