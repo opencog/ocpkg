@@ -132,9 +132,9 @@ PACKAGES_BUILD="
 		libicu-dev \
 		libbz2-dev \
 		cython \
-		python-dev \
-		python-zmq \
-		python-simplejson \
+		python3-dev \
+		python3-zmq \
+		python3-simplejson \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
 		libboost-math-dev \
@@ -841,9 +841,15 @@ MESSAGE="Installing Link-Grammar...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
 rm -rf link-grammar-5.*/
-wget -r --no-parent -nH --cut-dirs=2 http://www.abisource.com/downloads/link-grammar/current/
-tar -zxf current/link-grammar-5*.tar.gz
-rm -r current
+if [ $# -eq 1 ]; then
+  wget http://www.abisource.com/downloads/link-grammar/${1}/link-grammar-${1}.tar.gz
+  tar -zxf link-grammar-5*.tar.gz
+else
+  wget -r --no-parent -nH --cut-dirs=2 \
+    http://www.abisource.com/downloads/link-grammar/current/
+  tar -zxf current/link-grammar-5*.tar.gz
+  rm -r current
+fi
 cd link-grammar-5.*/
 mkdir build
 cd build
@@ -1226,7 +1232,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
-    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
+    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar 5.4.3 ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $INSTALL_GUILE ] ; then install_bdwgc && install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
