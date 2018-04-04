@@ -400,7 +400,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       s)    HASKELL_STACK_SETUP=true;;
       i)    INSTALL_BUILD=true ;;
       h)	usage ;;
-      \?)	usage ;;
+      \?)	usage; exit 1 ;;
       *)  UNKNOWN_FLAGS=true ;;
     esac
   done
@@ -1236,6 +1236,8 @@ cleanup_iso
 # This is mainly for configuring workspaces depending on the type
 # of project being worked on. The order here matters.
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
+    if [ $UNKNOWN_FLAGS ] ; then usage; exit 1 ; fi
+    if [ $NO_ARGS ] ; then usage; exit 1 ; fi
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
     if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then download_data ; fi
@@ -1251,8 +1253,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
     if [ $INSTALL_BUILD ] ; then install_build ; fi
-    if [ $UNKNOWN_FLAGS ] ; then usage ; fi
-    if [ $NO_ARGS ] ; then usage ; fi
 exit 0
 fi
 
