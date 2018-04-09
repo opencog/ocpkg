@@ -20,8 +20,9 @@ NORMAL_COLOR='\033[0m'
 
 INSTALL_PACKAGES="
 	build-essential \
-	automake \
 	autoconf-archive \
+	autogen \
+	libtool \
 	bison \
 	flex \
 	cmake \
@@ -59,7 +60,11 @@ INSTALL_PACKAGES="
 	ccache \
 	libgsasl7 \
 	libldap2-dev \
-	krb5-multidev "
+	krb5-multidev \
+	libatomic-ops-dev \
+	libunistring-dev \
+	libffi-dev \
+	libreadline-dev "
 
 INSTALL_RELEX_DEPS="
 	swig \
@@ -83,6 +88,8 @@ TOOL_NAME=octool_rpi
 
 export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
 DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb"
+GUILE_DEB="guile-2.2.3-1_armhf.deb"
 GUILE_V="2.2.3" # https://ftp.gnu.org/gnu/guile/guile-2.2.3.tar.xz
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.4.3"    # https://github.com/opencog/link-grammar/archive/link-grammar-5.4.3.tar.gz
@@ -233,15 +240,23 @@ install_guile () {
     rm $VERBOSE -rf /tmp/guile_temp_/*
     cd /tmp/guile_temp_
     wget https://ftp.gnu.org/gnu/guile/guile-$GUILE_V.tar.xz
-    tar $VERBOSE -xf guile-$GUILE_V.tar.gz
+    tar $VERBOSE -xf guile-$GUILE_V.tar.xz
     cd guile-$GUILE_V
     ./configure
-    make -j2
+    make -j2 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
     sudo make install 
     sudo ldconfig
     cd $HOME
     rm $VERBOSE -rf /tmp/guile_temp_
 }
+
+install_guile_deb () {
+    wget http://144.76.153.5/opencog/$GUILE_DEB
+    sudo dpkg -i $GUILE_DEB
+    sudo apt-get -f install 
+    rm $GUILE_DEB
+}
+
 
 install_tbb () {
     #download, compile and install TBB
@@ -274,7 +289,7 @@ install_lg () {
     tar $VERBOSE -xf link-grammar-$LG_V.tar.gz
     cd link-grammar-link-grammar-$LG_V
     ./autogen.sh
-    ./configure
+    JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf ./configure
     make -j2
     sudo make install
     cd /usr/lib/
@@ -297,13 +312,20 @@ install_relex () {
     sudo chmod $VERBOSE  0644 /usr/local/share/java/jwnl.jar
     
     #installing relex
-    wget -O relex-1.6.3.zip https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
+    wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
     tar $VERBOSE -xf relex-$RELEX_V.tar.gz 
-    cd relex-$RELEX_V
+    cd relex-relex-$RELEX_V
     ant build
     sudo ant install
     cd $HOME
     rm $VERBOSE -rf /tmp/relex_temp_
+}
+
+install_bdwgc_deb () {
+    wget http://144.76.153.5/opencog/$BDWGC_DEB
+    sudo dpkg -i $BDWGC_DEB
+    sudo apt-get -f install 
+    rm $BDWGC_V
 }
 
 install_bdwgc () {
@@ -311,10 +333,12 @@ install_bdwgc () {
     printf "${OKAY_COLOR}Installing bdwgc${NORMAL_COLOR}"
     cd /tmp
     mkdir $VERBOSE -p /tmp/bdwgc_temp_
+    rm -rf /tmp/bdwgc_temp_/*
     cd /tmp/bdwgc_temp_
     wget https://github.com/ivmai/bdwgc/archive/v$BDWGC_V.tar.gz
-    tar $VERBOSE -xf bdwgc-$BDWGC_V.tar.gz
+    tar $VERBOSE -xf v$BDWGC_V.tar.gz
     cd bdwgc-$BDWGC_V
+    ./autogen.sh
     ./configure
     make -j2
     sudo make install
@@ -359,8 +383,10 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
-		install_bdwgc # install bdwgc
-		install_guile # install guile
+		install_bdwgc_deb # install bdwgc from deb pkg
+	#	install_bdwgc # install bdwgc from source
+		#install_guile # install guile  from source
+		install_guile_deb # install guile from a deb pkg
 		install_tbb   # install TBB
 		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
 		install_lg   # install link-grammar
