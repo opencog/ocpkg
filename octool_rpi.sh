@@ -8,9 +8,6 @@
 
 #CONSTANTS
 
-# TODO update the toolchain with new versions of python, lg, bdwgc and guile
-#      and test everything before merging
-
 set -e
 
 GOOD_COLOR='\033[32m'  #GREEN
@@ -93,7 +90,7 @@ GUILE_DEB="guile-2.2.3-1_armhf.deb"
 GUILE_V="2.2.3" # https://ftp.gnu.org/gnu/guile/guile-2.2.3.tar.xz
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.4.3"    # https://github.com/opencog/link-grammar/archive/link-grammar-5.4.3.tar.gz
-RELEX_V="1.6.2" # https://github.com/opencog/relex/archive/relex-1.6.2.tar.gz
+RELEX_V="1.6.3" # https://github.com/Dagiopia/relex/archive/1.6.3.tar.gz
 BDWGC_V="7.6.4" #https://github.com/ivmai/bdwgc/archive/v7.6.4.tar.gz
 
 usage() {
@@ -234,7 +231,7 @@ Libs: -L${libdir}
 
 install_guile () {
     # install guile 
-    printf "${OKAY_COLOR}Installing Guile $GUILE_V ${NORMAL_COLOR}"
+    printf "${OKAY_COLOR}Installing Guile from source $GUILE_V ${NORMAL_COLOR}\n"
     cd /tmp
     mkdir $VERBOSE -p /tmp/guile_temp_
     rm $VERBOSE -rf /tmp/guile_temp_/*
@@ -251,6 +248,7 @@ install_guile () {
 }
 
 install_guile_deb () {
+    printf "${OKAY_COLOR}Installing Guile from deb pkg $GUILE_V ${NORMAL_COLOR}\n"
     wget http://144.76.153.5/opencog/$GUILE_DEB
     sudo dpkg -i $GUILE_DEB
     sudo apt-get -f install 
@@ -260,7 +258,7 @@ install_guile_deb () {
 
 install_tbb () {
     #download, compile and install TBB
-    printf "${OKAY_COLOR}Installing Threading Building Blocks (TBB)${NORMAL_COLOR}"
+    printf "${OKAY_COLOR}Installing Threading Building Blocks (TBB)${NORMAL_COLOR}\n"
     cd /tmp
     mkdir -p /tmp/tbb_temp_
     rm -rf $VERBOSE /tmp/tbb_temp_/*
@@ -280,7 +278,7 @@ install_tbb () {
 
 install_lg () {
     #download, compile and instal link-grammar
-    printf "${OKAY_COLOR}Installing Link Grammar${NORMAL_COLOR}"
+    printf "${OKAY_COLOR}Installing Link Grammar${NORMAL_COLOR}\n"
     cd /tmp
     mkdir $VERBOSE -p /tmp/lg_temp_
     cd /tmp/lg_temp_
@@ -289,7 +287,7 @@ install_lg () {
     tar $VERBOSE -xf link-grammar-$LG_V.tar.gz
     cd link-grammar-link-grammar-$LG_V
     ./autogen.sh
-    JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf ./configure
+    ./configure
     make -j2
     sudo make install
     cd /usr/lib/
@@ -301,7 +299,7 @@ install_lg () {
 
 install_relex () {
     #Java wordnet library
-    printf "${OKAY_COLOR}Installing Relex${NORMAL_COLOR}"
+    printf "${OKAY_COLOR}Installing Relex${NORMAL_COLOR}\n"
     cd /tmp
     mkdir $VERBOSE -p /tmp/relex_temp_
     cd /tmp/relex_temp_
@@ -312,9 +310,10 @@ install_relex () {
     sudo chmod $VERBOSE  0644 /usr/local/share/java/jwnl.jar
     
     #installing relex
-    wget https://github.com/opencog/relex/archive/relex-$RELEX_V.tar.gz
-    tar $VERBOSE -xf relex-$RELEX_V.tar.gz 
-    cd relex-relex-$RELEX_V
+    wget https://github.com/Dagiopia/relex/archive/$RELEX_V.tar.gz
+    tar $VERBOSE -xf $RELEX_V.tar.gz 
+    cd relex-$RELEX_V
+    export CLASSPATH=/usr/local/share/java
     ant build
     sudo ant install
     cd $HOME
@@ -322,6 +321,7 @@ install_relex () {
 }
 
 install_bdwgc_deb () {
+    printf "${OKAY_COLOR}Installing bdwgc from deb pkg${NORMAL_COLOR}\n"
     wget http://144.76.153.5/opencog/$BDWGC_DEB
     sudo dpkg -i $BDWGC_DEB
     sudo apt-get -f install 
@@ -330,7 +330,7 @@ install_bdwgc_deb () {
 
 install_bdwgc () {
     # install bdwgc garbage collector
-    printf "${OKAY_COLOR}Installing bdwgc${NORMAL_COLOR}"
+    printf "${OKAY_COLOR}Installing bdwgc from source${NORMAL_COLOR}\n"
     cd /tmp
     mkdir $VERBOSE -p /tmp/bdwgc_temp_
     rm -rf /tmp/bdwgc_temp_/*
@@ -383,12 +383,17 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
-		install_bdwgc_deb # install bdwgc from deb pkg
+	
 	#	install_bdwgc # install bdwgc from source
-		#install_guile # install guile  from source
+	#	install_guile # install guile  from source
+		
+		install_bdwgc_deb # install bdwgc from deb pkg
 		install_guile_deb # install guile from a deb pkg
 		install_tbb   # install TBB
+		
 		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
+    		export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf
+    		export LC_ALL=en_US.UTF8
 		install_lg   # install link-grammar
 		install_relex # install relex
 
