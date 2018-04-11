@@ -30,15 +30,6 @@ INSTALL_PACKAGES="
 	cython \
 	python3-dev \
 	python3-simplejson \
-	libboost-date-time-dev \
-	libboost-filesystem-dev \
-	libboost-math-dev \
-	libboost-program-options-dev \
-	libboost-regex-dev \
-	libboost-serialization-dev \
-	libboost-thread-dev \
-	libboost-system-dev \
-	libboost-random-dev \
 	libjson-spirit-dev \
 	binutils-dev \
 	unixodbc-dev \
@@ -383,7 +374,10 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
-	
+		#install boost 1.60
+		wget http://144.76.153.5/opencog/libboost-1.60-all-dev-1_armhf.deb
+		sudo dpkg -i libboost-1.60-all-dev-1_armhf.deb
+		rm libboost-1.60-all-dev-1_armhf.deb
 	#	install_bdwgc # install bdwgc from source
 	#	install_guile # install guile  from source
 		
