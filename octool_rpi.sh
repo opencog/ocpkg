@@ -62,10 +62,11 @@ INSTALL_RELEX_DEPS="
 	libatomic-ops-dev \
 	libgmp-dev \
 	libffi-dev \
-	openjdk-7-jdk \
 	ant \
 	libcommons-logging-java \
 	libgetopt-java "
+
+
 
 
 INSTALL_CC_PACKAGES=" python chrpath "
@@ -74,8 +75,23 @@ INSTALL_CC_PACKAGES=" python chrpath "
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool_rpi
 
+export DISTRO_RELEASE=$(lsb_release --codename | awk {' print $2 '})
+export DISTRO_JESSIE="jessie"
+export DISTRO_STRETCH="stretch"
+
 export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
-DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+
+if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
+	printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
+	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+elif [ $DISTRO_RELEASE == $DISTRO_STRETCH ] ; then
+	printf "${OKAY_COLOR}Version Stretch ${NORMAL_COLOR}\n"
+	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
+else
+	printf "${OKAY_COLOR}Version Unanticipated :) going with jessie ${NORMAL_COLOR}\n"
+	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+fi
+
 BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb"
 GUILE_DEB="guile-2.2.3-1_armhf.deb"
 GUILE_V="2.2.3" # https://ftp.gnu.org/gnu/guile/guile-2.2.3.tar.xz
@@ -316,7 +332,7 @@ install_bdwgc_deb () {
     wget http://144.76.153.5/opencog/$BDWGC_DEB
     sudo dpkg -i $BDWGC_DEB
     sudo apt-get -f install 
-    rm $BDWGC_V
+    rm $BDWGC_DEB
 }
 
 install_bdwgc () {
@@ -374,10 +390,14 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
-		#install boost 1.60
-		wget http://144.76.153.5/opencog/libboost-1.60-all-dev-1_armhf.deb
-		sudo dpkg -i libboost-1.60-all-dev-1_armhf.deb
-		rm libboost-1.60-all-dev-1_armhf.deb
+		if [ "$DISTRO_RELEASE" == "$DISTRO_JESSIE" ] ; then
+			#install boost 1.60
+			wget http://144.76.153.5/opencog/libboost-1.60-all-dev-1_armhf.deb
+			sudo dpkg -i libboost-1.60-all-dev-1_armhf.deb
+			rm libboost-1.60-all-dev-1_armhf.deb
+		else
+			sudo apt-get install -y $APT_ARGS libboost1.62-dev
+		fi
 	#	install_bdwgc # install bdwgc from source
 	#	install_guile # install guile  from source
 		
