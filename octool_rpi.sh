@@ -390,13 +390,13 @@ if [ $INSTALL_DEPS ] ; then
 		printf "${GOOD_COLOR}okay it's an ARM7... \
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
-		if [ "$DISTRO_RELEASE" == "$DISTRO_JESSIE" ] ; then
+		if [ "$DISTRO_RELEASE" == "$DISTRO_STRETCH" ] ; then
+			sudo apt-get install -y $APT_ARGS libboost1.62-dev
+		else
 			#install boost 1.60
 			wget http://144.76.153.5/opencog/libboost-1.60-all-dev-1_armhf.deb
 			sudo dpkg -i libboost-1.60-all-dev-1_armhf.deb
 			rm libboost-1.60-all-dev-1_armhf.deb
-		else
-			sudo apt-get install -y $APT_ARGS libboost1.62-dev
 		fi
 	#	install_bdwgc # install bdwgc from source
 	#	install_guile # install guile  from source
