@@ -79,7 +79,12 @@ export DISTRO_RELEASE=$(lsb_release --codename | awk {' print $2 '})
 export DISTRO_JESSIE="jessie"
 export DISTRO_STRETCH="stretch"
 
-export CC_TC_DIR="RPI_OC_TC" #RPI Opencog Toolchain Container
+export CC_TC_DIR_NAME="RPI_OC_TC" #RPI Opencog Toolchain Container
+export CC_TC_ROOT="$HOME/$CC_TC_DIR_NAME"
+export CC_TC_SRC_DIR="$CC_TC_DIR/opencog"
+export CC_TC_DIR="$CC_TC_ROOT/opencog_rpi_toolchain"
+export CC_TC_LIBS_PATH_1="$CC_TC_DIR/opencog_rasp"
+export CC_TC_LIBS_PATH_2="$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot"
 
 if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
 	printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
@@ -92,13 +97,13 @@ else
 	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
 fi
 
-BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb"
-GUILE_DEB="guile-2.2.3-1_armhf.deb"
+BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb" # http://144.76.153.5/opencog/bdwgc-7.6.4-1_armhf.deb
+GUILE_DEB="guile-2.2.3-1_armhf.deb" # http://144.76.153.5/opencog/guile-2.2.3-1_armhf.deb
 GUILE_V="2.2.3" # https://ftp.gnu.org/gnu/guile/guile-2.2.3.tar.xz
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.4.3"    # https://github.com/opencog/link-grammar/archive/link-grammar-5.4.3.tar.gz
 RELEX_V="1.6.3" # https://github.com/Dagiopia/relex/archive/1.6.3.tar.gz
-BDWGC_V="7.6.4" #https://github.com/ivmai/bdwgc/archive/v7.6.4.tar.gz
+BDWGC_V="7.6.4" # https://github.com/ivmai/bdwgc/archive/v7.6.4.tar.gz
 
 usage() {
   echo "Usage: $SELF_NAME OPTION"
@@ -123,14 +128,11 @@ download_install_oc () {
 
 setup_sys_for_cc () {
     #downloading cogutil, atomspace and opencog source code
-    if [ -d $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME ] ; then
-	sudo rm -rf $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
+    if [ -d $CC_TC_ROOT ] ; then
+    	sudo rm -rf $CC_TC_ROOT/*
     fi
-    if [ -d $HOME/$CC_TC_DIR ] ; then
-    	rm -rf $HOME/$CC_TC_DIR/*
-    fi
-    mkdir -p $HOME/$CC_TC_DIR/opencog
-    cd $HOME/$CC_TC_DIR/opencog
+    mkdir -p $CC_TC_SRC_DIR
+    cd $CC_TC_SRC_DIR
     rm -rf  *
     wget https://github.com/opencog/cogutil/archive/master.tar.gz
     tar -xvf master.tar.gz
@@ -142,18 +144,18 @@ setup_sys_for_cc () {
     tar -xvf master.tar.gz
     rm master.tar.gz
     for d in * ; do echo $d ; mkdir $d/build_hf ; done
-    cd $HOME/$CC_TC_DIR
+    cd $CC_TC_ROOT
     #downloading compiler and libraries
     wget https://github.com/opencog/opencog_rpi/archive/master.zip
     unzip master.zip
     mv opencog_rpi-master opencog_rpi_toolchain
-    mv opencog_rpi_toolchain/arm_gnueabihf_toolchain.cmake opencog
+    mv $CC_TC_DIR/arm_gnueabihf_toolchain.cmake $CC_TC_SRC_DIR
     rm master.zip
 }
 
 
 do_cc_for_rpi () {
-    if [ -d $HOME/$CC_TC_DIR -a -d $HOME/$CC_TC_DIR/opencog_rpi_toolchain -a -d $HOME/$CC_TC_DIR/opencog ] ; then
+    if [ -d $CC_TC_ROOT -a -d $CC_TC_DIR -a -d $CC_TC_SRC_DIR ] ; then
 		printf "${GOOD_COLOR}Everything seems to be in order.${NORMAL_COLOR}\n"
     else
 
@@ -162,46 +164,46 @@ do_cc_for_rpi () {
 		exit
     fi
 
-    export PATH=$PATH:$HOME/$CC_TC_DIR/opencog_rpi_toolchain/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
+    export PATH=$PATH:$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
     
-    cp -f $HOME/$CC_TC_DIR/opencog_rpi_toolchain/cmake/* $HOME/$CC_TC_DIR/opencog/opencog-master/lib
+    cp -f $CC_TC_DIR/cmake/* $CC_TC_SRC_DIR/opencog-master/lib
     
     #compiling cogutil
-    cd $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf
-    rm -rf $HOME/$CC_TC_DIR/opencog/cogutil-master/build_hf/*
-    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    cd $CC_TC_SRC_DIR/cogutil-master/build_hf
+    rm -rf $CC_TC_SRC_DIR/cogutil-master/build_hf/*
+    cmake -DCMAKE_TOOLCHAIN_FILE=$CC_TC_SRC_DIR/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$CC_TC_LIBS_PATH_1/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
 
     #compiling atomspace
-    cd $HOME/$CC_TC_DIR/opencog/atomspace-master/build_hf
-    rm -rf $HOME/$CC_TC_DIR/opencog/atomspace-master/build_hf/*
+    cd $CC_TC_SRC_DIR/atomspace-master/build_hf
+    rm -rf $CC_TC_SRC_DIR/atomspace-master/build_hf/*
 
     #till we can cross compile with stack
-    rm -f $HOME/$CC_TC_DIR/opencog/atomspace-master/lib/FindStack.cmake
+    rm -f $CC_TC_SRC_DIR/atomspace-master/lib/FindStack.cmake
 
-    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    cmake -DCMAKE_TOOLCHAIN_FILE=$CC_TC_SRC_DIR/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$CC_TC_LIBS_PATH_1/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
 
     #compiling opencog
-    cd $HOME/$CC_TC_DIR/opencog/opencog-master/build_hf
-    rm -rf $HOME/$CC_TC_DIR/opencog/opencog-master/build_hf/*
-    cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/$CC_TC_DIR/opencog/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local -DCMAKE_BUILD_TYPE=Release ..
+    cd $CC_TC_SRC_DIR/opencog-master/build_hf
+    rm -rf $CC_TC_SRC_DIR/opencog-master/build_hf/*
+    cmake -DCMAKE_TOOLCHAIN_FILE=$CC_TC_SRC_DIR/arm_gnueabihf_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$CC_TC_LIBS_PATH_1/usr/local -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc)
     make install
 
     #correct RPATHS
-    cd $HOME/$TC_CC_DIR/
+    cd $TC_CC_ROOT/
     wget https://raw.githubusercontent.com/Dagiopia/my_helpers/master/batch_chrpath/batch_chrpath.py
-    python batch_chrpath.py $HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp/usr/local $HOME/$CC_TC_DIR/opencog_rpi_toolchain/needed_libs $HOME/$CC_TC_DIR/opencog_rpi_toolchain/opencog_rasp
+    python batch_chrpath.py $CC_TC_LIBS_PATH_1/usr/local $CC_TC_LIBS_PATH_1 $CC_TC_LIBS_PATH_2
     rm batch_chrpath.py
 
     #package into deb
-    cd $HOME/$CC_TC_DIR/opencog_rpi_toolchain/
+    cd $CC_TC_DIR
     sudo rm -rf $DEB_PKG_NAME
     cp -ur opencog_rasp $DEB_PKG_NAME
-    cd $HOME/$CC_TC_DIR/opencog_rpi_toolchain/$DEB_PKG_NAME
+    cd $CC_TC_DIR/$DEB_PKG_NAME
     mkdir ./usr/local/lib/pkgconfig DEBIAN
     echo '''Package: opencog-dev
 Priority: optional
@@ -231,8 +233,6 @@ Libs: -L${libdir}
      cd ..
      sudo chown -R root:staff $DEB_PKG_NAME
      sudo dpkg-deb --build $DEB_PKG_NAME
-
-
 }
 
 
