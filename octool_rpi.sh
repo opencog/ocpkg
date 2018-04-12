@@ -81,7 +81,7 @@ export DISTRO_STRETCH="stretch"
 
 export CC_TC_DIR_NAME="RPI_OC_TC" #RPI Opencog Toolchain Container
 export CC_TC_ROOT="$HOME/$CC_TC_DIR_NAME"
-export CC_TC_SRC_DIR="$CC_TC_DIR/opencog"
+export CC_TC_SRC_DIR="$CC_TC_ROOT/opencog"
 export CC_TC_DIR="$CC_TC_ROOT/opencog_rpi_toolchain"
 export CC_TC_LIBS_PATH_1="$CC_TC_DIR/opencog_rasp"
 export CC_TC_LIBS_PATH_2="$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot"
@@ -194,7 +194,7 @@ do_cc_for_rpi () {
     make install
 
     #correct RPATHS
-    cd $TC_CC_ROOT/
+    cd $CC_TC_ROOT
     wget https://raw.githubusercontent.com/Dagiopia/my_helpers/master/batch_chrpath/batch_chrpath.py
     python batch_chrpath.py $CC_TC_LIBS_PATH_1/usr/local $CC_TC_LIBS_PATH_1 $CC_TC_LIBS_PATH_2
     rm batch_chrpath.py
