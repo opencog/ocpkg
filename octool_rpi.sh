@@ -141,22 +141,22 @@ setup_sys_for_cc () {
     cd $CC_TC_SRC_DIR
     rm -rf  *
     wget https://github.com/opencog/cogutil/archive/master.tar.gz
-    tar -xvf master.tar.gz
+    tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     wget https://github.com/opencog/atomspace/archive/master.tar.gz
-    tar -xvf master.tar.gz
+    tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     wget https://github.com/opencog/opencog/archive/master.tar.gz
-    tar -xvf master.tar.gz
+    tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     for d in * ; do echo $d ; mkdir $d/build_hf ; done
     cd $CC_TC_ROOT
     #downloading compiler and libraries
-    wget https://github.com/opencog/opencog_rpi/archive/master.zip
-    unzip master.zip
+    wget https://github.com/opencog/opencog_rpi/archive/master.tar.gz
+    tar $VERBOSE -xf master.tar.gz
     mv opencog_rpi-master opencog_rpi_toolchain
     mv $CC_TC_DIR/arm_gnueabihf_toolchain.cmake $CC_TC_SRC_DIR
-    rm master.zip
+    rm master.tar.gz 
 }
 
 
@@ -172,13 +172,13 @@ do_cc_for_rpi () {
     
     if [ $FOR_STRETCH ] ; then 
     	printf "${OKAY_COLOR}Compiling with Boost 1.62${NORMAL_COLOR}\n"
-	ln -sf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
 	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
 	export DPKG__V="1.0-2"
     else
     	printf "${OKAY_COLOR}Compiling with Boost 1.55${NORMAL_COLOR}\n"
-	ln -sf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
 	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
     fi
