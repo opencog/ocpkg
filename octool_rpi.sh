@@ -86,8 +86,10 @@ export CC_TC_DIR="$CC_TC_ROOT/opencog_rpi_toolchain"
 export CC_TC_LIBS_PATH_1="$CC_TC_DIR/opencog_rasp"
 export CC_TC_LIBS_PATH_2="$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot"
 
-export CC_TC_BOOST_1.55_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.55_armhf"
-export CC_TC_BOOST_1.62_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.62_armhf"
+export CC_TC_BOOST_1_55_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.55_armhf"
+export CC_TC_BOOST_1_62_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.62_armhf"
+
+export DPKG__V="1.0-1"
 
 if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
 	printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
@@ -170,12 +172,15 @@ do_cc_for_rpi () {
     
     if [ $FOR_STRETCH ] ; then 
     	printf "${OKAY_COLOR}Compiling with Boost 1.62${NORMAL_COLOR}\n"
-	ln -sf $VERBOSE $CC_TC_BOOST_1.55_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
-	cp -Prf $VERBOSE $CC_TC_BOOST_1.55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	ln -sf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
+	export DPKG__V="1.0-2"
     else
     	printf "${OKAY_COLOR}Compiling with Boost 1.55${NORMAL_COLOR}\n"
-	ln -sf $VERBOSE $CC_TC_BOOST_1.62_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
-	cp -Prf $VERBOSE $CC_TC_BOOST_1.62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	ln -sf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
     fi
 
     export PATH=$PATH:$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
@@ -222,9 +227,9 @@ do_cc_for_rpi () {
     echo '''Package: opencog-dev
 Priority: optional
 Section: universe/opencog
-Maintainer: Dagim Sisay <dagim@icog-labs.com>
+Maintainer: Dagim Sisay <dagiopia@gmail.com>
 Architecture: armhf
-Version: 1.0-1
+Version: $DPKG__V
 Homepage: wiki.opencog.org
 Description: Artificial General Inteligence Engine for Linux
   Opencog is a gigantic software that is being built with the ambition
