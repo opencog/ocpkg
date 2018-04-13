@@ -86,6 +86,9 @@ export CC_TC_DIR="$CC_TC_ROOT/opencog_rpi_toolchain"
 export CC_TC_LIBS_PATH_1="$CC_TC_DIR/opencog_rasp"
 export CC_TC_LIBS_PATH_2="$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot"
 
+export CC_TC_BOOST_1.55_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.55_armhf"
+export CC_TC_BOOST_1.62_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.62_armhf"
+
 if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
 	printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
 	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
@@ -113,6 +116,7 @@ usage() {
   echo "  -o   Install OpenCog (precompilled: may be outdated)"
   echo "  -t   Download and Install Cross-Compilling Toolchain"
   echo "  -c   Cross Compile OpenCog (Run on PC!)"
+  echo "  -s   Cross Compile for Raspbian Stretch (boost 1.62)"
   echo "  -v   Verbose output"
   echo -e "  -h   This help message\n"
   exit
@@ -162,6 +166,16 @@ do_cc_for_rpi () {
 		printf "${BAD_COLOR}You do not seem to have the compiler toolchain.\n \
 			Please run:\n\t\t$SELF_NAME -tc \n${NORMAL_COLOR}\n"
 		exit
+    fi
+    
+    if [ $FOR_STRETCH ] ; then 
+    	printf "${OKAY_COLOR}Compiling with Boost 1.62${NORMAL_COLOR}\n"
+	ln -sf $VERBOSE $CC_TC_BOOST_1.55_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1.55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+    else
+    	printf "${OKAY_COLOR}Compiling with Boost 1.55${NORMAL_COLOR}\n"
+	ln -sf $VERBOSE $CC_TC_BOOST_1.62_LIBS/include/* $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1.62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
     fi
 
     export PATH=$PATH:$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin
@@ -360,12 +374,13 @@ if [ $# -eq 0 ] ; then
   printf "${BAD_COLOR}ERROR!! Please specify what to do\n${NORMAL_COLOR}"
   usage
 else
-  while getopts "drotcvh:" switch ; do
+  while getopts "drotcsvh:" switch ; do
     case $switch in
       d)    INSTALL_DEPS=true ;;
       o)    INSTALL_OC=true ;;
       t)    SETUP_TC=true ;;
       c)    CC_OPENCOG=true ;;
+      s)    FOR_STRETCH=true ;;
       v)    SHOW_VERBOSE=true ;;
       h)    usage ;;
       *)    printf "ERROR!! UNKNOWN ARGUMENT!!\n"; usage ;;
