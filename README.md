@@ -24,19 +24,21 @@ An IRC bot of some sort, purpose not clear.
 Uses debootstrap. Requires ocpkg.
 
 #### octool_rpi
-For installing opencog on a Raspberry Pi Computer running Raspbian. 
+For installing opencog on a Raspberry Pi Computer running Raspbian.
 The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) will be helpful.
 
 
 #### Usages
 * To install all dependencies necessary to build OpenCog:
 ```
- ./octool -rdpcalv
+ ./octool -rdpcav -l default
+ # Optional: Add -s for installing dependencies for haskell binding.
 ```
 
 * To install all dependencies necessary to build AtomSpace and MOSES:
 ```
  ./octool -rdcv
+ # Optional: For atomspace, add -s for installing dependencies for haskell binding.
 ```
 
 * To install all dependencies necessary to build Cogutil:
