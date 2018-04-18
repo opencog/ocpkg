@@ -91,15 +91,17 @@ export CC_TC_BOOST_1_62_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.62_armhf"
 
 export DPKG__V="1.0-1"
 
-if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
-	printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
-	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
-elif [ $DISTRO_RELEASE == $DISTRO_STRETCH ] ; then
-	printf "${OKAY_COLOR}Version Stretch ${NORMAL_COLOR}\n"
-	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
-else
-	printf "${OKAY_COLOR}Version Unanticipated :) going with jessie ${NORMAL_COLOR}\n"
-	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+if [ $(uname -m) == "armv7l" ] ; then
+	if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
+		printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+	elif [ $DISTRO_RELEASE == $DISTRO_STRETCH ] ; then
+		printf "${OKAY_COLOR}Version Stretch ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
+	else
+		printf "${OKAY_COLOR}Version Unanticipated :) going with jessie ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+	fi
 fi
 
 BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb" # http://144.76.153.5/opencog/bdwgc-7.6.4-1_armhf.deb
