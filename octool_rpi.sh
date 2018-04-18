@@ -172,14 +172,16 @@ do_cc_for_rpi () {
     
     if [ $FOR_STRETCH ] ; then 
     	printf "${OKAY_COLOR}Compiling with Boost 1.62${NORMAL_COLOR}\n"
-	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
-	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	tar -xf $CC_TC_BOOST_1_62_LIBS.tar.gz -C $CC_TC_LIBS_PATH_2/opt
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
 	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
 	export DPKG__V="1.0-2"
     else
     	printf "${OKAY_COLOR}Compiling with Boost 1.55${NORMAL_COLOR}\n"
-	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
-	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	tar -xf $CC_TC_BOOST_1_55_LIBS.tar.gz -C $CC_TC_LIBS_PATH_2/opt
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
+	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
 	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
     fi
 
@@ -224,7 +226,7 @@ do_cc_for_rpi () {
     cp -ur opencog_rasp $DEB_PKG_NAME
     cd $CC_TC_DIR/$DEB_PKG_NAME
     mkdir ./usr/local/lib/pkgconfig DEBIAN
-    echo '''Package: opencog-dev
+    echo """Package: opencog-dev
 Priority: optional
 Section: universe/opencog
 Maintainer: Dagim Sisay <dagiopia@gmail.com>
@@ -236,7 +238,7 @@ Description: Artificial General Inteligence Engine for Linux
   to one day create human like intelligence that can be conscious and
   emotional.
   This is hopefully the end of task-specific narrow AI.
-  This package includes the files necessary for running opencog on RPI3.''' > DEBIAN/control
+  This package includes the files necessary for running opencog on RPI3.""" > DEBIAN/control
 
      echo '''#Manually written pkgconfig file for opencog - START
 prefix=/usr/local
