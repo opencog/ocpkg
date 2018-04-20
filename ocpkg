@@ -907,7 +907,9 @@ fi
 
 install_bdwgc(){
 MESSAGE="Installing latest bdwgc ...." ; message
-local _dir_name="gc-7.6.4"
+local _version=$(curl https://github.com/ivmai/bdwgc/releases/latest \
+    | cut -d "\"" -f 2 | cut -d "/" -f 8)
+local _dir_name="gc-${_version:1}"
 local _file_name="${_dir_name}.tar.gz"
 cd /tmp/
 rm -rf ${_dir_name}*
