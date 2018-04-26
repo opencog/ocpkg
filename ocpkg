@@ -939,6 +939,7 @@ cd build
 ../configure
 make -j$(nproc)
 sudo make install
+sudo mv  /usr/local/lib/libguile-2.2.so.1.3.0-gdb.scm /usr/share/gdb/auto-load/
 sudo ldconfig
 cd /tmp/
 rm -rf guile-${GUILEVERSION}*
