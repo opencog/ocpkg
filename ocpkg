@@ -1025,14 +1025,14 @@ install_bdwgc && install_guile
 
 # Download data
 download_data() {
-  MESSAGE="Downloading OpenCog's sample datasets ...." ; message
-  DOWNLOAD_DIR="/var/opencog/data"
+  DOWNLOAD_DIR="$HOME/.opencog/data"
+  MESSAGE="Downloading OpenCog's datasets to $DOWNLOAD_DIR ...." ; message
   if [ ! -d "$DOWNLOAD_DIR" ]; then
-    sudo mkdir -p "$DOWNLOAD_DIR"
+    mkdir -p "$DOWNLOAD_DIR"
   fi
 
   if [ ! -f "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" ]; then
-    sudo wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
+    wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
       https://raw.githubusercontent.com/opencog/test-datasets/master/concept_nodes/gtwc-en-333333-words.scm
   fi
 }
