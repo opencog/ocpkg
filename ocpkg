@@ -336,12 +336,12 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo "Usage: $SELF_NAME OPTION"
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
-  echo " -o Install dependencies and download data for the opencog repo"
   echo " -p Install python build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
   echo " -c Install Cogutil"
-  echo " -a Install Atomspace"
+  echo " -a Install AtomSpace"
+  echo " -o Install OpenCog"
   echo " -l {default|java} For installing Link Grammar with java binding '-l java' else '-l default'"
   echo " -m Install MOSES"
   echo " -g Install Guile $GUILEVERSION"
@@ -349,6 +349,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
   echo " -j [jobs] override number of auto-detected make jobs"
+  echo " -w download data for the opencog repo"
   echo " -v Verbose output for 'apt-get' commands"
   echo " -h This help message"
 else
@@ -375,14 +376,15 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdegipcrstl:mhvj:o" flag ; do
+  while getopts "abdegipcrstl:mhvj:ow" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
-      o)	INSTALL_OPENCOG_DEPENDENCIES=true ;; #base development packages
+      w)	DOWNLOAD_DATA=true ;;
       p)	INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
       c)	INSTALL_COGUTIL=true ;;
       a)	INSTALL_ATOMSPACE=true ;;
+      o)	INSTALL_OPENCOG=true ;;
       l)	if [ "$OPTARG" == "default" ]; then
         	  INSTALL_LINK_GRAMMAR=true
         	elif [ "$OPTARG" == "java" ]; then
@@ -823,6 +825,26 @@ rm -rf master.tar.gz atomspace-master/
 cd $CURRENT_DIR
 }
 
+# Install OpenCog
+install_opencog(){
+MESSAGE="Installing opencog...." ; message
+cd /tmp/
+# cleaning up remnants from previous install failures, if any.
+rm -rf master.tar.gz* opencog-master
+wget https://github.com/opencog/opencog/archive/master.tar.gz
+tar -xvf master.tar.gz
+cd opencog-master/
+mkdir build
+cd build/
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+cd /tmp/
+rm -rf master.tar.gz opencog-master/
+cd $CURRENT_DIR
+}
+
 # Install MOSES
 install_moses(){
 MESSAGE="Installing MOSES...." ; message
@@ -1003,17 +1025,18 @@ install_bdwgc && install_guile
 
 # Download data
 download_data() {
-  MESSAGE="Downloading OpenCog's sample datasets ...." ; message
-  DOWNLOAD_DIR="/var/opencog/data"
+  DOWNLOAD_DIR="$HOME/.opencog/data"
+  MESSAGE="Downloading OpenCog's datasets to $DOWNLOAD_DIR ...." ; message
   if [ ! -d "$DOWNLOAD_DIR" ]; then
-    sudo mkdir -p "$DOWNLOAD_DIR"
+    mkdir -p "$DOWNLOAD_DIR"
   fi
 
   if [ ! -f "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" ]; then
-    sudo wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
+    wget -O "$DOWNLOAD_DIR/gtwc-en-333333-words.scm" \
       https://raw.githubusercontent.com/opencog/test-datasets/master/concept_nodes/gtwc-en-333333-words.scm
   fi
 }
+
 update_opencog_source() {
 if sudo apt-get --no-upgrade --assume-yes $QUIET install $PACKAGES_FETCH ; then
   echo -n
@@ -1244,11 +1267,12 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $NO_ARGS ] ; then usage; exit 1 ; fi
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
-    if [ $INSTALL_OPENCOG_DEPENDENCIES ] ; then download_data ; fi
+    if [ $DOWNLOAD_DATA ] ; then download_data ; fi
     if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+    if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar 5.4.3 ; fi
     if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar 5.4.3 ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
