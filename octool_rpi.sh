@@ -52,7 +52,9 @@ INSTALL_PACKAGES="
 	libatomic-ops-dev \
 	libunistring-dev \
 	libffi-dev \
-	libreadline-dev "
+	libreadline-dev \
+	liboctomap-dev 
+	"
 
 INSTALL_RELEX_DEPS="
 	swig \
@@ -62,6 +64,7 @@ INSTALL_RELEX_DEPS="
 	libatomic-ops-dev \
 	libgmp-dev \
 	libffi-dev \
+	oracle-java8-jdk \
 	ant \
 	libcommons-logging-java \
 	libgetopt-java "
@@ -177,6 +180,9 @@ do_cc_for_rpi () {
 	tar -xf $CC_TC_BOOST_1_62_LIBS.tar.gz -C $CC_TC_LIBS_PATH_2/opt
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_62_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	# boost 1.62 needs stdc++ 6.0.22
+	cd $CC_TC_LIBS_PATH_2/../lib
+	ln -sf $CC_TC_LIBS_PATH_2/opt/libstdc++.so.6.0.22 libstdc++.so.6
 	export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
 	export DPKG__V="1.0-2"
     else
@@ -184,6 +190,9 @@ do_cc_for_rpi () {
 	tar -xf $CC_TC_BOOST_1_55_LIBS.tar.gz -C $CC_TC_LIBS_PATH_2/opt
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/include/boost $CC_TC_LIBS_PATH_2/usr/include
 	cp -Prf $VERBOSE $CC_TC_BOOST_1_55_LIBS/lib/arm-linux-gnueabihf/* $CC_TC_LIBS_PATH_2/usr/lib
+	# boost 1.55 needs stdc++ 6.0.20
+	cd $CC_TC_LIBS_PATH_2/../lib
+	ln -sf $CC_TC_LIBS_PATH_2/opt/libstdc++.so.6.0.20 libstdc++.so.6
 	export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
     fi
 
@@ -417,10 +426,12 @@ if [ $INSTALL_DEPS ] ; then
 		if [ "$DISTRO_RELEASE" == "$DISTRO_STRETCH" ] ; then
 			sudo apt-get install -y $APT_ARGS libboost1.62-dev
 		else
+			#install boost 1.55
+			sudo apt-get install -y $APT_ARGS libboost1.55-all-dev
 			#install boost 1.60
-			wget http://144.76.153.5/opencog/libboost-1.60-all-dev-1_armhf.deb
-			sudo dpkg -i libboost-1.60-all-dev-1_armhf.deb
-			rm libboost-1.60-all-dev-1_armhf.deb
+			#wget http://144.76.153.5/opencog/libboost-1.55-all-dev-1_armhf.deb
+			#sudo dpkg -i libboost-1.55-all-dev-1_armhf.deb
+			#rm libboost-1.55-all-dev-1_armhf.deb
 		fi
 	#	install_bdwgc # install bdwgc from source
 	#	install_guile # install guile  from source
@@ -430,7 +441,9 @@ if [ $INSTALL_DEPS ] ; then
 		install_tbb   # install TBB
 		
 		sudo apt-get -y install $APT_ARGS $INSTALL_RELEX_DEPS
-    		export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf
+		sudo update-alternatives --auto java 
+		sudo update-alternatives --auto javac
+    		export JAVA_HOME=/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt
     		export LC_ALL=en_US.UTF8
 		install_lg   # install link-grammar
 		install_relex # install relex
