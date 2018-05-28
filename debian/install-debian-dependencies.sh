@@ -40,7 +40,6 @@ PACKAGES_BUILD="
 		libboost-serialization-dev \
 		libboost-thread-dev \
 		libboost-system-dev \
-		libjson-spirit-dev \
 		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
