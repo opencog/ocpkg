@@ -6,7 +6,9 @@ is still work in progress.
 
 For a quick start using Ubuntu version >= 14.04, run
 ```
- wget http://raw.github.com/opencog/ocpkg/master/ocpkg -O octool && chmod +rx octool && ./octool -h
+sudo curl -L http://raw.github.com/opencog/ocpkg/master/ocpkg -o /usr/local/bin/octool &&\
+sudo chmod +x /usr/local/bin/octool &&\
+octool
 ```
 
 For detailed instructions see [here](http://wiki.opencog.org/wikihome/index.php/Building_OpenCog#octool_for_ubuntu)
