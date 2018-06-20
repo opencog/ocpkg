@@ -47,3 +47,6 @@ The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) 
 ```
  ./octool -rdv
 ```
+* To install all dependencies necessary to build Notebooks:
+```
+ ./octool -rdpcaonv -l default
