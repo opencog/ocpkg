@@ -74,7 +74,7 @@ UBUNTU_MD5SUM=b436b6d4c7de064652f30d783bda5b4e
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
 SELF_NAME=$(basename $0)
-TOOL_NAME=octool
+TOOL_NAME=ocpkg #since we are going to use 'ocpkg -n'
 
 GUILEVERSION=2.2.3
 
