@@ -92,6 +92,9 @@ export CC_TC_LIBS_PATH_2="$CC_TC_DIR/tools-master/arm-bcm2708/arm-rpi-4.9.3-linu
 export CC_TC_BOOST_1_55_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.55_armhf"
 export CC_TC_BOOST_1_62_LIBS="$CC_TC_LIBS_PATH_2/opt/boost_1.62_armhf"
 
+export COGUTIL_COMMIT="0"
+export ATOMSPACE_COMMIT="0"
+export OPENCOG_COMMIT="0"
 export DPKG__V="1.0-1"
 
 if [ $(uname -m) == "armv7l" ] ; then
@@ -146,12 +149,15 @@ setup_sys_for_cc () {
     cd $CC_TC_SRC_DIR
     rm -rf  *
     wget https://github.com/opencog/cogutil/archive/master.tar.gz
+    COGUTIL_COMMIT=$(curl https://api.github.com/repos/opencog/cogutil/commits/master | jq -r '.sha') 
     tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     wget https://github.com/opencog/atomspace/archive/master.tar.gz
+    ATOMSPACE_COMMIT=$(curl https://api.github.com/repos/opencog/atomspace/commits/master | jq -r '.sha')
     tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     wget https://github.com/opencog/opencog/archive/master.tar.gz
+    OPENCOG_COMMIT=$(curl https://api.github.com/repos/opencog/opencog/commits/master | jq -r '.sha')
     tar $VERBOSE -xf master.tar.gz
     rm master.tar.gz
     for d in * ; do echo $d ; mkdir $d/build_hf ; done
@@ -249,19 +255,25 @@ Description: Artificial General Inteligence Engine for Linux
   to one day create human like intelligence that can be conscious and
   emotional.
   This is hopefully the end of task-specific narrow AI.
-  This package includes the files necessary for running opencog on RPI3.""" > DEBIAN/control
+  This package includes the files necessary for running opencog on RPI3.
+  Cogutil: $COGUTIL_COMMIT
+  Atomspace: $ATOMSPACE_COMMIT
+  Opencog: $OPENCOG_COMMIT""" > DEBIAN/control
 
-     echo '''#Manually written pkgconfig file for opencog - START
+     echo """#Manually written pkgconfig file for opencog - START
 prefix=/usr/local
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
 Name: opencog
 Description: Artificial General Intelligence Software
 Version: 1.0
-Cflags: -I${includedir}
-Libs: -L${libdir}
-#Manually written pkgconfig file for opencog - END''' > ./usr/local/lib/pkgconfig/opencog.pc
+Cogutil: $COGUTIL_COMMIT
+Atomspace: $ATOMSPACE_COMMIT
+Opencog: $OPENCOG_COMMIT
+Cflags: -I\${includedir}
+Libs: -L\${libdir}
+#Manually written pkgconfig file for opencog - END""" > ./usr/local/lib/pkgconfig/opencog.pc
      cd ..
      sudo chown -R root:staff $DEB_PKG_NAME
      sudo dpkg-deb --build $DEB_PKG_NAME
