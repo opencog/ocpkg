@@ -658,7 +658,8 @@ cd
 #Install guile-json library
 wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
 tar xvf guile-json-0.6.0.tar.gz
-./configure --prefix=<guile-prefix>
+cd guile-json-0.6.0
+./configure --prefix=/usr
 make
 sudo make install
 cd
