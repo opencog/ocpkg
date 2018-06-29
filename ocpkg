@@ -399,7 +399,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	  message ; exit 1
         	fi ;;
       m)	INSTALL_MOSES=true ;;
-      n)        INSTALL_NOTEBOOKS=true;; 
+      n)        INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
@@ -639,21 +639,43 @@ cd $CURRENT_DIR
 # Install notebooks
 install_notebooks(){
 MESSAGE="Installing notebooks...." ; message
-python3 -m pip install jupyter ipykernel tornado==4.5.3
 
-cd /opt/
-wget https://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz && \
-tar xvf guile-json-0.6.0.tar.gz && \
-rm guile-json-0.6.0.tar.gz && \
-cd guile-json-0.6.0 && \
-./configure && \
+cd
+sudo apt-get install python3-pip
+python3 -m pip install --upgrade pip
+python3 -m pip install --user jupyter
+
+#####INSTALLING GUILE KERNEL#####
+#Install ZeroMQ library
+wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
+tar xvf zeromq-4.2.1.tar.gz
+cd zeromq-4.2.1/
+./configure
+make
 sudo make install
+cd
 
-wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm -O /usr/local/share/guile/site/simple-zmq.scm
+#Install guile-json library
+wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
+tar xvf guile-json-0.6.0.tar.gz
+./configure --prefix=<guile-prefix>
+make
+sudo make install
+cd
 
-cd /usr/local/share/jupyter/kernels
-git clone --depth 1 https://github.com/jerry40/guile-kernel
-sudo cp kernel.json /usr/local/share/jupyter/kernels/guile-kernel
+#Place guile-simple-zmq library to the guile library folder
+cd `guile -c "(display (%global-site-dir))"`
+wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
+cd
+
+#Kernel setup
+mkdir ~/.local/share/jupyter/kernels/guile
+cd ~/.local/share/jupyter/kernels/guile
+wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
+wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
+wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
+wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
+sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
 cd $CURRENT_DIR
 }
