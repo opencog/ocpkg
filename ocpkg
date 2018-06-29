@@ -666,7 +666,7 @@ cd
 
 #Place guile-simple-zmq library to the guile library folder
 cd `guile -c "(display (%global-site-dir))"`
-wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
+sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
 cd
 
 #Kernel setup
