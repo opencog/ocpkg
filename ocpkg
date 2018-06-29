@@ -670,7 +670,7 @@ sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/
 cd
 
 #Kernel setup
-mkdir ~/.local/share/jupyter/kernels/guile
+sudo mkdir ~/.local/share/jupyter/kernels/guile
 cd ~/.local/share/jupyter/kernels/guile
 wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
 wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
