@@ -640,6 +640,7 @@ cd $CURRENT_DIR
 install_notebooks(){
 MESSAGE="Installing notebooks...." ; message
 
+#####INSTALLING pip3 AND jupyter notebook
 cd
 sudo apt-get install python3-pip
 python3 -m pip install --upgrade pip
