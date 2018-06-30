@@ -672,11 +672,11 @@ cd
 #Kernel setup
 sudo mkdir ~/.local/share/jupyter/kernels/guile
 cd ~/.local/share/jupyter/kernels/guile
-wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
-wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
-wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
-wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
-sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
+sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
 cd $CURRENT_DIR
 }
