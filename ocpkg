@@ -679,6 +679,10 @@ sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
 sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
 sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
+#edit simple-zmq.scm => set BUF-SIZE to 8192.
+cd `guile -c "(display (%global-site-dir))"`
+sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
+
 cd $CURRENT_DIR
 }
 
