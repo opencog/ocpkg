@@ -670,8 +670,15 @@ make
 sudo make install
 cd
 
-#Place guile-simple-zmq library to the guile library folder
+
+#check if site folder exits
+if [! -d "/usr/local/share/guile/site"]
+then
+    mkdir /usr/local/share/guile/site
+fi
+
 cd `guile -c "(display (%global-site-dir))"`
+#Place guile-simple-zmq library to the guile library folder
 rm -r simple-zmq.scm*
 sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
 cd
