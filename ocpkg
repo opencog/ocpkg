@@ -645,9 +645,17 @@ MESSAGE="Installing notebooks...." ; message
 cd
 sudo apt-get install python3-pip
 python3 -m pip install --upgrade pip
-python3 -m pip install --user jupyter
+python3 -m pip install ipython jupyter
 
 #####INSTALLING GUILE KERNEL#####
+#check if site folder exits
+if [ ! -d "/usr/local/share/guile/site" ]
+then
+    cd /usr/local/share/guile/
+    sudo mkdir site
+    cd
+fi
+
 #Install ZeroMQ library
 ##Clean up remenants of previous installations##
 rm -rf zeromq-4.2.1*
@@ -665,27 +673,25 @@ rm -rf guile-json-0.6.0*
 wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
 tar xvf guile-json-0.6.0.tar.gz
 cd guile-json-0.6.0
-./configure --prefix=/usr
+./configure --prefix=/usr/local/
 make
 sudo make install
 cd
 
-
-#check if site folder exits
-if [! -d "/usr/local/share/guile/site"]
-then
-    mkdir /usr/local/share/guile/site
-fi
-
 cd `guile -c "(display (%global-site-dir))"`
 #Place guile-simple-zmq library to the guile library folder
-rm -r simple-zmq.scm*
+sudo rm -rf simple-zmq.scm*
 sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
 cd
 
 #Kernel setup
-sudo mkdir ~/.local/share/jupyter/kernels/guile
-cd ~/.local/share/jupyter/kernels/guile
+if [ ! -d "/home/$USER/.local/share/jupyter/kernels/guile" ]
+then
+    sudo mkdir /home/$USER/.local/share/jupyter/kernels/guile
+fi
+
+cd /home/$USER/.local/share/jupyter/kernels/guile
+sudo rm -rf guile-jupyter-kernel.scm hmac.scm kernel.json tools.scm
 sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
 sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
 sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
@@ -696,6 +702,8 @@ sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 cd `guile -c "(display (%global-site-dir))"`
 sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
 
+echo "export PATH=$PATH:/home/$USER/.local/bin"
+echo "source /home/$USER/.bashrc"
 cd $CURRENT_DIR
 }
 
