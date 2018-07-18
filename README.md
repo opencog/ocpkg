@@ -47,7 +47,7 @@ The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) 
 ```
  ./octool -rdv
 ```
-* To install all Notebook along with necessary build dependencies :
+* To install Jupyter Notebook along with necessary build dependencies :
 ```
- ./octool -rdnv
+ ./octool -rdpcanv
 ```
