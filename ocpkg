@@ -134,6 +134,7 @@ PACKAGES_BUILD="
 		cython \
 		python3-dev \
 		python3-zmq \
+                python3-pip
 		python3-simplejson \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
@@ -315,6 +316,9 @@ PACKAGES_EXDEV="
 		libtool \
 		libunistring0 \
 		libxss1 \
+                libxext6 \
+                libsm6 \
+                libxrender1 \
 		make \
 		manpages-dev \
 		m4 \
@@ -342,6 +346,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -c Install Cogutil"
   echo " -a Install AtomSpace"
   echo " -o Install OpenCog"
+  echo " -n Install notebook"
   echo " -l {default|java} For installing Link Grammar with java binding '-l java' else '-l default'"
   echo " -m Install MOSES"
   echo " -g Install Guile $GUILEVERSION"
@@ -376,7 +381,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdegipcrstl:mhvj:ow" flag ; do
+  while getopts "abdegipcrstl:mhvj:own" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -394,6 +399,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	  message ; exit 1
         	fi ;;
       m)	INSTALL_MOSES=true ;;
+      n)        INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
@@ -627,6 +633,77 @@ sudo make install
 sudo ldconfig
 cd /tmp/
 rm -rf master.tar.gz cogutil-master/
+cd $CURRENT_DIR
+}
+
+# Install notebooks
+install_notebooks(){
+MESSAGE="Installing notebooks...." ; message
+
+
+#####INSTALLING pip3 AND jupyter notebook
+cd
+sudo apt-get install python3-pip
+python3 -m pip install --upgrade pip
+python3 -m pip install ipython jupyter
+
+#####INSTALLING GUILE KERNEL#####
+#check if site folder exits
+if [ ! -d "/usr/local/share/guile/site" ]
+then
+    cd /usr/local/share/guile/
+    sudo mkdir site
+    cd
+fi
+
+#Install ZeroMQ library
+##Clean up remenants of previous installations##
+rm -rf zeromq-4.2.1*
+wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
+tar xvf zeromq-4.2.1.tar.gz
+cd zeromq-4.2.1/
+./configure
+make
+sudo make install
+cd
+
+#Install guile-json library
+##Clean up remenants of previous installations##
+rm -rf guile-json-0.6.0*
+wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
+tar xvf guile-json-0.6.0.tar.gz
+cd guile-json-0.6.0
+./configure --prefix=/usr/local/
+make
+sudo make install
+cd
+
+cd `guile -c "(display (%global-site-dir))"`
+#Place guile-simple-zmq library to the guile library folder
+sudo rm -rf simple-zmq.scm*
+sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
+cd
+
+#Kernel setup
+if [ ! -d "/home/$USER/.local/share/jupyter/kernels/guile" ]
+then
+    sudo mkdir /home/$USER/.local/share/jupyter/kernels/guile
+fi
+
+cd /home/$USER/.local/share/jupyter/kernels/guile
+sudo rm -rf guile-jupyter-kernel.scm hmac.scm kernel.json tools.scm
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
+sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
+sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
+
+#edit simple-zmq.scm => set BUF-SIZE to 8192.
+cd `guile -c "(display (%global-site-dir))"`
+sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
+
+echo "export PATH=$PATH:/home/$USER/.local/bin"
+echo "source /home/$USER/.bashrc"
 cd $CURRENT_DIR
 }
 
@@ -1272,12 +1349,14 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+    if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar 5.4.3 ; fi
     if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar 5.4.3 ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $INSTALL_GUILE ] ; then install_bdwgc && install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
+    if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
     if [ $INSTALL_BUILD ] ; then install_build ; fi
