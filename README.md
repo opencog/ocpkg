@@ -35,6 +35,7 @@ The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) 
 ```
  ./octool -rdpcav -l default
  # Optional: Add -s for installing dependencies for haskell binding.
+ # Optional: Add -n for installing dependencies and kernels for jupyter notebooks.
 ```
 
 * To install all dependencies necessary to build AtomSpace and MOSES:
