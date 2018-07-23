@@ -316,9 +316,6 @@ PACKAGES_EXDEV="
 		libtool \
 		libunistring0 \
 		libxss1 \
-                libxext6 \
-                libsm6 \
-                libxrender1 \
 		make \
 		manpages-dev \
 		m4 \
@@ -645,7 +642,7 @@ MESSAGE="Installing notebooks...." ; message
 cd
 sudo apt-get install python3-pip
 python3 -m pip install --upgrade pip
-python3 -m pip install ipython jupyter
+python3 -m pip install ipython jupyter 
 
 #####INSTALLING GUILE KERNEL#####
 #check if site folder exits
@@ -682,6 +679,8 @@ cd `guile -c "(display (%global-site-dir))"`
 #Place guile-simple-zmq library to the guile library folder
 sudo rm -rf simple-zmq.scm*
 sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
+#edit simple-zmq.scm => set BUF-SIZE to 8192.
+sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
 cd
 
 #Kernel setup
@@ -698,9 +697,6 @@ sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
 sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
 sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
-#edit simple-zmq.scm => set BUF-SIZE to 8192.
-cd `guile -c "(display (%global-site-dir))"`
-sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
 
 echo "export PATH=$PATH:/home/$USER/.local/bin"
 echo "source /home/$USER/.bashrc"
