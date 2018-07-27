@@ -1007,7 +1007,8 @@ if [ "$UBUNTU_VERSION" == "\"14.04\"" ]; then
       exit 1
     fi
 elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+    # Don't use liboctomap-dev as it isn't the latest
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-kinetic-octomap locales ; then
         exit 1
     fi
     ensure_UTF_installed
