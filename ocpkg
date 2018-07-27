@@ -922,8 +922,6 @@ if [[ "$UBUNTU_VERSION" == "\"14.04\"" ]]; then
     cd $CURRENT_DIR
 elif [[ "$UBUNTU_VERSION" == "\"16.04\"" ]]; then
     sudo apt-get install -y libcpprest
-elif [[ "$UBUNTU_VERSION" == "\"17.10\"" ]]; then
-    sudo apt-get install -y libcpprest
 fi
 }
 
