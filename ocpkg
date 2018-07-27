@@ -1011,11 +1011,6 @@ elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
         exit 1
     fi
     ensure_UTF_installed
-elif [[ "$UBUNTU_VERSION" = "\"17.10\"" ]]; then
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
-        exit 1
-    fi
-    ensure_UTF_installed
 fi
 
 install_cpprest
