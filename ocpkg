@@ -641,8 +641,8 @@ MESSAGE="Installing notebooks...." ; message
 #####INSTALLING pip3 AND jupyter notebook
 cd
 sudo apt-get install python3-pip
-python3 -m pip install --upgrade pip
-python3 -m pip install ipython jupyter 
+sudo python3 -m pip install --upgrade pip
+sudo python3 -m pip install ipython jupyter  
 
 #####INSTALLING GUILE KERNEL#####
 #check if site folder exits
