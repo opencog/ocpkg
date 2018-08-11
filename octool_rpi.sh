@@ -361,6 +361,7 @@ install_relex () {
     sudo chmod $VERBOSE  0644 /usr/local/share/java/jwnl.jar
     
     #installing relex
+    export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
     wget https://github.com/Dagiopia/relex/archive/$RELEX_V.tar.gz
     tar $VERBOSE -xf $RELEX_V.tar.gz 
     cd relex-$RELEX_V
