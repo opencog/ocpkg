@@ -125,7 +125,7 @@ PACKAGES_ADMIN="
 
 PACKAGES_BUILD="
 		build-essential \
-		cmake \
+		cmake3 \
 		cxxtest \
 		rlwrap \
 		libiberty-dev \
