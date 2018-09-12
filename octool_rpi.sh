@@ -22,7 +22,7 @@ INSTALL_PACKAGES="
 	libtool \
 	bison \
 	flex \
-	cmake3 \
+	cmake \
 	rlwrap \
 	libiberty-dev \
 	libicu-dev \
