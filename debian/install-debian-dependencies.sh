@@ -21,7 +21,7 @@ PACKAGES_TOOLS="
 # Packages for building opencog
 PACKAGES_BUILD="
 		build-essential \
-		cmake3 \
+		cmake \
 		cxxtest \
 		rlwrap \
 		guile-2.0-dev \
