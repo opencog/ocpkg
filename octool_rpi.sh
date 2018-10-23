@@ -97,26 +97,43 @@ export ATOMSPACE_COMMIT="0"
 export OPENCOG_COMMIT="0"
 export DPKG__V="1.0-1"
 
-if [ $(uname -m) == "armv7l" ] ; then
-	if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
-		printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
-		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
-	elif [ $DISTRO_RELEASE == $DISTRO_STRETCH ] ; then
-		printf "${OKAY_COLOR}Version Stretch ${NORMAL_COLOR}\n"
-		export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
-	else
-		printf "${OKAY_COLOR}Version Unanticipated :) going with jessie ${NORMAL_COLOR}\n"
-		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
-	fi
-fi
+J_BDWGC_DEB="http://144.76.153.5/opencog/jessie/bdwgc-7.6.4-1_armhf.deb"
+S_BDWGC_DEB="http://144.76.153.5/opencog/stretch/bdwgc-dev_1.0-2_armhf.deb"
+J_GUILE_DEB="http://144.76.153.5/opencog/jessie/guile-2.2.3-1_armhf.deb"
+S_GUILE_DEB="http://144.76.153.5/opencog/stretch/guile-dev_2.2.3-2_armhf.deb"
 
-BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb" # http://144.76.153.5/opencog/bdwgc-7.6.4-1_armhf.deb
-GUILE_DEB="guile-2.2.3-1_armhf.deb" # http://144.76.153.5/opencog/guile-2.2.3-1_armhf.deb
 GUILE_V="2.2.3" # https://ftp.gnu.org/gnu/guile/guile-2.2.3.tar.xz
 TBB_V="2017_U7" # https://github.com/01org/tbb/archive/2017_U7.tar.gz
 LG_V="5.4.3"    # https://github.com/opencog/link-grammar/archive/link-grammar-5.4.3.tar.gz
 RELEX_V="1.6.3" # https://github.com/Dagiopia/relex/archive/1.6.3.tar.gz
 BDWGC_V="7.6.4" # https://github.com/ivmai/bdwgc/archive/v7.6.4.tar.gz
+
+
+
+if [ $(uname -m) == "armv7l" ] ; then
+	if [ $DISTRO_RELEASE == $DISTRO_JESSIE ] ; then
+		printf "${OKAY_COLOR}Version Jessie ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+		export BDWGC_DEB="bdwgc-7.6.4-1_armhf.deb"
+		export BDWGC_DEB_URL=$J_BDWGC_DEB
+		export GUILE_DEB="guile-2.2.3-1_armhf.deb"
+		export GUILE_DEB_URL=$J_GUILE_DEB
+	elif [ $DISTRO_RELEASE == $DISTRO_STRETCH ] ; then
+		printf "${OKAY_COLOR}Version Stretch ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-2_armhf"
+		export BDWGC_DEB="bdwgc-dev_1.0-2_armhf.deb"
+		export BDWGC_DEB_URL=$S_BDWGC_DEB
+		export GUILE_DEB="guile-dev_2.2.3-2_armhf.deb"
+		export GUILE_DEB_URL=$S_GUILE_DEB
+	else
+		printf "${OKAY_COLOR}Version Unanticipated :) going with jessie ${NORMAL_COLOR}\n"
+		export DEB_PKG_NAME="opencog-dev_1.0-1_armhf"
+		export BDWGC_DEB_URL=$J_BDWGC_DEB
+		export GUILE_DEB_URL=$J_GUILE_DEB
+	fi
+fi
+
+
 
 usage() {
   echo "Usage: $SELF_NAME OPTION"
@@ -300,7 +317,7 @@ install_guile () {
 
 install_guile_deb () {
     printf "${OKAY_COLOR}Installing Guile from deb pkg $GUILE_V ${NORMAL_COLOR}\n"
-    wget http://144.76.153.5/opencog/$GUILE_DEB
+    wget $GUILE_DEB_URL
     sudo dpkg -i $GUILE_DEB
     sudo apt-get -f install 
     rm $GUILE_DEB
@@ -374,7 +391,7 @@ install_relex () {
 
 install_bdwgc_deb () {
     printf "${OKAY_COLOR}Installing bdwgc from deb pkg${NORMAL_COLOR}\n"
-    wget http://144.76.153.5/opencog/$BDWGC_DEB
+    wget $BDWGC_DEB_URL
     sudo dpkg -i $BDWGC_DEB
     sudo apt-get -f install 
     rm $BDWGC_DEB
@@ -437,17 +454,10 @@ if [ $INSTALL_DEPS ] ; then
 			Installing packages${NORMAL_COLOR}\n"
 	        sudo apt-get install -y $APT_ARGS $INSTALL_PACKAGES
 		if [ "$DISTRO_RELEASE" == "$DISTRO_STRETCH" ] ; then
-			sudo apt-get install -y $APT_ARGS libboost1.62-dev
+			sudo apt-get install -y $APT_ARGS libboost1.62-all-dev
 		else
-			#install boost 1.55
 			sudo apt-get install -y $APT_ARGS libboost1.55-all-dev
-			#install boost 1.60
-			#wget http://144.76.153.5/opencog/libboost-1.55-all-dev-1_armhf.deb
-			#sudo dpkg -i libboost-1.55-all-dev-1_armhf.deb
-			#rm libboost-1.55-all-dev-1_armhf.deb
 		fi
-	#	install_bdwgc # install bdwgc from source
-	#	install_guile # install guile  from source
 		
 		install_bdwgc_deb # install bdwgc from deb pkg
 		install_guile_deb # install guile from a deb pkg
@@ -505,3 +515,4 @@ if [ $CC_OPENCOG ] ; then
 		do_cc_for_rpi
 	fi
 fi
+
