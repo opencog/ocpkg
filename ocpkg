@@ -698,7 +698,7 @@ sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
 sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
 echo "export PATH=$PATH:/home/$USER/.local/bin" >> /home/$USER/.bashrc
-echo "source /home/$USER/.bashrc"
+echo "source $HOME/.bashrc"
 cd $CURRENT_DIR
 }
 
