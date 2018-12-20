@@ -136,6 +136,7 @@ PACKAGES_BUILD="
 		python3-zmq \
                 python3-pip
 		python3-simplejson \
+		python3-nose \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
 		libboost-math-dev \
