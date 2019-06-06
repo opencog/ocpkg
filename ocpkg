@@ -1018,24 +1018,29 @@ rm -rf ${_dir_name}*
 }
 
 install_guile(){
-MESSAGE="Installing guile-$GUILEVERSION...." ; message
-cd /tmp/
-# Clean up remnants from previous install failures, if any.
-rm -rf guile-${GUILEVERSION}*
-# Install dependency for the build.
-sudo apt-get install -y libunistring-dev
-wget https://ftp.gnu.org/gnu/guile/guile-$GUILEVERSION.tar.gz
-tar -xvf guile-$GUILEVERSION.tar.gz
-cd guile-$GUILEVERSION
-mkdir build
-cd build
-../configure
-make -j$(nproc)
-sudo make install
-sudo mv  /usr/local/lib/libguile-2.2.so.1.3.0-gdb.scm /usr/share/gdb/auto-load/
-sudo ldconfig
-cd /tmp/
-rm -rf guile-${GUILEVERSION}*
+if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
+    sudo apt-get install -y guile-2.2-dev
+else
+   install_bdwgc
+    MESSAGE="Installing guile-$GUILEVERSION...." ; message
+    cd /tmp/
+    # Clean up remnants from previous install failures, if any.
+    rm -rf guile-${GUILEVERSION}*
+    # Install dependency for the build.
+    sudo apt-get install -y libunistring-dev
+    wget https://ftp.gnu.org/gnu/guile/guile-$GUILEVERSION.tar.gz
+    tar -xvf guile-$GUILEVERSION.tar.gz
+    cd guile-$GUILEVERSION
+    mkdir build
+    cd build
+    ../configure
+    make -j$(nproc)
+    sudo make install
+    sudo mv  /usr/local/lib/libguile-2.2.so.1.3.0-gdb.scm /usr/share/gdb/auto-load/
+    sudo ldconfig
+    cd /tmp/
+    rm -rf guile-${GUILEVERSION}*
+fi
 }
 
 # Install ros-behavior-scripting
@@ -1092,7 +1097,7 @@ fi
 
 install_cpprest
 # Install guile >2.2 also install bdwgc for language-learning
-install_bdwgc && install_guile
+install_guile
 }
 
 # Download data
@@ -1349,7 +1354,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
-    if [ $INSTALL_GUILE ] ; then install_bdwgc && install_guile ; fi
+    if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
