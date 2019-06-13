@@ -111,7 +111,7 @@ PACKAGES_TOOLS="
 		#testdrive \
 
 PACKAGES_FETCH="
-        python-pip \
+		python3-pip \
 		git \
 			"
 		#bzr-rewrite \
@@ -123,19 +123,17 @@ PACKAGES_ADMIN="
 		epiphany-browser \
 		"
 
-PACKAGES_BUILD="
-		build-essential \
+PACKAGES_BUILD=" build-essential \
 		cmake \
-		cxxtest \
 		rlwrap \
 		libiberty-dev \
 		libicu-dev \
 		libbz2-dev \
-		cython \
+		cython3 \
 		python3-dev \
 		python3-zmq \
-                python3-pip
 		python3-simplejson \
+		python3-setuptools \
 		python3-nose \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
@@ -149,7 +147,6 @@ PACKAGES_BUILD="
 		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
-		unixodbc-dev \
 		libpq-dev\
 		uuid-dev \
 		libprotoc-dev \
@@ -174,6 +171,8 @@ PACKAGES_BUILD="
 		libgmp-dev \
 		libffi-dev \
 		libreadline-dev \
+		libcpprest \
+		libltdl-dev \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
@@ -582,10 +581,11 @@ for REPO in $REPOSITORIES ; do
 done
 
 # Ros repository for opencog/opencog repo
-# TODO remove this when the reference os is changed to 16.04.
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B01FA116
-sudo apt-key adv --keyserver keyserver.ubuntu.com  --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+if [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
+  sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+  sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+fi
+
 sudo apt-get $QUIET --assume-yes update
 }
 
@@ -641,7 +641,7 @@ MESSAGE="Installing notebooks...." ; message
 
 #####INSTALLING pip3 AND jupyter notebook
 cd
-sudo apt-get install python3-pip
+sudo apt-get install -y --no-install-recommends python3-pip
 sudo python3 -m pip install --upgrade pip
 sudo python3 -m pip install ipython jupyter
 
@@ -715,14 +715,14 @@ wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/req
 # build occupies a lot of space blotting the docker image. Thus instead a
 # system instllation is made.
 # TODO: cleanup the requirements.txt file.
-sudo pip install -U pip
+sudo python3 -m pip install -U pip
 sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
-sudo apt-get install -y python-matplotlib python-numpy python-scipy python
+sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
 
 # For sentiment analysis
 # TODO: update depending on https://github.com/opencog/opencog/issues/2285
 sudo pip install -U pyyaml nltk
-sudo python -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
+sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
 rm -f requirements.txt*
 cd $CURRENT_DIR
 }
@@ -969,35 +969,6 @@ rm -rf link-grammar-5.*/
 cd $CURRENT_DIR
 }
 
-# Installs cpprest that is needed by pattern-miner
-# https://github.com/Microsoft/cpprestsdk/wiki/How-to-build-for-Linux
-install_cpprest(){
-if [[ "$UBUNTU_VERSION" == "\"14.04\"" ]]; then
-    if [[ -f /usr/local/lib/libcpprest.so.2.9 ]]; then
-        MESSAGE="cpprest is already installed." ; message
-        return
-    fi
-    MESSAGE="Installing cpprest...." ; message
-    cd /tmp/
-    # cleaning up remnants from previous install failures, if any.
-    rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
-    wget https://github.com/Microsoft/cpprestsdk/archive/v2.9.0.tar.gz
-    tar -xvf v2.9.0.tar.gz
-    cd cpprestsdk-2.9.0/Release
-    mkdir build.release
-    cd build.release
-    CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release
-    make -j$(nproc)
-    sudo make install
-    sudo ldconfig
-    cd /tmp/
-    rm -rf v2.9.0.tar.gz* cpprestsdk-2.9.0
-    cd $CURRENT_DIR
-else
-    sudo apt-get install -y libcpprest
-fi
-}
-
 install_bdwgc(){
 MESSAGE="Installing latest bdwgc ...." ; message
 local _version=$(curl https://github.com/ivmai/bdwgc/releases/latest \
@@ -1019,7 +990,7 @@ rm -rf ${_dir_name}*
 
 install_guile(){
 if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
-    sudo apt-get install -y guile-2.2-dev
+    sudo apt-get install -y --no-install-recommends guile-2.2-dev
 else
    install_bdwgc
     MESSAGE="Installing guile-$GUILEVERSION...." ; message
@@ -1027,7 +998,7 @@ else
     # Clean up remnants from previous install failures, if any.
     rm -rf guile-${GUILEVERSION}*
     # Install dependency for the build.
-    sudo apt-get install -y libunistring-dev
+    sudo apt-get install -y --no-install-recommends libunistring-dev
     wget https://ftp.gnu.org/gnu/guile/guile-$GUILEVERSION.tar.gz
     tar -xvf guile-$GUILEVERSION.tar.gz
     cd guile-$GUILEVERSION
@@ -1075,27 +1046,29 @@ ensure_UTF_installed(){
 # Install system dependencies
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
-
-if [ "$UBUNTU_VERSION" == "\"14.04\"" ]; then
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-indigo-octomap; then
-     # commented out the message b/c it is displayed on ctrl + c
-     # MESSAGE="Please enable 'universe' repositories and re-run this script."  ; message
-      exit 1
-    fi
-elif [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
+if [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
     # Don't use liboctomap-dev as it isn't the latest
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-kinetic-octomap locales ; then
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-kinetic-octomap locales ; then
         exit 1
     fi
     ensure_UTF_installed
 else
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+    if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
         exit 1
     fi
     ensure_UTF_installed
 fi
 
-install_cpprest
+# Install latest cxxtest
+# TODO Remove on 19.04
+(cd /tmp/ ; wget 'http://archive.ubuntu.com/ubuntu/pool/universe/c/cxxtest/cxxtest_4.4+git171022-1_all.deb')
+sudo apt-get install -y --no-install-recommends /tmp/cxxtest*
+
+# Configure python alternative. The priority is soo high just to ensure that
+# python is always set.
+PYTHON_PATH=$(readlink -f /usr/bin/python3)
+#sudo update-alternatives --install /usr/bin/python python "$PYTHON_PATH" 1000
+
 # Install guile >2.2 also install bdwgc for language-learning
 install_guile
 }
