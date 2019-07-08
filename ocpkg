@@ -113,6 +113,8 @@ PACKAGES_TOOLS="
 PACKAGES_FETCH="
 		python3-pip \
 		git \
+		curl \
+		wget \
 			"
 		#bzr-rewrite \
 
@@ -129,7 +131,6 @@ PACKAGES_BUILD=" build-essential \
 		libiberty-dev \
 		libicu-dev \
 		libbz2-dev \
-		cython3 \
 		python3-dev \
 		python3-zmq \
 		python3-simplejson \
@@ -716,6 +717,7 @@ wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/req
 # system instllation is made.
 # TODO: cleanup the requirements.txt file.
 sudo python3 -m pip install -U pip
+sudo python3 -m pip install -U cython
 sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
 sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
 
