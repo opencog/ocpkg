@@ -1348,7 +1348,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
-    if [ $TEST_SOURCE ] ; then install_build && test_source ; fi
+    if [ $TEST_SOURCE ] ; then test_source ; fi
     if [ $INSTALL_BUILD ] ; then install_build ; fi
 exit 0
 fi
