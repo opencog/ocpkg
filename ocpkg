@@ -1082,7 +1082,9 @@ PYTHON_PATH=$(readlink -f /usr/bin/python3)
 
 # Update or install python tools
 sudo python3 -m pip install -U pip
-sudo python3 -m pip install -U cython
+# See https://github.com/opencog/atomspace/issues/2213 for why ~=0.23.5 is
+# choosen.
+sudo python3 -m pip install -U cython~=0.23.5
 
 # Install guile >2.2 also install bdwgc for language-learning
 install_guile
