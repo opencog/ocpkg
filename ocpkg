@@ -616,15 +616,16 @@ if ! sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_ADMIN ; the
 fi
 }
 
-# Install cogutil
-install_cogutil(){
-MESSAGE="Installing cogutil...." ; message
+# Install given opencog github repo
+install_opencog_github_repo(){
+local REPO="$1"
+MESSAGE="Installing ${REPO}...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz* cogutil-master
-wget https://github.com/opencog/cogutil/archive/master.tar.gz
+rm -rf master.tar.gz* ${REPO}-master
+wget https://github.com/opencog/${REPO}/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd cogutil-master/
+cd ${REPO}-master/
 mkdir build
 cd build/
 cmake ..
@@ -632,8 +633,13 @@ make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd /tmp/
-rm -rf master.tar.gz cogutil-master/
+rm -rf master.tar.gz ${REPO}-master/
 cd $CURRENT_DIR
+}
+
+# Install cogutil
+install_cogutil(){
+install_opencog_github_repo cogutil
 }
 
 # Install notebooks
@@ -881,62 +887,17 @@ MESSAGE="Finished installation" ; message
 
 # Install AtomSpace
 install_atomspace(){
-MESSAGE="Installing atomspace...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz* atomspace-master
-wget https://github.com/opencog/atomspace/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd atomspace-master/
-mkdir build
-cd build/
-cmake ..
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf master.tar.gz atomspace-master/
-cd $CURRENT_DIR
+install_opencog_github_repo atomspace
 }
 
 # Install OpenCog
 install_opencog(){
-MESSAGE="Installing opencog...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz* opencog-master
-wget https://github.com/opencog/opencog/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd opencog-master/
-mkdir build
-cd build/
-cmake ..
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf master.tar.gz opencog-master/
-cd $CURRENT_DIR
+install_opencog_github_repo opencog
 }
 
 # Install MOSES
 install_moses(){
-MESSAGE="Installing MOSES...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz*  moses-master
-wget https://github.com/opencog/moses/archive/master.tar.gz
-tar -xvf master.tar.gz
-cd moses-master/
-mkdir build
-cd build
-cmake ..
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf master.tar.gz moses-master/
-cd $CURRENT_DIR
+install_opencog_github_repo moses
 }
 
 # Install Link-Grammar
