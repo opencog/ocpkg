@@ -1005,6 +1005,12 @@ ensure_UTF_installed(){
     fi
 }
 
+# In Ubuntu 18.04 some links are absent when build-essential and ccache
+# packages are installed by same apt-get command
+update_ccache_links() {
+  sudo update-ccache-symlinks
+}
+
 # Install cxxtest for python3 co
 install_cxxtest() {
   (cd /tmp/ && rm -rf cxxtest* master.tar.gz
@@ -1033,6 +1039,9 @@ else
     fi
     ensure_UTF_installed
 fi
+
+# Update ccache links
+update_ccache_links
 
 # Install latest cxxtest
 install_cxxtest
