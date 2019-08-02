@@ -767,37 +767,6 @@ sudo make install
 cd /tmp
 rm -rf patchelf-0.9
 cd $CURRENT_DIR
-
-# Notes
-# 1. Stack setup must me run in user space:
-#    "stack setup" looks for proper ghc version in the system according to the
-#    information provided by stack.yaml. If it is not installed, it attempts to
-#    install proper ghc version on user space (~/.stack/...). Because of that,
-#    it must not be run as root.
-
-# 2. Difference b/n .cabal and stack.yaml:
-#    The .cabal file contains package metadata, in this case
-#    "opencog-atomspace.cabal" contains information of the opencog-atomspace
-#    package (autor, license, dependencies, etc.). The stack.yaml file contains
-#    configuration options for the stack building tool, we use it to set the
-#    proper "long term support" snapshot that we are using, which determines the
-#    proper ghc version to use, etc. In this case, it doesn't make sense to
-#    require the .cabal file, because we are not using that information to build
-#    the hscolour package, but it looks like stack always looks for a .cabal
-#    file when building, even though, in this case, it doesn't use it.
-if [ "$EUID" -ne 0 ] ; then
-    cd /tmp
-    wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/stack.yaml
-    wget https://raw.githubusercontent.com/opencog/atomspace/master/opencog/haskell/opencog-atomspace.cabal
-    stack --allow-different-user setup
-
-    # hscolour is necessary for haddock documentation.
-    stack --allow-different-user build hscolour --copy-bins
-    rm stack.yaml opencog-atomspace.cabal
-    cd $CURRENT_DIR
-else
-    echo "Please run without sudo. Stack need to be run in non-root user space."
-fi
 }
 
 # The following sets the source & build directory for a project
