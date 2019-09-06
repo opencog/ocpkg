@@ -857,6 +857,7 @@ MESSAGE="Finished installation" ; message
 # Install AtomSpace
 install_atomspace(){
 install_opencog_github_repo atomspace
+install_opencog_github_repo ure
 }
 
 # Install CogServer
@@ -867,6 +868,12 @@ install_opencog_github_repo cogserver
 # Install OpenCog
 install_opencog(){
 install_opencog_github_repo opencog
+install_opencog_github_repo miner
+install_opencog_github_repo learn
+install_opencog_github_repo attentionbank
+install_opencog_github_repo spacetime
+install_opencog_github_repo pattern-index
+install_opencog_github_repo visualization
 }
 
 # Install MOSES
