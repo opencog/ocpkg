@@ -1294,8 +1294,8 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_COGSERVER ] ; then install_cogserver ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
-    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
-    if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar ; fi
+    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar 5.6.2 ; fi
+    if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar 5.6.2 ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
