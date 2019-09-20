@@ -867,13 +867,14 @@ install_opencog_github_repo cogserver
 
 # Install OpenCog
 install_opencog(){
-install_opencog_github_repo opencog
 install_opencog_github_repo miner
 install_opencog_github_repo learn
-install_opencog_github_repo attentionbank
+install_opencog_github_repo cogserver
+install_opencog_github_repo attention
 install_opencog_github_repo spacetime
 install_opencog_github_repo pattern-index
 install_opencog_github_repo visualization
+install_opencog_github_repo opencog
 }
 
 # Install MOSES
