@@ -566,7 +566,7 @@ fi
 }
 
 get_distro_version() {
-    cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
+  cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
 }
 
 UBUNTU_VERSION=$(get_distro_version)
@@ -576,6 +576,12 @@ MESSAGE="Adding software repositories..." ; message
 for REPO in $REPOSITORIES ; do
   sudo apt-add-repository -y $REPO
 done
+
+# Add cmake repository. See https://apt.kitware.com/ for details.
+if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
+  wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+  echo "deb https://apt.kitware.com/ubuntu/ bionic main" | sudo tee '/etc/apt/sources.list.d/cmake.list'
+fi
 
 sudo apt-get $QUIET --assume-yes update
 }
