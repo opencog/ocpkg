@@ -566,15 +566,10 @@ fi
 }
 
 get_distro_version() {
-    cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
+  cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
 }
 
 UBUNTU_VERSION=$(get_distro_version)
-
-add_stack_repository() {
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 575159689BEFB442
-echo 'deb http://download.fpcomplete.com/ubuntu trusty main'|sudo tee /etc/apt/sources.list.d/fpco.list
-}
 
 add_repositories() {
 MESSAGE="Adding software repositories..." ; message
@@ -582,10 +577,10 @@ for REPO in $REPOSITORIES ; do
   sudo apt-add-repository -y $REPO
 done
 
-# Ros repository for opencog/opencog repo
-if [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
-  sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-  sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+# Add cmake repository. See https://apt.kitware.com/ for details.
+if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
+  wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+  echo "deb https://apt.kitware.com/ubuntu/ bionic main" | sudo tee '/etc/apt/sources.list.d/cmake.list'
 fi
 
 sudo apt-get $QUIET --assume-yes update
@@ -736,27 +731,8 @@ cd $CURRENT_DIR
 
 # Install Haskell Dependencies
 install_haskell_dependencies(){
-# if ! is_x68_64; then
-#   MESSAGE="Installing stack for haskell "; message
-#   # Just in case curl isn't installed
-#   sudo apt-get install -y curl
-#   cd /tmp
-#   rm -rf stack*
-#   wget $( curl -s  https://api.github.com/repos/commercialhaskell/stack/releases/latest | awk '/browser_download_url/&&/stack-[0-9\.]*-linux-i386.tar.gz/' | head -n 1 | cut -d '"' -f 4)
-#   tar xfz stack*linux-i386.tar.gz
-#   rm stack*linux-i386.tar.gz
-#   mv stack* stack
-#   chmod 755 stack
-#   sudo mv stack /usr/bin/stack
-#   rm -f stack*
-#   cd $CURRENT_DIR
-# else
-  MESSAGE="Installing haskell dependencies in user space...." ; message
-  # Install stack.
-  # add_stack_repository
-  # sudo apt-get update && sudo apt-get $QUIET -y install stack
-  sudo wget -qO- https://get.haskellstack.org/ | sh
-# fi
+MESSAGE="Installing haskell dependencies in user space...." ; message
+sudo wget -qO- https://get.haskellstack.org/ | sh
 
 cd /tmp
 rm -rf patchelf*
@@ -1009,18 +985,10 @@ install_cxxtest() {
 # Install system dependencies
 install_dependencies() {
 MESSAGE="Installing OpenCog build dependencies...." ; message
-if [[ "$UBUNTU_VERSION" = "\"16.04\"" ]]; then
-    # Don't use liboctomap-dev as it isn't the latest
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ros-kinetic-octomap locales ; then
-        exit 1
-    fi
-    ensure_UTF_installed
-else
-    if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
-        exit 1
-    fi
-    ensure_UTF_installed
+if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+    exit 1
 fi
+ensure_UTF_installed
 
 # Update ccache links
 update_ccache_links
