@@ -843,6 +843,7 @@ install_opencog_github_repo cogserver
 
 # Install OpenCog
 install_opencog(){
+install_opencog_github_repo pln
 install_opencog_github_repo miner
 install_opencog_github_repo learn
 install_opencog_github_repo cogserver
