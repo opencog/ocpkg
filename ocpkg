@@ -172,6 +172,11 @@ PACKAGES_BUILD=" build-essential \
 		libreadline-dev \
 		libcpprest \
 		libltdl-dev \
+		m4 \
+		autoconf-archive \
+		libtool \
+		swig \
+		flex \
 		"
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
@@ -859,17 +864,18 @@ install_link_grammar(){
 MESSAGE="Installing Link-Grammar...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf link-grammar-5.*/
+rm -rf link-grammar*/
 if [ $# -eq 1 ]; then
-  wget http://www.abisource.com/downloads/link-grammar/${1}/link-grammar-${1}.tar.gz
-  tar -zxf link-grammar-5*.tar.gz
+  local _version=${1}
 else
-  wget -r --no-parent -nH --cut-dirs=2 \
-    http://www.abisource.com/downloads/link-grammar/current/
-  tar -zxf current/link-grammar-5*.tar.gz
-  rm -r current
+  local _version=$(git ls-remote -t \
+      https://github.com/opencog/link-grammar "link-grammar-5*" \
+      --sort=taggerdate | grep -v "\^"| tail -n 1 | cut -d "-" -f 3)
 fi
-cd link-grammar-5.*/
+wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+tar -zxf link-grammar-5*.tar.gz
+cd link-grammar-link-grammar-5.*/
+./autogen.sh --no-configure
 mkdir build
 cd build
 if [ $INSTALL_JAVA_LINK_GRAMMAR ]; then
@@ -881,7 +887,7 @@ make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd /tmp/
-rm -rf link-grammar-5.*/
+rm -rf link-grammar*/
 cd $CURRENT_DIR
 }
 
@@ -967,7 +973,7 @@ update_ccache_links() {
 
 # Install cxxtest for python3 co
 install_cxxtest() {
-  (cd /tmp/ && rm -rf cxxtest* master.tar.gz
+  (cd /tmp/ && sudo rm -rf cxxtest* master.tar.gz
   sudo python3 -m pip install ply
   wget https://github.com/CxxTest/cxxtest/archive/master.tar.gz
   tar -xvf master.tar.gz
@@ -975,7 +981,8 @@ install_cxxtest() {
   sudo python3 setup.py -v install
   cd ..
   sudo install -m 644  cxxtest/* -D -t /usr/include/cxxtest
-  rm -rf cxxtest* master.tar.gz)
+  cd ..
+  sudo rm -rf cxxtest* master.tar.gz)
 }
 
 # Install system dependencies
