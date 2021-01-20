@@ -111,7 +111,6 @@ PACKAGES_TOOLS="
 		#testdrive \
 
 PACKAGES_FETCH="
-		python3-pip \
 		git \
 		curl \
 		wget \
@@ -131,9 +130,6 @@ PACKAGES_BUILD=" build-essential \
 		libiberty-dev \
 		libicu-dev \
 		libbz2-dev \
-		python3-dev \
-		python3-setuptools \
-		python3-nose \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
 		libboost-math-dev \
@@ -650,9 +646,7 @@ MESSAGE="Installing notebooks...." ; message
 
 #####INSTALLING pip3 AND jupyter notebook
 cd
-sudo apt-get install -y --no-install-recommends python3-pip
-sudo python3 -m pip install --upgrade pip
-sudo python3 -m pip install ipython jupyter
+sudo pip3 install ipython jupyter
 
 #####INSTALLING GUILE KERNEL#####
 #check if site folder exits
@@ -729,7 +723,7 @@ cd /tmp
 
 # For sentiment analysis
 # TODO: update depending on https://github.com/opencog/opencog/issues/2285
-sudo pip install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
+sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
 sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
 rm -f requirements.txt*
 cd $CURRENT_DIR
@@ -911,6 +905,14 @@ cd /tmp/
 rm -rf ${_dir_name}*
 }
 
+install_python(){
+  MESSAGE="Installing python3 ...." ; message
+  sudo apt-get install -y --no-install-recommends python3-dev python3.8-dev python3-pip
+  sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+  sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
+  sudo pip3 install -U pip nose cython setuptools
+}
+
 install_guile(){
 if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
     sudo apt-get install -y --no-install-recommends guile-2.2-dev
@@ -975,7 +977,7 @@ update_ccache_links() {
 # Install cxxtest for python3 co
 install_cxxtest() {
   (cd /tmp/ && sudo rm -rf cxxtest* master.tar.gz
-  sudo python3 -m pip install ply
+  sudo pip3 install ply
   wget https://github.com/CxxTest/cxxtest/archive/master.tar.gz
   tar -xvf master.tar.gz
   cd cxxtest-master/python/
@@ -988,6 +990,9 @@ install_cxxtest() {
 
 # Install system dependencies
 install_dependencies() {
+# Install the latest python3 version before everything else
+install_python
+
 MESSAGE="Installing OpenCog build dependencies...." ; message
 if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
     exit 1
@@ -1002,12 +1007,8 @@ install_cxxtest
 
 # Configure python alternative. The priority is soo high just to ensure that
 # python is always set.
-PYTHON_PATH=$(readlink -f /usr/bin/python3)
+#PYTHON_PATH=$(readlink -f /usr/bin/python3)
 #sudo update-alternatives --install /usr/bin/python python "$PYTHON_PATH" 1000
-
-# Update or install python tools
-sudo python3 -m pip install -U pip
-sudo python3 -m pip install -U cython
 
 # Install guile >2.2 also install bdwgc for language-learning
 install_guile
