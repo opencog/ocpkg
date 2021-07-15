@@ -917,7 +917,7 @@ install_python(){
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
   fi
   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
-  sudo pip3 install -U pip nose cython setuptools
+  sudo pip3 install -U pip nose3 cython setuptools
 }
 
 install_guile(){
