@@ -873,8 +873,7 @@ else
       --sort=taggerdate | grep -v "\^"| tail -n 1 | cut -d "-" -f 3)
 fi
 # wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
-wget
-https://www.abisource.com/downloads/link-grammar/current/link-grammar*.tar.gz
+wget https://www.abisource.com/downloads/link-grammar/current/link-grammar*.tar.gz
 tar -zxf link-grammar-5*.tar.gz
 cd link-grammar-link-grammar-5.*/
 # Do NOT autoconf, this will almost surely break the build!
