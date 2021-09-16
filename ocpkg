@@ -67,16 +67,15 @@ DEFAULT_UPDATE_OPENCOG=true
 DEFAULT_BUILD_OPENCOG=false
 DEFAULT_TEST_OPENCOG=false
 
-# TBD: update for Ubuntu 14.04
-UBUNTU_ISO=ubuntu-12.04.2-desktop-amd64.iso
-UBUNTU_URL=http://releases.ubuntu.com/12.04/
-UBUNTU_MD5SUM=b436b6d4c7de064652f30d783bda5b4e
+UBUNTU_ISO=ubuntu-20.04.3-desktop-amd64.iso
+UBUNTU_URL=http://releases.ubuntu.com/20.04/
+UBUNTU_MD5SUM=5fdebc435ded46ae99136ca875afc6f05bde217be7dd018e1841924f71db46b5
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool
 
-GUILEVERSION=2.2.3
+GUILEVERSION=3.0.7
 
 PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
@@ -182,8 +181,6 @@ PACKAGES_BUILD=" build-essential \
 		#python-flask-restful \
 
 PACKAGES_RUNTIME="
-		unixodbc \
-		odbc-postgresql \
 		postgresql-client \
 		netcat-openbsd \
 		"
@@ -293,8 +290,8 @@ PACKAGES_EXDEV="
 		fakeroot \
 		gettext \
 		gdb \
-		g++-4.6 \
-		gcc-4.6 \
+		g++ \
+		gcc \
 		krb5-multidev \
 		libc6-dev \
 		libdpkg-perl \
@@ -313,7 +310,7 @@ PACKAGES_EXDEV="
 		libkrb5-dev \
 		libldap2-dev \
 		libltdl-dev \
-		libstdc++6-4.6-dev \
+		libstdc++-dev \
 		libtasn1-3-dev \
 		libtimedate-perl \
 		libtool \
@@ -869,13 +866,19 @@ if [ $# -eq 1 ]; then
   local _version=${1}
 else
   local _version=$(git ls-remote -t \
-      https://github.com/opencog/link-grammar "link-grammar-5*" \
+      # The github packages are totally bogus and broken -- do not use!
+      # github does not provide a way of actually fixing them!
+      ### https://github.com/opencog/link-grammar "link-grammar-5*"
+      https://www.abisource.com/downloads/link-grammar/ "link-grammar-5*" \
       --sort=taggerdate | grep -v "\^"| tail -n 1 | cut -d "-" -f 3)
 fi
-wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+# wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+wget
+https://www.abisource.com/downloads/link-grammar/current/link-grammar*.tar.gz
 tar -zxf link-grammar-5*.tar.gz
 cd link-grammar-link-grammar-5.*/
-./autogen.sh --no-configure
+# Do NOT autoconf, this will almost surely break the build!
+# ./autogen.sh --no-configure
 mkdir build
 cd build
 if [ $INSTALL_JAVA_LINK_GRAMMAR ]; then
@@ -939,7 +942,7 @@ else
     ../configure
     make -j$(nproc)
     sudo make install
-    sudo mv  /usr/local/lib/libguile-2.2.so.1.3.0-gdb.scm /usr/share/gdb/auto-load/
+    sudo mv  /usr/local/lib/libguile-*.so.*-gdb.scm /usr/share/gdb/auto-load/
     sudo ldconfig
     cd /tmp/
     rm -rf guile-${GUILEVERSION}*
