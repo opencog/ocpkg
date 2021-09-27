@@ -858,26 +858,27 @@ install_opencog_github_repo moses
 
 # Install Link-Grammar
 install_link_grammar(){
+# This uses the archive created by github to build and install link-grammar
+# The release at https://www.abisource.com/downloads/link-grammar isn't used
+# because the only additional value it provides is it gives a pre configured
+# tar ball, and its tls certificate breaks often. Such tar-bar can be released
+# by following instructions at
+# https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release
 MESSAGE="Installing Link-Grammar...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
-rm -rf link-grammar*/
+rm -rf link-grammar*
 if [ $# -eq 1 ]; then
   local _version=${1}
 else
-  local _version=$(git ls-remote -t \
-      # The github packages are totally bogus and broken -- do not use!
-      # github does not provide a way of actually fixing them!
-      ### https://github.com/opencog/link-grammar "link-grammar-5*"
-      https://www.abisource.com/downloads/link-grammar/ "link-grammar-5*" \
-      --sort=taggerdate | grep -v "\^"| tail -n 1 | cut -d "-" -f 3)
+  local _version=$(git ls-remote -t https://github.com/opencog/link-grammar \
+    | grep -v "\^" | awk -F "-" '{print $3}' \
+    | sort -t "." -k1,1n -k2,2n -k3,3n | tail -n 1)
 fi
-# wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
-wget https://www.abisource.com/downloads/link-grammar/current/link-grammar*.tar.gz
+wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
 tar -zxf link-grammar-5*.tar.gz
 cd link-grammar-link-grammar-5.*/
-# Do NOT autoconf, this will almost surely break the build!
-# ./autogen.sh --no-configure
+./autogen.sh --no-configure
 mkdir build
 cd build
 if [ $INSTALL_JAVA_LINK_GRAMMAR ]; then
@@ -889,7 +890,7 @@ make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd /tmp/
-rm -rf link-grammar*/
+rm -rf link-grammar*
 cd $CURRENT_DIR
 }
 
