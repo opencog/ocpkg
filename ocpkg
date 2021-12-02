@@ -873,8 +873,11 @@ rm -rf link-grammar*
 if [ $# -eq 1 ]; then
   local _version=${1}
 else
-  local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
-    | grep md5 | awk 'match($0, /[5-9]\.[0-9]+\.[0-9]+/) {print substr($0, RSTART, RLENGTH)}')
+  #local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
+  #  | grep md5 | awk 'match($0, /[5-9]\.[0-9]+\.[0-9]+/) {print substr($0, RSTART, RLENGTH)}')
+  local _version=$(git ls-remote -t \
+      https://github.com/opencog/link-grammar "link-grammar-5*" \
+      | grep -v "\^"| cut -d "-" -f 3 | sort -V |tail -n 1 )
 fi
 wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
 tar -zxf link-grammar-5*.tar.gz
