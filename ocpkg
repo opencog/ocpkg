@@ -143,8 +143,6 @@ PACKAGES_BUILD=" build-essential \
 		binutils-dev \
 		libpq-dev\
 		uuid-dev \
-		libprotoc-dev \
-		protobuf-compiler \
 		libsdl-gfx1.2-dev \
 		libssl-dev \
 		tcl-dev \
@@ -158,9 +156,6 @@ PACKAGES_BUILD=" build-essential \
 		libgsasl7 \
 		libldap2-dev \
 		krb5-multidev \
-		wordnet \
-		wordnet-dev \
-		wordnet-sense-index \
 		libatomic-ops-dev\
 		libgmp-dev \
 		libffi-dev \
@@ -176,7 +171,13 @@ PACKAGES_BUILD=" build-essential \
 		librocksdb-dev \
 		ocaml \
 		ocaml-findlib \
+		libopencv-dev \
 		"
+		#libprotoc-dev \
+		#protobuf-compiler \
+		#wordnet \
+		#wordnet-dev \
+		#wordnet-sense-index \
 		#liblua5.1-0-dev \
 		#libxmlrpc-c3-dev \
 		#python-flask \
@@ -299,7 +300,6 @@ PACKAGES_EXDEV="
 		libdpkg-perl \
 		libdpkg-perl \
 		libgcrypt11-dev \
-		libglade2-0 \
 		libgnutls-dev \
 		libgpg-error-dev \
 		libgssrpc4 \
@@ -322,14 +322,15 @@ PACKAGES_EXDEV="
 		manpages-dev \
 		m4 \
 		patch \
-		python-glade2 \
-		python-tk \
-		tcl8.5 \
-		tk8.5 \
 		ttf-lyx \
 		zlib1g-dev \
 		python-bzrlib \
 		linux-headers-generic \
+		# libglade2-0 \
+		# python-glade2 \
+		# python-tk \
+		# tcl8.5 \
+		# tk8.5 \
 		"
 
 # SECTION 2: Command line option handling
@@ -349,6 +350,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -n Install notebook"
   echo " -l {default|java} For installing Link Grammar with java binding '-l java' else '-l default'"
   echo " -m Install MOSES"
+  echo " -z Install the language subsystem"
   echo " -g Install Guile $GUILEVERSION"
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
@@ -381,7 +383,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdef:gipcrstl:mhvj:own" flag ; do
+  while getopts "abdef:gipcrstl:mhvj:ownz" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -406,6 +408,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
+      z)	INSTALL_LANGUAGE=true;
       j)	MAKE_JOBS="$OPTARG" ;;
       s)	HASKELL_STACK_SETUP=true;;
       i)	INSTALL_BUILD=true ;;
@@ -830,28 +833,38 @@ cd $CURRENT_DIR
 MESSAGE="Finished installation" ; message
 }
 
-# Install AtomSpace
+# Install Core AtomSpace
 install_atomspace(){
 install_opencog_github_repo atomspace
 install_opencog_github_repo atomspace-rocks
 install_opencog_github_repo atomspace-cog
 install_opencog_github_repo cogserver
-install_opencog_github_repo ure
+}
+
+# Install Language components
+install_language(){
+install_opencog_github_repo lg-atomese
+install_opencog_github_repo learn
+install_opencog_github_repo generate
+install_opencog_github_repo vision
 }
 
 # Install OpenCog
 install_opencog(){
+install_language
 # install_opencog_github_repo atomspace-restful
 # install_opencog_github_repo atomspace-explorer
+install_opencog_github_repo ure
 install_opencog_github_repo pln
 install_opencog_github_repo miner
 install_opencog_github_repo attention
 install_opencog_github_repo spacetime
-install_opencog_github_repo lg-atomese
 install_opencog_github_repo opencog
-install_opencog_github_repo learn
-install_opencog_github_repo generate
+install_opencog_github_repo asmoses
+install_opencog_github_repo agi-bio
+install_opencog_github_repo benchmark
 }
+
 
 # Install MOSES
 install_moses(){
@@ -1291,6 +1304,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+    if [ $INSTALL_LANGUAGE ] ; then install_language ; fi
     if [ $INSTALL_FROM_REPO ] ; then install_opencog_github_repo "$INSTALL_FROM_REPO" ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
