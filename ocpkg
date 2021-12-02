@@ -39,7 +39,7 @@ declare -A PACKAGE_DESCRIPTION=(
     [kvm]="TBD Ubuntu KVM image with OpenCog Server"
  [demovm]="TBD Ubuntu VirtualBox image with OpenCog Unity3D proxy for demo"
    [debs]="TBD Ubuntu packages (deb files)"
-   [docker]="TBD Docker Images"
+  [docker]="TBD Docker Images"
 )
 
 PATH_PREFIX=/usr/local
@@ -340,7 +340,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -p Install python build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
-  echo " -c Install Cogutil"
+  echo " -c Install CogUtil"
   echo " -a Install AtomSpace"
   echo " -f Install from opencog github repo. Pass the name of the repo as an argument"
   echo " -o Install OpenCog"
@@ -398,15 +398,15 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	  message ; exit 1
         	fi ;;
       m)	INSTALL_MOSES=true ;;
-      n)        INSTALL_NOTEBOOKS=true;;
+      n)	INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
       j)	MAKE_JOBS="$OPTARG" ;;
-      s)    HASKELL_STACK_SETUP=true;;
-      i)    INSTALL_BUILD=true ;;
+      s)	HASKELL_STACK_SETUP=true;;
+      i)	INSTALL_BUILD=true ;;
       h)	usage ;;
       \?)	usage; exit 1 ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -904,7 +904,7 @@ rm -rf ${_dir_name}*
 get_github_latest_release ivmai bdwgc ${_file_name}
 tar -xvf ${_file_name}
 cd ${_dir_name}
-./configure
+./configure --enable-large-config
 make -j$(nproc)
 sudo make install
 sudo ldconfig
@@ -926,7 +926,7 @@ install_guile(){
 if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
     sudo apt-get install -y --no-install-recommends guile-2.2-dev
 else
-   install_bdwgc
+    install_bdwgc
     MESSAGE="Installing guile-$GUILEVERSION...." ; message
     cd /tmp/
     # Clean up remnants from previous install failures, if any.
