@@ -408,7 +408,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
-      z)	INSTALL_LANGUAGE=true;
+      z)	INSTALL_LANGUAGE=true ;;
       j)	MAKE_JOBS="$OPTARG" ;;
       s)	HASKELL_STACK_SETUP=true;;
       i)	INSTALL_BUILD=true ;;
