@@ -338,9 +338,10 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
+  echo " -k Install OCaML build dependencies"
   echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
-  echo " -c Install Cogutil"
+  echo " -c Install CogUtil"
   echo " -a Install AtomSpace"
   echo " -f Install from opencog github repo. Pass the name of the repo as an argument"
   echo " -o Install OpenCog"
@@ -379,7 +380,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdef:gipcrstl:mhvj:own" flag ; do
+  while getopts "abdef:gkipcrstl:mhvj:own" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; #base development packages
@@ -398,15 +399,16 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	  message ; exit 1
         	fi ;;
       m)	INSTALL_MOSES=true ;;
-      n)        INSTALL_NOTEBOOKS=true;;
+      n)	INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
+      k)	INSTALL_OCAML=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
       j)	MAKE_JOBS="$OPTARG" ;;
-      s)    HASKELL_STACK_SETUP=true;;
-      i)    INSTALL_BUILD=true ;;
+      s)	HASKELL_STACK_SETUP=true;;
+      i)	INSTALL_BUILD=true ;;
       h)	usage ;;
       \?)	usage; exit 1 ;;
       *)  UNKNOWN_FLAGS=true ;;
@@ -904,7 +906,7 @@ rm -rf ${_dir_name}*
 get_github_latest_release ivmai bdwgc ${_file_name}
 tar -xvf ${_file_name}
 cd ${_dir_name}
-./configure
+./configure --enable-large-config
 make -j$(nproc)
 sudo make install
 sudo ldconfig
@@ -926,7 +928,7 @@ install_guile(){
 if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
     sudo apt-get install -y --no-install-recommends guile-2.2-dev
 else
-   install_bdwgc
+    install_bdwgc
     MESSAGE="Installing guile-$GUILEVERSION...." ; message
     cd /tmp/
     # Clean up remnants from previous install failures, if any.
@@ -946,6 +948,10 @@ else
     cd /tmp/
     rm -rf guile-${GUILEVERSION}*
 fi
+}
+
+install_ocaml(){
+    sudo apt-get install -y --no-install-recommends ocaml ocaml-findlib
 }
 
 # Install ros-behavior-scripting
@@ -1279,6 +1285,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
+    if [ $INSTALL_OCAML ] ; then install_ocaml ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
