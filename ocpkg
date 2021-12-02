@@ -138,15 +138,11 @@ PACKAGES_BUILD=" build-essential \
 		libboost-thread-dev \
 		libboost-system-dev \
 		libboost-random-dev \
-		libzmq3-dev \
 		libtbb-dev \
 		binutils-dev \
 		libpq-dev\
 		uuid-dev \
-		libsdl-gfx1.2-dev \
 		libssl-dev \
-		tcl-dev \
-		tcsh \
 		libfreetype6-dev \
 		libatlas-base-dev \
 		gfortran \
@@ -160,7 +156,6 @@ PACKAGES_BUILD=" build-essential \
 		libgmp-dev \
 		libffi-dev \
 		libreadline-dev \
-		libcpprest \
 		libltdl-dev \
 		m4 \
 		autoconf-archive \
@@ -172,7 +167,13 @@ PACKAGES_BUILD=" build-essential \
 		ocaml \
 		ocaml-findlib \
 		libopencv-dev \
+		vim \
 		"
+		#libcpprest \
+		#libzmq3-dev \
+		#libsdl-gfx1.2-dev \
+		#tcl-dev \
+		#tcsh \
 		#libprotoc-dev \
 		#protobuf-compiler \
 		#wordnet \
@@ -724,12 +725,12 @@ cd /tmp
 #sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
 #sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
 
-# For sentiment analysis
+# For sentiment analysis (obsolete)
 # TODO: update depending on https://github.com/opencog/opencog/issues/2285
-sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
-sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
-rm -f requirements.txt*
-cd $CURRENT_DIR
+# sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
+# sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
+# rm -f requirements.txt*
+# cd $CURRENT_DIR
 }
 
 # Install Haskell Dependencies
