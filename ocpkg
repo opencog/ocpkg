@@ -833,18 +833,18 @@ MESSAGE="Finished installation" ; message
 # Install AtomSpace
 install_atomspace(){
 install_opencog_github_repo atomspace
+install_opencog_github_repo atomspace-rocks
+install_opencog_github_repo atomspace-cog
+install_opencog_github_repo cogserver
 install_opencog_github_repo ure
 }
 
 # Install OpenCog
 install_opencog(){
-install_opencog_github_repo atomspace-rocks
-install_opencog_github_repo atomspace-cog
 # install_opencog_github_repo atomspace-restful
 # install_opencog_github_repo atomspace-explorer
 install_opencog_github_repo pln
 install_opencog_github_repo miner
-install_opencog_github_repo cogserver
 install_opencog_github_repo attention
 install_opencog_github_repo spacetime
 install_opencog_github_repo lg-atomese
