@@ -1023,7 +1023,8 @@ install_cxxtest() {
   wget https://github.com/CxxTest/cxxtest/archive/master.tar.gz
   tar -xvf master.tar.gz
   cd cxxtest-master/python/
-  sudo python3 setup.py -v install
+  python3 setup.py build
+  sudo python3 -m pip install .
   cd ..
   sudo install -m 644  cxxtest/* -D -t /usr/include/cxxtest
   cd ..
