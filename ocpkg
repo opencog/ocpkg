@@ -914,7 +914,11 @@ cd $CURRENT_DIR
 
 install_bdwgc(){
 MESSAGE="Installing latest bdwgc ...." ; message
-local _version=$(curl https://github.com/ivmai/bdwgc/releases/latest \
+# This used to work, but not any longer...!?
+# Apparently, the newest versions of curl behave differently!?
+# local _version=$(curl https://github.com/ivmai/bdwgc/releases/latest \
+#    | cut -d "\"" -f 2 | cut -d "/" -f 8)
+local _version=$(curl --silent -w %{redirect_url} https://github.com/ivmai/bdwgc/releases/latest \
     | cut -d "\"" -f 2 | cut -d "/" -f 8)
 local _dir_name="gc-${_version:1}"
 local _file_name="${_dir_name}.tar.gz"
