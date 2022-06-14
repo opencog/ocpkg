@@ -920,8 +920,13 @@ MESSAGE="Installing latest bdwgc ...." ; message
 #    | cut -d "\"" -f 2 | cut -d "/" -f 8)
 local _version=$(curl --silent -w %{redirect_url} https://github.com/ivmai/bdwgc/releases/latest \
     | cut -d "\"" -f 2 | cut -d "/" -f 8)
+
 local _dir_name="gc-${_version:1}"
-local _file_name="${_dir_name}.tar.gz"
+
+# Apparently, the github URL's have changed. This used to work:
+# local _file_name="${_dir_name}.tar.gz"
+local _file_name="${_version}/${_dir_name}.tar.gz"
+
 cd /tmp/
 rm -rf ${_dir_name}*
 get_github_latest_release ivmai bdwgc ${_file_name}
