@@ -627,7 +627,15 @@ cd /tmp/
 rm -rf master.tar.gz* ${REPO}-master
 wget https://github.com/opencog/${REPO}/archive/master.tar.gz
 tar -xvf master.tar.gz
-cd ${REPO}-master/
+
+# Newer git repos call them `main` not `master`, cause #RacialJustice
+if [ -d cd ${REPO}-master/ ] then
+    cd ${REPO}-master/
+fi
+if [ -d cd ${REPO}-main/ ] then
+    cd ${REPO}-main/
+fi
+
 mkdir build
 cd build/
 cmake ..
