@@ -851,7 +851,7 @@ install_opencog_github_repo generate
 install_opencog_github_repo vision
 }
 
-# Install OpenCog
+# Install all of OpenCog
 install_opencog(){
 install_language
 # install_opencog_github_repo atomspace-restful
@@ -866,7 +866,6 @@ install_opencog_github_repo asmoses
 install_opencog_github_repo agi-bio
 install_opencog_github_repo benchmark
 }
-
 
 # Install MOSES
 install_moses(){
