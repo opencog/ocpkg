@@ -629,10 +629,10 @@ wget https://github.com/opencog/${REPO}/archive/master.tar.gz
 tar -xvf master.tar.gz
 
 # Newer git repos call them `main` not `master`, cause #RacialJustice
-if [ -d cd ${REPO}-master/ ] then
+if [ -d ${REPO}-master/ ] then
     cd ${REPO}-master/
 fi
-if [ -d cd ${REPO}-main/ ] then
+if [ -d ${REPO}-main/ ] then
     cd ${REPO}-main/
 fi
 
