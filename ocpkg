@@ -1012,6 +1012,7 @@ ensure_UTF_installed(){
         sudo sh -c 'echo "kk_KZ.UTF-8 UTF-8" >> /etc/locale.gen'
         sudo sh -c 'echo "lt_LT.UTF-8 UTF-8" >> /etc/locale.gen'
         sudo sh -c 'echo "ru_RU.UTF-8 UTF-8" >> /etc/locale.gen'
+        sudo sh -c 'echo "th_TH.UTF-8 UTF-8" >> /etc/locale.gen'
         sudo sh -c 'echo "tr_TR.UTF-8 UTF-8" >> /etc/locale.gen'
         sudo sh -c 'echo "vi_VN.UTF-8 UTF-8" >> /etc/locale.gen'
         sudo sh -c 'echo "zh_CN.UTF-8 UTF-8" >> /etc/locale.gen'
