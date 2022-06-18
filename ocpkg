@@ -625,6 +625,7 @@ MESSAGE="Installing ${REPO}...." ; message
 cd /tmp/
 # cleaning up remnants from previous install failures, if any.
 rm -rf master.tar.gz* ${REPO}-master
+rm -rf master.tar.gz* ${REPO}-main
 wget https://github.com/opencog/${REPO}/archive/master.tar.gz
 tar -xvf master.tar.gz
 
@@ -646,6 +647,7 @@ sudo make install
 sudo ldconfig
 cd /tmp/
 rm -rf master.tar.gz ${REPO}-master/
+rm -rf master.tar.gz ${REPO}-main/
 cd $CURRENT_DIR
 }
 
