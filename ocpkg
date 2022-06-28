@@ -856,7 +856,11 @@ install_opencog_github_repo cogserver
 }
 
 # Install Language components
+# This requires a re-install of Link Grammar, after the AtomSpace
+# has been installed, because Link Grammar now uses the AtomSpace
+# to hold dictionaries.
 install_language(){
+install_link_grammar
 install_opencog_github_repo lg-atomese
 install_opencog_github_repo learn
 install_opencog_github_repo generate
