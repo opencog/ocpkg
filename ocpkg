@@ -169,6 +169,7 @@ PACKAGES_BUILD=" build-essential \
 		libopencv-dev \
 		less \
 		vim \
+                libpcre2-dev \
 		"
 		#libcpprest \
 		#libzmq3-dev \
