@@ -140,7 +140,7 @@ PACKAGES_BUILD=" build-essential \
 		libboost-random-dev \
 		libtbb-dev \
 		binutils-dev \
-		libpq-dev\
+		libpq-dev \
 		uuid-dev \
 		libssl-dev \
 		libfreetype6-dev \
@@ -152,7 +152,7 @@ PACKAGES_BUILD=" build-essential \
 		libgsasl7 \
 		libldap2-dev \
 		krb5-multidev \
-		libatomic-ops-dev\
+		libatomic-ops-dev \
 		libgmp-dev \
 		libffi-dev \
 		libreadline-dev \
@@ -169,7 +169,7 @@ PACKAGES_BUILD=" build-essential \
 		libopencv-dev \
 		less \
 		vim \
-                libpcre2-dev \
+		libpcre2-dev \
 		"
 		#libcpprest \
 		#libzmq3-dev \
@@ -425,18 +425,18 @@ else
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;
       o)	OUTPUT_ISO_NAME="$OPTARG" ;;
-      j)	MAKE_JOBS="$OPTARG" ;;			#override auto-detected MAKE_JOBS
+      j)	MAKE_JOBS="$OPTARG" ;;          #override auto-detected MAKE_JOBS
       s)	HOST_SOURCE_BRANCH="$OPTARG" ;;
-      c)	HOST_BUILD_DIR="$OPTARG" ;;		#local cached build dir
-      l)	LIVE_BUILD_DIR="$OPTARG" ;;		#live build directory
+      c)	HOST_BUILD_DIR="$OPTARG" ;;     #local cached build dir
+      l)	LIVE_BUILD_DIR="$OPTARG" ;;     #live build directory
       r)	BZR_REVISION="$OPTARG" ;;
       a)	ADD_REPOSITORIES=true ;;
-      d)	INSTALL_DEPENDENCIES=true ;;		#ALL, none
-      u)	UPDATE_OPENCOG=true ;;			#git pull
-      b)	BUILD_OPENCOG=true ;;			#build opencog
-      t)	TEST_OPENCOG=true ;;                    #test opencog
-      n)	unset DEFAULT_UPDATE_OPENCOG ;;		#suppress git update
-      x)	unset DEFAULT_BUILD_OPENCOG ;;		#suppress build
+      d)	INSTALL_DEPENDENCIES=true ;;    #ALL, none
+      u)	UPDATE_OPENCOG=true ;;          #git pull
+      b)	BUILD_OPENCOG=true ;;           #build opencog
+      t)	TEST_OPENCOG=true ;;            #test opencog
+      n)	unset DEFAULT_UPDATE_OPENCOG ;; #suppress git update
+      x)	unset DEFAULT_BUILD_OPENCOG ;;  #suppress build
       p)	REINSTALL_PACKAGES=true ;;
       v)	unset QUIET ;;
       h)	usage ;;
