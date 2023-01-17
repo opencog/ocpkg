@@ -875,12 +875,12 @@ install_language
 # install_opencog_github_repo atomspace-explorer
 install_opencog_github_repo unify
 install_opencog_github_repo ure
-install_opencog_github_repo pln
-install_opencog_github_repo miner
 install_opencog_github_repo attention
 install_opencog_github_repo spacetime
-install_opencog_github_repo opencog
+install_opencog_github_repo pln
+install_opencog_github_repo miner
 install_opencog_github_repo asmoses
+install_opencog_github_repo opencog
 install_opencog_github_repo agi-bio
 install_opencog_github_repo benchmark
 }
