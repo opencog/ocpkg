@@ -871,8 +871,6 @@ install_opencog_github_repo vision
 # Install all of OpenCog
 install_opencog(){
 install_language
-# install_opencog_github_repo atomspace-restful
-# install_opencog_github_repo atomspace-explorer
 install_opencog_github_repo unify
 install_opencog_github_repo ure
 install_opencog_github_repo attention
