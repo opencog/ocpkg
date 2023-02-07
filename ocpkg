@@ -624,108 +624,109 @@ fi
 }
 
 # Install given opencog github repo
-install_opencog_github_repo(){
-local REPO="$1"
-MESSAGE="Installing ${REPO}...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf master.tar.gz* ${REPO}-master
-rm -rf master.tar.gz* ${REPO}-main
-wget https://github.com/opencog/${REPO}/archive/master.tar.gz
-tar -xvf master.tar.gz
+install_opencog_github_repo() {
+  local REPO="$1"
+  MESSAGE="Installing ${REPO}...." ; message
+  cd /tmp/
+  # cleaning up remnants from previous install failures, if any.
+  rm -rf master.tar.gz* ${REPO}-master
+  rm -rf master.tar.gz* ${REPO}-main
+  wget https://github.com/opencog/${REPO}/archive/master.tar.gz
+  tar -xvf master.tar.gz
 
-# Newer git repos call them `main` not `master`, cause #RacialJustice
-if [ -d ${REPO}-master/ ]
-then
-    cd ${REPO}-master/
-fi
-if [ -d ${REPO}-main/ ]
-then
-    cd ${REPO}-main/
-fi
+  # Newer git repos call them `main` not `master`, cause #RacialJustice
+  if [ -d ${REPO}-master/ ]
+  then
+      cd ${REPO}-master/
+  fi
+  if [ -d ${REPO}-main/ ]
+  then
+      cd ${REPO}-main/
+  fi
 
-mkdir build
-cd build/
-cmake ..
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf master.tar.gz ${REPO}-master/
-rm -rf master.tar.gz ${REPO}-main/
-cd $CURRENT_DIR
+  mkdir build
+  cd build/
+  cmake ..
+  make -j$(nproc)
+  sudo make install
+  sudo ldconfig
+  cd /tmp/
+  rm -rf master.tar.gz ${REPO}-master/
+  rm -rf master.tar.gz ${REPO}-main/
+  cd $CURRENT_DIR
 }
 
 # Install cogutil
-install_cogutil(){
-install_opencog_github_repo cogutil
+install_cogutil() {
+  install_opencog_github_repo cogutil
 }
 
 # Install notebooks
-install_notebooks(){
-MESSAGE="Installing notebooks...." ; message
+install_notebooks() {
+  MESSAGE="Installing notebooks...." ; message
 
 
-#####INSTALLING pip3 AND jupyter notebook
-cd
-sudo pip3 install ipython jupyter
+  #####INSTALLING pip3 AND jupyter notebook
+  cd
+  sudo pip3 install ipython jupyter
 
-#####INSTALLING GUILE KERNEL#####
-#check if site folder exits
-if [ ! -d "/usr/local/share/guile/site" ]
-then
+  #####INSTALLING GUILE KERNEL#####
+  # Check if site folder exits
+  if [ ! -d "/usr/local/share/guile/site" ]
+  then
     cd /usr/local/share/guile/
     sudo mkdir site
     cd
-fi
+  fi
 
-#Install ZeroMQ library
-##Clean up remenants of previous installations##
-rm -rf zeromq-4.2.1*
-wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
-tar xvf zeromq-4.2.1.tar.gz
-cd zeromq-4.2.1/
-./configure
-make
-sudo make install
-cd
+  # Install ZeroMQ library
+  # ??? Really? Is this really needed?
+  ## Clean up remenants of previous installations##
+  rm -rf zeromq-4.2.1*
+  wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
+  tar xvf zeromq-4.2.1.tar.gz
+  cd zeromq-4.2.1/
+  ./configure
+  make
+  sudo make install
+  cd
 
-#Install guile-json library
-##Clean up remenants of previous installations##
-rm -rf guile-json-0.6.0*
-wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
-tar xvf guile-json-0.6.0.tar.gz
-cd guile-json-0.6.0
-./configure --prefix=/usr/local/
-make
-sudo make install
-cd
+  # Install guile-json library
+  ## Clean up remenants of previous installations##
+  rm -rf guile-json-0.6.0*
+  wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
+  tar xvf guile-json-0.6.0.tar.gz
+  cd guile-json-0.6.0
+  ./configure --prefix=/usr/local/
+  make
+  sudo make install
+  cd
 
-cd `guile -c "(display (%global-site-dir))"`
-#Place guile-simple-zmq library to the guile library folder
-sudo rm -rf simple-zmq.scm*
-sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
-#edit simple-zmq.scm => set BUF-SIZE to 8192.
-sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
-cd
+  cd `guile -c "(display (%global-site-dir))"`
+  # Place guile-simple-zmq library to the guile library folder
+  sudo rm -rf simple-zmq.scm*
+  sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
+  #edit simple-zmq.scm => set BUF-SIZE to 8192.
+  sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
+  cd
 
-#Kernel setup
-if [ ! -d "/home/$USER/.local/share/jupyter/kernels/guile" ]
-then
-    sudo mkdir /home/$USER/.local/share/jupyter/kernels/guile
-fi
+  #Kernel setup
+  if [ ! -d "/home/$USER/.local/share/jupyter/kernels/guile" ]
+  then
+      sudo mkdir /home/$USER/.local/share/jupyter/kernels/guile
+  fi
 
-cd /home/$USER/.local/share/jupyter/kernels/guile
-sudo rm -rf guile-jupyter-kernel.scm hmac.scm kernel.json tools.scm
-sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
-sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
-sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
-sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
-sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
+  cd /home/$USER/.local/share/jupyter/kernels/guile
+  sudo rm -rf guile-jupyter-kernel.scm hmac.scm kernel.json tools.scm
+  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
+  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
+  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
+  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
+  sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
 
-echo "export PATH=$PATH:/home/$USER/.local/bin" >> /home/$USER/.bashrc
-echo "source $HOME/.bashrc"
-cd $CURRENT_DIR
+  echo "export PATH=$PATH:/home/$USER/.local/bin" >> /home/$USER/.bashrc
+  echo "source $HOME/.bashrc"
+  cd $CURRENT_DIR
 }
 
 # Install additional Python packages
