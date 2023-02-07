@@ -169,20 +169,6 @@ PACKAGES_BUILD=" build-essential \
 		vim \
 		libpcre2-dev \
 		"
-		#libcpprest \
-		#libzmq3-dev \
-		#libsdl-gfx1.2-dev \
-		#tcl-dev \
-		#tcsh \
-		#libprotoc-dev \
-		#protobuf-compiler \
-		#wordnet \
-		#wordnet-dev \
-		#wordnet-sense-index \
-		#liblua5.1-0-dev \
-		#libxmlrpc-c3-dev \
-		#python-flask \
-		#python-flask-restful \
 
 PACKAGES_RUNTIME="
 		postgresql-client \
@@ -285,8 +271,12 @@ PACKAGES_REMOVE="
 		# 200MB libreoffice
 		#  45MB smbclient
 
+# Below is a list of packages that will be *removed* when building
+# the demo and minimal packages. I dunno, I suspect many of these
+# will fail, because they do not exist any more...
 PACKAGES_EXDEV="
 		autoconf automake autotools-dev \
+		blt \
 		comerr-dev \
 		dpkg-dev \
 		emacsen-common \
@@ -297,7 +287,6 @@ PACKAGES_EXDEV="
 		gcc \
 		krb5-multidev \
 		libc6-dev \
-		libdpkg-perl \
 		libdpkg-perl \
 		libgcrypt11-dev \
 		libgnutls-dev \
@@ -317,12 +306,34 @@ PACKAGES_EXDEV="
 		libtimedate-perl \
 		libtool \
 		libunistring0 \
+		libxss1 \
 		make \
 		manpages-dev \
 		m4 \
 		patch \
+		ttf-lyx \
 		zlib1g-dev \
+		python-bzrlib \
 		linux-headers-generic \
+		# libcpprest \
+		# libzmq3-dev \
+		# libsdl-gfx1.2-dev \
+		# tcl-dev \
+		# tcsh \
+		# libprotoc-dev \
+		# protobuf-compiler \
+		# wordnet \
+		# wordnet-dev \
+		# wordnet-sense-index \
+		# liblua5.1-0-dev \
+		# libxmlrpc-c3-dev \
+		# python-flask \
+		# python-flask-restful \
+		# libglade2-0 \
+		# python-glade2 \
+		# python-tk \
+		# tcl8.5 \
+		# tk8.5 \
 		"
 
 # SECTION 2: Command line option handling
