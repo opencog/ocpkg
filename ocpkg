@@ -1045,16 +1045,17 @@ update_ccache_links() {
   sudo update-ccache-symlinks
 }
 
-# Install cxxtest for python3 co
+# Install cxxtest. Do not install python crazy-making.
 install_cxxtest() {
   (cd /tmp/ && sudo rm -rf cxxtest* master.tar.gz
-  sudo pip3 install ply
+  # sudo pip3 install ply
   wget https://github.com/CxxTest/cxxtest/archive/master.tar.gz
   tar -xvf master.tar.gz
-  cd cxxtest-master/python/
-  python3 setup.py build
-  sudo python3 -m pip install .
-  cd ..
+  cd cxxtest-master
+  # cd python
+  # python3 setup.py build
+  # sudo python3 -m pip install .
+  # cd ..
   sudo install -m 644  cxxtest/* -D -t /usr/include/cxxtest
   cd ..
   sudo rm -rf cxxtest* master.tar.gz)
