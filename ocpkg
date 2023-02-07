@@ -287,7 +287,6 @@ PACKAGES_REMOVE="
 
 PACKAGES_EXDEV="
 		autoconf automake autotools-dev \
-		blt \
 		comerr-dev \
 		dpkg-dev \
 		emacsen-common \
@@ -318,20 +317,12 @@ PACKAGES_EXDEV="
 		libtimedate-perl \
 		libtool \
 		libunistring0 \
-		libxss1 \
 		make \
 		manpages-dev \
 		m4 \
 		patch \
-		ttf-lyx \
 		zlib1g-dev \
-		python-bzrlib \
 		linux-headers-generic \
-		# libglade2-0 \
-		# python-glade2 \
-		# python-tk \
-		# tcl8.5 \
-		# tk8.5 \
 		"
 
 # SECTION 2: Command line option handling
