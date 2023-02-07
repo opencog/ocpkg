@@ -166,13 +166,16 @@ PACKAGES_BUILD=" build-essential \
 		swig \
 		flex \
 		librocksdb-dev \
-		ocaml \
-		ocaml-findlib \
 		libopencv-dev \
 		less \
 		vim \
 		libpcre2-dev \
 		"
+
+# AtomSpace OCaML no longer builds in Ubuntu 22.04, and so disable here,
+# until it is fixed.
+		#ocaml \
+		#ocaml-findlib \
 
 PACKAGES_RUNTIME="
 		postgresql-client \
