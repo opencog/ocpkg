@@ -724,27 +724,29 @@ echo "source $HOME/.bashrc"
 cd $CURRENT_DIR
 }
 
-# Install Python Packages
-install_opencog_python_packages(){
-MESSAGE="Installing python packages...." ; message
-cd /tmp
-# cleaning up remnants from previous install failures, if any.
-#rm -f requirements.txt*
-#wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/attic/requirements.txt
-# scipy, numpy & matplotlib if installed using python-pip will take a long time
-# as they have to be built before being installed. And the arrifacts of the
-# build occupies a lot of space blotting the docker image. Thus instead a
-# system instllation is made.
-# TODO: cleanup the requirements.txt file.
-#sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
-#sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
+# Install additional Python packages
+# Except that there aren't any at this time....
+install_opencog_python_packages() {
+  # MESSAGE="Installing python packages...." ; message
+  MESSAGE="There are no python packages to install." ; message
+  cd /tmp
+  # cleaning up remnants from previous install failures, if any.
+  #rm -f requirements.txt*
+  #wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/attic/requirements.txt
+  # scipy, numpy & matplotlib if installed using python-pip will take a long time
+  # as they have to be built before being installed. And the artifacts of the
+  # build occupies a lot of space blotting the docker image. Thus instead a
+  # system installation is made.
+  # TODO: cleanup the requirements.txt file.
+  #sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
+  #sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
 
-# For sentiment analysis (obsolete)
-# TODO: update depending on https://github.com/opencog/opencog/issues/2285
-# sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
-# sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
-# rm -f requirements.txt*
-# cd $CURRENT_DIR
+  # For sentiment analysis (obsolete)
+  # TODO: update depending on https://github.com/opencog/opencog/issues/2285
+  # sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
+  # sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
+  # rm -f requirements.txt*
+  # cd $CURRENT_DIR
 }
 
 # Install Haskell Dependencies
@@ -1060,28 +1062,28 @@ install_cxxtest() {
 
 # Install system dependencies
 install_dependencies() {
-# Install the latest python3 version before everything else
-install_python
+  # Install the latest python3 version before everything else
+  install_python
 
-MESSAGE="Installing OpenCog build dependencies...." ; message
-if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+  MESSAGE="Installing OpenCog build dependencies...." ; message
+  if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
     exit 1
-fi
-ensure_UTF_installed
+  fi
+  ensure_UTF_installed
 
-# Update ccache links
-update_ccache_links
+  # Update ccache links
+  update_ccache_links
 
-# Install latest cxxtest
-install_cxxtest
+  # Install latest cxxtest
+  install_cxxtest
 
-# Configure python alternative. The priority is soo high just to ensure that
-# python is always set.
-#PYTHON_PATH=$(readlink -f /usr/bin/python3)
-#sudo update-alternatives --install /usr/bin/python python "$PYTHON_PATH" 1000
+  # Configure python alternative. The priority is soo high just to ensure that
+  # python is always set.
+  #PYTHON_PATH=$(readlink -f /usr/bin/python3)
+  #sudo update-alternatives --install /usr/bin/python python "$PYTHON_PATH" 1000
 
-# Install guile >2.2 also install bdwgc for language-learning
-install_guile
+  # Install guile >2.2 also install bdwgc for language-learning
+  install_guile
 }
 
 # Download data
