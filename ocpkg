@@ -146,8 +146,6 @@ PACKAGES_BUILD=" build-essential \
 		libfreetype6-dev \
 		libatlas-base-dev \
 		gfortran \
-		gearman \
-		libgearman-dev \
 		ccache \
 		libgsasl7 \
 		libldap2-dev \
@@ -817,24 +815,17 @@ MESSAGE="Finished building examples" ; message
 
 # Run tests function for opencog, atomspace, moses & cogutil repos
 test_source() {
-#check if gearman service is running, start it if not
-if (( $(ps -ef | grep -v grep | grep gearman-job-server | wc -l) > 0 ))
-then
-    MESSAGE="gearman-job-server is running!!!";message
-else
-sudo /etc/init.d/gearman-job-server start
-fi
-set_source_and_build_dir
-if [ -a $BUILD_DIR/CMakeCache.txt ]; then
-    rm $BUILD_DIR/CMakeCache.txt
-    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
-fi
-MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
-#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
-cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
-make -C $BUILD_DIR -j$MAKE_JOBS test #ARGS=-j$MAKE_JOBS
-MESSAGE="Finished building & running tests" ; message
+  set_source_and_build_dir
+  if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+      rm $BUILD_DIR/CMakeCache.txt
+      MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+  fi
+  MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+  #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+  cmake -B$BUILD_DIR -H$SOURCE_DIR
+  MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS test" ; message
+  make -C $BUILD_DIR -j$MAKE_JOBS test #ARGS=-j$MAKE_JOBS
+  MESSAGE="Finished building & running tests" ; message
 }
 
 # Install build job artifacts
