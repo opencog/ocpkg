@@ -123,6 +123,10 @@ PACKAGES_ADMIN="
 		epiphany-browser \
 		"
 
+# The opencv-dev package is needed for vision processing. Unfortunately
+# it sucks in vast numbers of junk packages as depdencies, including
+# parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
+# and more. Sidelining this one package could reduce a lot of cruft.
 PACKAGES_BUILD=" build-essential \
 		cmake \
 		rlwrap \
@@ -177,9 +181,9 @@ PACKAGES_RUNTIME="
 
 PACKAGES_DOC="
 		ubuntu-docs \
-		libglib2.0-doc \
-		libpango1.0-doc \
-		libgtk-3-doc \
+		#libglib2.0-doc \
+		#libpango1.0-doc \
+		#libgtk-3-doc \
 		texlive-latex-base-doc \
 		python-doc \
 		devhelp-common \
