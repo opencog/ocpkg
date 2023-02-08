@@ -670,6 +670,7 @@ install_notebooks() {
 
 
   #####INSTALLING pip3 AND jupyter notebook
+  install_python_pip
   cd
   sudo pip3 install ipython jupyter
 
@@ -976,6 +977,16 @@ install_python(){
     sudo apt-get install -y --no-install-recommends python3-nose cython3
   fi
 }
+
+# Install pip seperately. The problem here is that installing pip
+# breaks python in ways that I cannot figure out. So punt, until some
+# python guru shows up and fixes this stuff.
+install_python_pip() {
+  MESSAGE="Installing python3 pip...." ; message
+  sudo apt-get install -y --no-install-recommends python3-pip
+  sudo pip3 install -U pip setuptools
+}
+
 
 install_guile(){
 if [[ "$UBUNTU_VERSION" = "\"18.04\"" ]]; then
