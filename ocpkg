@@ -798,32 +798,32 @@ fi
 
 # Build function for opencog, atomspace, moses & cogutil repos
 build_source() {
-set_source_and_build_dir
-if [ -a $BUILD_DIR/CMakeCache.txt ]; then
-    rm $BUILD_DIR/CMakeCache.txt
-    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
-fi
-MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
-#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
-cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
-make -C $BUILD_DIR -j$MAKE_JOBS
-MESSAGE="Finished building source" ; message
+  set_source_and_build_dir
+  if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+      rm $BUILD_DIR/CMakeCache.txt
+      MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+  fi
+  MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+  #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+  cmake -B$BUILD_DIR -H$SOURCE_DIR
+  MESSAGE="make -C $BUILD_DIR -j$MAKE_JOBS" ; message
+  make -C $BUILD_DIR -j$MAKE_JOBS
+  MESSAGE="Finished building source" ; message
 }
 
 # Build examples function for opencog, atomspace, moses & cogutil repos
 build_examples() {
-set_source_and_build_dir
-if [ -a $BUILD_DIR/CMakeCache.txt ]; then
-    rm $BUILD_DIR/CMakeCache.txt
-    MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
-fi
-MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
-#stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
-cmake -B$BUILD_DIR -H$SOURCE_DIR
-MESSAGE="make -C $BUILD_DIR  -j$MAKE_JOBS examples" ; message
-make -C $BUILD_DIR -j$MAKE_JOBS examples
-MESSAGE="Finished building examples" ; message
+  set_source_and_build_dir
+  if [ -a $BUILD_DIR/CMakeCache.txt ]; then
+      rm $BUILD_DIR/CMakeCache.txt
+      MESSAGE="Removed cmake cache file: rm $BUILD_DIR/CMakeCache.txt" ; message
+  fi
+  MESSAGE="cmake -B$BUILD_DIR -H$SOURCE_DIR" ; message
+  #stackoverflow.com/questions/20610255/how-to-tell-cmake-where-to-put-build-files
+  cmake -B$BUILD_DIR -H$SOURCE_DIR
+  MESSAGE="make -C $BUILD_DIR  -j$MAKE_JOBS examples" ; message
+  make -C $BUILD_DIR -j$MAKE_JOBS examples
+  MESSAGE="Finished building examples" ; message
 }
 
 # Run tests function for opencog, atomspace, moses & cogutil repos
@@ -843,53 +843,54 @@ test_source() {
 
 # Install build job artifacts
 install_build() {
-set_source_and_build_dir
-MESSAGE="Starting installation" ; message
-cd $BUILD_DIR
-sudo make install
-sudo ldconfig
-cd $CURRENT_DIR
-MESSAGE="Finished installation" ; message
+  set_source_and_build_dir
+  MESSAGE="Starting installation" ; message
+  cd $BUILD_DIR
+  sudo make install
+  sudo ldconfig
+  cd $CURRENT_DIR
+  MESSAGE="Finished installation" ; message
 }
 
 # Install Core AtomSpace
 install_atomspace(){
-install_opencog_github_repo atomspace
-install_opencog_github_repo atomspace-rocks
-install_opencog_github_repo atomspace-cog
-install_opencog_github_repo cogserver
+  install_opencog_github_repo atomspace
+  install_opencog_github_repo atomspace-rocks
+  install_opencog_github_repo atomspace-cog
+  install_opencog_github_repo cogserver
 }
 
 # Install Language components
 # This requires a re-install of Link Grammar, after the AtomSpace
-# has been installed, because Link Grammar now uses the AtomSpace
-# to hold dictionaries.
-install_language(){
-install_link_grammar
-install_opencog_github_repo lg-atomese
-install_opencog_github_repo learn
-install_opencog_github_repo generate
-install_opencog_github_repo vision
+# and after lg-atomese have been installed, because Link Grammar
+# now uses the AtomSpace to hold dictionaries, and the lg-atomese
+# Atom types to do it.
+install_language() {
+  install_opencog_github_repo lg-atomese
+  install_link_grammar
+  install_opencog_github_repo learn
+  install_opencog_github_repo generate
+  install_opencog_github_repo vision
 }
 
 # Install all of OpenCog
-install_opencog(){
-install_language
-install_opencog_github_repo unify
-install_opencog_github_repo ure
-install_opencog_github_repo attention
-install_opencog_github_repo spacetime
-install_opencog_github_repo pln
-install_opencog_github_repo miner
-install_opencog_github_repo asmoses
-install_opencog_github_repo opencog
-install_opencog_github_repo agi-bio
-install_opencog_github_repo benchmark
+install_opencog() {
+  install_language
+  install_opencog_github_repo unify
+  install_opencog_github_repo ure
+  install_opencog_github_repo attention
+  install_opencog_github_repo spacetime
+  install_opencog_github_repo pln
+  install_opencog_github_repo miner
+  install_opencog_github_repo asmoses
+  install_opencog_github_repo opencog
+  install_opencog_github_repo agi-bio
+  install_opencog_github_repo benchmark
 }
 
 # Install MOSES
-install_moses(){
-install_opencog_github_repo moses
+install_moses() {
+  install_opencog_github_repo moses
 }
 
 # Install Link-Grammar
