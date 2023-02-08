@@ -127,10 +127,15 @@ PACKAGES_ADMIN="
 # it sucks in vast numbers of junk packages as depdencies, including
 # parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
 # and more. Sidelining this one package could reduce a lot of cruft.
+#
+# I think the following are no longer needed:
+# libicu-dev gfortran libfreetype6-dev libatlas-base-dev
 PACKAGES_BUILD=" build-essential \
 		cmake \
 		rlwrap \
+		binutils-dev \
 		libiberty-dev \
+		libltdl-dev \
 		libicu-dev \
 		libbz2-dev \
 		libboost-date-time-dev \
@@ -142,9 +147,10 @@ PACKAGES_BUILD=" build-essential \
 		libboost-thread-dev \
 		libboost-system-dev \
 		libboost-random-dev \
-		libtbb-dev \
-		binutils-dev \
+		libedit-dev \
+		libpcre2-dev \
 		libpq-dev \
+		libtbb-dev \
 		uuid-dev \
 		libssl-dev \
 		libfreetype6-dev \
@@ -158,7 +164,6 @@ PACKAGES_BUILD=" build-essential \
 		libgmp-dev \
 		libffi-dev \
 		libreadline-dev \
-		libltdl-dev \
 		m4 \
 		autoconf-archive \
 		autoconf automake \
@@ -169,7 +174,6 @@ PACKAGES_BUILD=" build-essential \
 		libopencv-dev \
 		less \
 		vim \
-		libpcre2-dev \
 		"
 
 # AtomSpace OCaML no longer builds in Ubuntu 22.04, and so disable here,
@@ -895,42 +899,42 @@ install_moses() {
 
 # Install Link-Grammar
 install_link_grammar(){
-# This uses the archive created by github to build and install link-grammar
-# The release at https://www.abisource.com/downloads/link-grammar isn't used
-# because the only additional value it provides is it gives a pre configured
-# tar ball, and its tls certificate breaks often. Such tar-bar can be released
-# by following instructions at
-# https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release
-MESSAGE="Installing Link-Grammar...." ; message
-cd /tmp/
-# cleaning up remnants from previous install failures, if any.
-rm -rf link-grammar*
-if [ $# -eq 1 ]; then
-  local _version=${1}
-else
-  #local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
-  #  | grep md5 | awk 'match($0, /[5-9]\.[0-9]+\.[0-9]+/) {print substr($0, RSTART, RLENGTH)}')
-  local _version=$(git ls-remote -t \
-      https://github.com/opencog/link-grammar "link-grammar-5*" \
-      | grep -v "\^"| cut -d "-" -f 3 | sort -V |tail -n 1 )
-fi
-wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
-tar -zxf link-grammar-5*.tar.gz
-cd link-grammar-link-grammar-5.*/
-./autogen.sh --no-configure
-mkdir build
-cd build
-if [ $INSTALL_JAVA_LINK_GRAMMAR ]; then
-  ../configure
-else
-  ../configure --disable-java-bindings
-fi
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-cd /tmp/
-rm -rf link-grammar*
-cd $CURRENT_DIR
+  # This uses the archive created by github to build and install link-grammar
+  # The release at https://www.abisource.com/downloads/link-grammar isn't used
+  # because the only additional value it provides is it gives a pre configured
+  # tar ball, and its tls certificate breaks often. Such tar-bar can be released
+  # by following instructions at
+  # https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release
+  MESSAGE="Installing Link-Grammar...." ; message
+  cd /tmp/
+  # cleaning up remnants from previous install failures, if any.
+  rm -rf link-grammar*
+  if [ $# -eq 1 ]; then
+    local _version=${1}
+  else
+    #local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
+    #  | grep md5 | awk 'match($0, /[5-9]\.[0-9]+\.[0-9]+/) {print substr($0, RSTART, RLENGTH)}')
+    local _version=$(git ls-remote -t \
+        https://github.com/opencog/link-grammar "link-grammar-5*" \
+        | grep -v "\^"| cut -d "-" -f 3 | sort -V |tail -n 1 )
+  fi
+  wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+  tar -zxf link-grammar-5*.tar.gz
+  cd link-grammar-link-grammar-5.*/
+  ./autogen.sh --no-configure
+  mkdir build
+  cd build
+  if [ $INSTALL_JAVA_LINK_GRAMMAR ]; then
+    ../configure
+  else
+    ../configure --disable-java-bindings
+  fi
+  make -j$(nproc)
+  sudo make install
+  sudo ldconfig
+  cd /tmp/
+  rm -rf link-grammar*
+  cd $CURRENT_DIR
 }
 
 install_bdwgc() {
