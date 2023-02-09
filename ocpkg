@@ -1070,11 +1070,6 @@ update_ccache_links() {
   sudo update-ccache-symlinks
 }
 
-# Install cxxtest. Do not install python crazy-making.
-install_cxxtest() {
-  # Empty, because `apt-get install cxxtest` already did this.
-}
-
 # Install system dependencies
 install_dependencies() {
   # Install the latest python3 version before everything else
@@ -1088,9 +1083,6 @@ install_dependencies() {
 
   # Update ccache links
   update_ccache_links
-
-  # Install latest cxxtest
-  install_cxxtest
 
   # Configure python alternative. The priority is soo high just to ensure that
   # python is always set.
