@@ -165,6 +165,7 @@ PACKAGES_BUILD=" build-essential \
 		libgmp-dev \
 		libffi-dev \
 		libreadline-dev \
+		libunistring-dev \
 		m4 \
 		autoconf-archive \
 		autoconf automake \
@@ -317,7 +318,6 @@ PACKAGES_EXDEV="
 		libtasn1-3-dev \
 		libtimedate-perl \
 		libtool \
-		libunistring0 \
 		libxss1 \
 		make \
 		manpages-dev \
@@ -1003,8 +1003,6 @@ else
     cd /tmp/
     # Clean up remnants from previous install failures, if any.
     rm -rf guile-${GUILEVERSION}*
-    # Install dependency for the build.
-    sudo apt-get install -y --no-install-recommends libunistring-dev
     wget https://ftp.gnu.org/gnu/guile/guile-$GUILEVERSION.tar.gz
     tar -xvf guile-$GUILEVERSION.tar.gz
     cd guile-$GUILEVERSION
