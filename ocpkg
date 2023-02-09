@@ -168,7 +168,7 @@ PACKAGES_BUILD=" build-essential \
 		libunistring-dev \
 		m4 \
 		autoconf-archive \
-		autoconf automake \
+		autoconf automake autopoint \
 		libtool \
 		swig \
 		flex \
