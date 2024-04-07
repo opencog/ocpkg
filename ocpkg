@@ -363,7 +363,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -f Install from opencog github repo. Pass the name of the repo as an argument"
   echo " -o Install OpenCog"
   echo " -n Install notebook"
-  echo " -l {default|java} For installing Link Grammar with java binding '-l java' else '-l default'"
+  echo " -l [master|java] Install Link Grammar release tarball; else master branch"
   echo " -m Install MOSES"
   echo " -z Install the language subsystem"
   echo " -g Install Guile $GUILEVERSION"
@@ -408,13 +408,11 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       a)	INSTALL_ATOMSPACE=true ;;
       f)	INSTALL_FROM_REPO="$OPTARG" ;;
       o)	INSTALL_OPENCOG=true ;;
-      l)	if [ "$OPTARG" == "default" ]; then
-        	  INSTALL_LINK_GRAMMAR=true
+      l)	INSTALL_LINK_GRAMMAR=true ;
+        	if [ "$OPTARG" == "master" ]; then
+        	  INSTALL_LG_MASTER=true
         	elif [ "$OPTARG" == "java" ]; then
         	  INSTALL_JAVA_LINK_GRAMMAR=true
-        	else
-        	  MESSAGE="If you want java binding run '-l java' else '-l default'"
-        	  message ; exit 1
         	fi ;;
       m)	INSTALL_MOSES=true ;;
       n)	INSTALL_NOTEBOOKS=true;;
@@ -908,20 +906,37 @@ install_link_grammar(){
   # https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release
   MESSAGE="Installing Link-Grammar...." ; message
   cd /tmp/
+
   # cleaning up remnants from previous install failures, if any.
   rm -rf link-grammar*
+  rm -rf master.tar.gz
+
+  # Get install version from command line
   if [ $# -eq 1 ]; then
     local _version=${1}
+    wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+    tar -zxf link-grammar-${_version}.tar.gz
+    cd link-grammar-link-grammar-${_version}/
+
+  elif [ $INSTALL_LG_MASTER ]; then
+
+    # Master version fails to follow naming convention
+    local _version="master"
+    wget https://github.com/opencog/link-grammar/archive/master.tar.gz
+    tar -zxf master.tar.gz
+    cd link-grammar-${_version}/
   else
-    #local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
+
+    # Hunt down the latest tarball version. Abisource is dead.
+    # local _version=$(wget -O - http://www.abisource.com/downloads/link-grammar/current/ \
     #  | grep md5 | awk 'match($0, /[5-9]\.[0-9]+\.[0-9]+/) {print substr($0, RSTART, RLENGTH)}')
     local _version=$(git ls-remote -t \
         https://github.com/opencog/link-grammar "link-grammar-5*" \
         | grep -v "\^"| cut -d "-" -f 3 | sort -V |tail -n 1 )
+    wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
+    tar -zxf link-grammar-${_version}.tar.gz
+    cd link-grammar-link-grammar-${_version}/
   fi
-  wget https://github.com/opencog/link-grammar/archive/link-grammar-${_version}.tar.gz
-  tar -zxf link-grammar-5*.tar.gz
-  cd link-grammar-link-grammar-5.*/
   ./autogen.sh --no-configure
   mkdir build
   cd build
@@ -935,6 +950,7 @@ install_link_grammar(){
   sudo ldconfig
   cd /tmp/
   rm -rf link-grammar*
+  rm -rf master.tar.gz
   cd $CURRENT_DIR
 }
 
@@ -1345,7 +1361,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
-    if [ $INSTALL_JAVA_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_MOSES ] ; then install_moses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
