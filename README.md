@@ -1,8 +1,9 @@
 ## Collection of scripts
 
 #### ocpkg
-* It is a script to install an OpenCog development environment on a fresh installation of Ubuntu >= 14.04 . It has options to selectively download, build, test, install and package OpenCog projects. Don't use the package option, as it
-is still work in progress.
+* This script installs an OpenCog development environment on a fresh
+  installation of Ubuntu >= 14.04 . It has options to selectively
+  download, build, test, install OpenCog projects.
 
 For a quick start using Ubuntu version >= 14.04, run
 ```
@@ -11,10 +12,12 @@ sudo chmod +x /usr/local/bin/octool &&\
 octool
 ```
 
-For detailed instructions see [here](http://wiki.opencog.org/wikihome/index.php/Building_OpenCog#octool_for_ubuntu)
+For details, see the
+[instructions on the OpenCog wiki](http://wiki.opencog.org/wikihome/index.php/Building_OpenCog#octool_for_ubuntu).
 
 #### octool-wip
-The separate octool script is not yet ready so use the ocpkg's file renamed as octool. See above.
+Work-in-progress (abandoned).
+The separate octool script is not yet ready. Use the above.
 
 #### ocbootstrap
 (This hasn't been tested for a while)
@@ -29,8 +32,9 @@ Uses debootstrap. Requires ocpkg.
 For installing opencog on a Raspberry Pi Computer running Raspbian.
 The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) will be helpful.
 
+May be out of date.
 
-#### Usages
+#### Example Usage
 * To install all dependencies necessary to build OpenCog:
 ```
  ./octool -rdpcav -l default
@@ -38,10 +42,9 @@ The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) 
  # Optional: Add -n for installing dependencies and kernels for jupyter notebooks.
 ```
 
-* To install all dependencies necessary to build AtomSpace and MOSES:
+* To install all dependencies necessary to build AtomSpace and AS-MOSES:
 ```
  ./octool -rdcv
- # Optional: For atomspace, add -s for installing dependencies for haskell binding.
 ```
 
 * To install all dependencies necessary to build Cogutil:
