@@ -161,6 +161,7 @@ PACKAGES_BUILD=" build-essential \
 		libgsasl7 \
 		libldap2-dev \
 		krb5-multidev \
+		gperf \
 		libatomic-ops-dev \
 		libgmp-dev \
 		libffi-dev \
