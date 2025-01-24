@@ -75,7 +75,7 @@ UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 SELF_NAME=$(basename $0)
 TOOL_NAME=octool
 
-GUILEVERSION=3.0.7
+GUILEVERSION=3.0.10
 
 PROCESSORS=$(grep "^processor" /proc/cpuinfo | wc -l)
 MAKE_JOBS=$(($PROCESSORS+0))
