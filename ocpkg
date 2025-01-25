@@ -877,6 +877,7 @@ install_atomspace(){
 install_language() {
   install_opencog_github_repo lg-atomese
   install_link_grammar
+  install_opencog_github_repo matrix
   install_opencog_github_repo learn
   install_opencog_github_repo generate
   install_opencog_github_repo vision
