@@ -158,7 +158,7 @@ PACKAGES_BUILD=" build-essential \
 		gfortran \
 		ccache \
 		cxxtest \
-		libgsasl7 \
+		libgsasl-dev \
 		libldap2-dev \
 		krb5-multidev \
 		gperf \
