@@ -365,7 +365,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -o Install OpenCog"
   echo " -n Install notebook"
   echo " -l [master|java] Install Link Grammar release tarball; else master branch"
-  echo " -m Install MOSES"
+  echo " -m Install ASMOSES"
   echo " -z Install the language subsystem"
   echo " -g Install Guile $GUILEVERSION"
   echo " -b Build source code in git worktree found @ $PWD"
@@ -415,7 +415,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	elif [ "$OPTARG" == "java" ]; then
         	  INSTALL_JAVA_LINK_GRAMMAR=true
         	fi ;;
-      m)	INSTALL_MOSES=true ;;
+      m)	INSTALL_ASMOSES=true ;;
       n)	INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
@@ -776,7 +776,7 @@ a git worktree" ; message
 fi
 }
 
-# Build function for opencog, atomspace, moses & cogutil repos
+# Build function for cogutil, atomspace & asmoses repos
 build_source() {
   set_source_and_build_dir
   if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -791,7 +791,7 @@ build_source() {
   MESSAGE="Finished building source" ; message
 }
 
-# Build examples function for opencog, atomspace, moses & cogutil repos
+# Build examples function for atomspace & asmoses repos
 build_examples() {
   set_source_and_build_dir
   if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -806,7 +806,7 @@ build_examples() {
   MESSAGE="Finished building examples" ; message
 }
 
-# Run tests function for opencog, atomspace, moses & cogutil repos
+# Run tests function for cogutil, atomspace & asmoses repos
 test_source() {
   set_source_and_build_dir
   if [ -a $BUILD_DIR/CMakeCache.txt ]; then
@@ -873,9 +873,9 @@ install_opencog() {
   install_opencog_github_repo benchmark
 }
 
-# Install MOSES
-install_moses() {
-  install_opencog_github_repo moses
+# Install ASMOSES
+install_asmoses() {
+  install_opencog_github_repo asmoses
 }
 
 # Install Link-Grammar
@@ -1314,7 +1314,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
-    if [ $INSTALL_MOSES ] ; then install_moses ; fi
+    if [ $INSTALL_ASMOSES ] ; then install_asmoses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
     if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
