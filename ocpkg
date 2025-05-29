@@ -740,26 +740,8 @@ install_notebooks() {
 # Install additional Python packages
 # Except that there aren't any at this time....
 install_opencog_python_packages() {
-  # MESSAGE="Installing python packages...." ; message
-  MESSAGE="There are no python packages to install." ; message
-  cd /tmp
-  # cleaning up remnants from previous install failures, if any.
-  #rm -f requirements.txt*
-  #wget https://raw.githubusercontent.com/opencog/opencog/master/opencog/python/attic/requirements.txt
-  # scipy, numpy & matplotlib if installed using python-pip will take a long time
-  # as they have to be built before being installed. And the artifacts of the
-  # build occupies a lot of space blotting the docker image. Thus instead a
-  # system installation is made.
-  # TODO: cleanup the requirements.txt file.
-  #sudo pip install -U $(awk '!/scipy/&&!/numpy/&&!/matplotlib/' requirements.txt)
-  #sudo apt-get install -y --no-install-recommends python3-matplotlib python3-numpy python3-scipy
-
-  # For sentiment analysis (obsolete)
-  # TODO: update depending on https://github.com/opencog/opencog/issues/2285
-  # sudo pip3 install -U pyyaml nltk Flask flask-restful flask-restful-swagger flask-cors
-  # sudo python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt averaged_perceptron_tagger
-  # rm -f requirements.txt*
-  # cd $CURRENT_DIR
+  MESSAGE="Installing base python packages...." ; message
+  install_python
 }
 
 # Install Haskell Dependencies
@@ -988,7 +970,7 @@ install_bdwgc() {
   rm -rf ${_dir_name}*
 }
 
-install_python(){
+install_python() {
   MESSAGE="Installing python3 ...." ; message
   sudo apt-get install -y --no-install-recommends python3-dev python3-dev
 
@@ -1002,6 +984,9 @@ install_python(){
     sudo apt-get install -y --no-install-recommends python3-nose cython3
   fi
   if [[ "$UBUNTU_VERSION" = "\"22.04\"" ]]; then
+    sudo apt-get install -y --no-install-recommends python3-nose cython3
+  fi
+  if [[ "$UBUNTU_VERSION" = "\"24.04\"" ]]; then
     sudo apt-get install -y --no-install-recommends python3-nose cython3
   fi
 }
