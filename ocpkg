@@ -130,6 +130,8 @@ PACKAGES_ADMIN="
 #
 # I think the following are no longer needed:
 # libicu-dev gfortran libfreetype6-dev libatlas-base-dev
+#
+# nlohmann-json3-dev is needed by the cogserver.
 PACKAGES_BUILD=" build-essential \
 		cmake \
 		rlwrap \
@@ -175,6 +177,7 @@ PACKAGES_BUILD=" build-essential \
 		flex \
 		librocksdb-dev \
 		libopencv-dev \
+		nlohmann-json3-dev \
 		less \
 		vim \
 		"
