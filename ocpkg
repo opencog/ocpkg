@@ -128,9 +128,7 @@ PACKAGES_ADMIN="
 # parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
 # and more. Sidelining this one package could reduce a lot of cruft.
 #
-# I think the following are no longer needed:
-# libicu-dev gfortran libfreetype6-dev libatlas-base-dev
-#
+# libpq-dev is needed by the postgres storage node.
 # nlohmann-json3-dev is needed by the cogserver.
 PACKAGES_BUILD=" build-essential \
 		cmake \
@@ -138,7 +136,6 @@ PACKAGES_BUILD=" build-essential \
 		binutils-dev \
 		libiberty-dev \
 		libltdl-dev \
-		libicu-dev \
 		libbz2-dev \
 		libboost-date-time-dev \
 		libboost-filesystem-dev \
@@ -152,12 +149,8 @@ PACKAGES_BUILD=" build-essential \
 		libedit-dev \
 		libpcre2-dev \
 		libpq-dev \
-		libtbb-dev \
 		uuid-dev \
 		libssl-dev \
-		libfreetype6-dev \
-		libatlas-base-dev \
-		gfortran \
 		ccache \
 		cxxtest \
 		libgsasl-dev \
