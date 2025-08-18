@@ -830,7 +830,7 @@ install_bdwgc() {
   # Apparently, the newest versions of curl behave differently!?
   # local _version=$(curl https://github.com/ivmai/bdwgc/releases/latest \
   #    | cut -d "\"" -f 2 | cut -d "/" -f 8)
-  local _version=$(curl --silent -w %{redirect_url} https://github.com/ivmai/bdwgc/releases/latest \
+  local _version=$(curl --silent -w %{redirect_url} https://github.com/bdwgc/bdwgc/releases/latest \
       | cut -d "\"" -f 2 | cut -d "/" -f 8)
 
   local _dir_name="gc-${_version:1}"
