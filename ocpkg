@@ -338,7 +338,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
-  echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
   echo " -c Install CogUtil"
   echo " -a Install AtomSpace"
@@ -403,7 +402,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       v)	unset QUIET ;;
       z)	INSTALL_LANGUAGE=true ;;
       j)	MAKE_JOBS="$OPTARG" ;;
-      s)	HASKELL_STACK_SETUP=true;;
       i)	INSTALL_BUILD=true ;;
       h)	usage ;;
       \?)	usage; exit 1 ;;
@@ -646,24 +644,6 @@ install_cogutil() {
 install_opencog_python_packages() {
   MESSAGE="Installing base python packages...." ; message
   install_python
-}
-
-# Install Haskell Dependencies
-install_haskell_dependencies(){
-MESSAGE="Installing haskell dependencies in user space...." ; message
-sudo wget -qO- https://get.haskellstack.org/ | sh
-
-cd /tmp
-rm -rf patchelf*
-wget "https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2"
-tar -jxf patchelf-0.9.tar.bz2
-rm patchelf-0.9.tar.bz2
-cd patchelf-0.9
-./configure
-sudo make install
-cd /tmp
-rm -rf patchelf-0.9
-cd $CURRENT_DIR
 }
 
 # The following sets the source & build directory for a project
@@ -1215,7 +1195,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
     if [ $DOWNLOAD_DATA ] ; then download_data ; fi
-    if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
