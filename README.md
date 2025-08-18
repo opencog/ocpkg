@@ -15,10 +15,6 @@ octool
 For details, see the
 [instructions on the OpenCog wiki](http://wiki.opencog.org/wikihome/index.php/Building_OpenCog#octool_for_ubuntu).
 
-#### octool-wip
-Work-in-progress (abandoned).
-The separate octool script is not yet ready. Use the above.
-
 #### ocbootstrap
 (This hasn't been tested for a while)
 A script to create an OpenCog build environment on ''any'' Linux system.

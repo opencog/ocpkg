@@ -94,12 +94,6 @@ LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 REPOSITORIES=""
 #		ppa:opencog-dev/ppa \
 #		opencog-dev: cxxtest
-#		gandelman: python-flask-restful
-#       ppa:chris-lea/zeromq \
-#		ppa:chris-lea/python-flask \
-#       ppa:chris-lea/python-itsdangerous \
-#       ppa:chris-lea/python-simplejson \
-#       ppa:gandelman-a/test-catalog \
 
 PACKAGES_TOOLS="
 		squashfs-tools \
@@ -114,7 +108,6 @@ PACKAGES_FETCH="
 		curl \
 		wget \
 			"
-		#bzr-rewrite \
 
 PACKAGES_ADMIN="
 		apt-rdepends \
@@ -175,11 +168,6 @@ PACKAGES_BUILD=" build-essential \
 		vim \
 		"
 
-# AtomSpace OCaML no longer builds in Ubuntu 22.04, and so disable here,
-# until it is fixed.
-		#ocaml \
-		#ocaml-findlib \
-
 PACKAGES_RUNTIME="
 		postgresql-client \
 		netcat-openbsd \
@@ -187,9 +175,6 @@ PACKAGES_RUNTIME="
 
 PACKAGES_DOC="
 		ubuntu-docs \
-		#libglib2.0-doc \
-		#libpango1.0-doc \
-		#libgtk-3-doc \
 		texlive-latex-base-doc \
 		python-doc \
 		devhelp-common \
@@ -322,7 +307,6 @@ PACKAGES_EXDEV="
 		patch \
 		ttf-lyx \
 		zlib1g-dev \
-		python-bzrlib \
 		linux-headers-generic \
 		# libcpprest \
 		# libzmq3-dev \
@@ -353,13 +337,11 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -r Add software repositories"
   echo " -d Install base/system build dependencies"
   echo " -p Install python build dependencies"
-  echo " -s Install haskell build dependencies in user space. Don't use sudo"
   echo " -i Install build-job artifacts"
   echo " -c Install CogUtil"
   echo " -a Install AtomSpace"
   echo " -f Install from opencog github repo. Pass the name of the repo as an argument"
   echo " -o Install OpenCog"
-  echo " -n Install notebook"
   echo " -l [master|java] Install Link Grammar release tarball; else master branch"
   echo " -m Install ASMOSES"
   echo " -z Install the language subsystem"
@@ -412,7 +394,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	  INSTALL_JAVA_LINK_GRAMMAR=true
         	fi ;;
       m)	INSTALL_ASMOSES=true ;;
-      n)	INSTALL_NOTEBOOKS=true;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
@@ -420,7 +401,6 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
       v)	unset QUIET ;;
       z)	INSTALL_LANGUAGE=true ;;
       j)	MAKE_JOBS="$OPTARG" ;;
-      s)	HASKELL_STACK_SETUP=true;;
       i)	INSTALL_BUILD=true ;;
       h)	usage ;;
       \?)	usage; exit 1 ;;
@@ -428,7 +408,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     esac
   done
 else
-  while getopts ":i:o:j:s:c:l:r:adubtnxrvh" flag ; do
+  while getopts ":i:o:j:s:c:l:adubtnxvh" flag ; do
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;
       o)	OUTPUT_ISO_NAME="$OPTARG" ;;
@@ -436,7 +416,6 @@ else
       s)	HOST_SOURCE_BRANCH="$OPTARG" ;;
       c)	HOST_BUILD_DIR="$OPTARG" ;;     #local cached build dir
       l)	LIVE_BUILD_DIR="$OPTARG" ;;     #live build directory
-      r)	BZR_REVISION="$OPTARG" ;;
       a)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;;    #ALL, none
       u)	UPDATE_OPENCOG=true ;;          #git pull
@@ -658,98 +637,11 @@ install_cogutil() {
   install_opencog_github_repo cogutil
 }
 
-# Install notebooks
-install_notebooks() {
-  MESSAGE="Installing notebooks...." ; message
-
-
-  #####INSTALLING pip3 AND jupyter notebook
-  install_python_pip
-  cd
-  sudo pip3 install ipython jupyter
-
-  #####INSTALLING GUILE KERNEL#####
-  # Check if site folder exits
-  if [ ! -d "/usr/local/share/guile/site" ]
-  then
-    cd /usr/local/share/guile/
-    sudo mkdir site
-    cd
-  fi
-
-  # Install ZeroMQ library
-  # ??? Really? Is this really needed?
-  ## Clean up remenants of previous installations##
-  rm -rf zeromq-4.2.1*
-  wget https://github.com/zeromq/libzmq/releases/download/v4.2.1/zeromq-4.2.1.tar.gz
-  tar xvf zeromq-4.2.1.tar.gz
-  cd zeromq-4.2.1/
-  ./configure
-  make
-  sudo make install
-  cd
-
-  # Install guile-json library
-  ## Clean up remenants of previous installations##
-  rm -rf guile-json-0.6.0*
-  wget http://download.savannah.gnu.org/releases/guile-json/guile-json-0.6.0.tar.gz
-  tar xvf guile-json-0.6.0.tar.gz
-  cd guile-json-0.6.0
-  ./configure --prefix=/usr/local/
-  make
-  sudo make install
-  cd
-
-  cd `guile -c "(display (%global-site-dir))"`
-  # Place guile-simple-zmq library to the guile library folder
-  sudo rm -rf simple-zmq.scm*
-  sudo wget https://raw.githubusercontent.com/jerry40/guile-simple-zmq/master/src/simple-zmq.scm
-  #edit simple-zmq.scm => set BUF-SIZE to 8192.
-  sudo sed -i 's/(define BUF-SIZE.*)/(define BUF-SIZE 8192)/' simple-zmq.scm
-  cd
-
-  #Kernel setup
-  if [ ! -d "/home/$USER/.local/share/jupyter/kernels/guile" ]
-  then
-      sudo mkdir /home/$USER/.local/share/jupyter/kernels/guile
-  fi
-
-  cd /home/$USER/.local/share/jupyter/kernels/guile
-  sudo rm -rf guile-jupyter-kernel.scm hmac.scm kernel.json tools.scm
-  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/guile-jupyter-kernel.scm
-  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/hmac.scm
-  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/kernel.json
-  sudo wget https://github.com/jerry40/guile-kernel/raw/master/src/tools.scm
-  sudo sed -i 's,\/home.*local,'$HOME/.local',' kernel.json
-
-  echo "export PATH=$PATH:/home/$USER/.local/bin" >> /home/$USER/.bashrc
-  echo "source $HOME/.bashrc"
-  cd $CURRENT_DIR
-}
-
 # Install additional Python packages
 # Except that there aren't any at this time....
 install_opencog_python_packages() {
   MESSAGE="Installing base python packages...." ; message
   install_python
-}
-
-# Install Haskell Dependencies
-install_haskell_dependencies(){
-MESSAGE="Installing haskell dependencies in user space...." ; message
-sudo wget -qO- https://get.haskellstack.org/ | sh
-
-cd /tmp
-rm -rf patchelf*
-wget "https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2"
-tar -jxf patchelf-0.9.tar.bz2
-rm patchelf-0.9.tar.bz2
-cd patchelf-0.9
-./configure
-sudo make install
-cd /tmp
-rm -rf patchelf-0.9
-cd $CURRENT_DIR
 }
 
 # The following sets the source & build directory for a project
@@ -1301,19 +1193,16 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $ADD_REPOSITORIES ] ; then add_repositories ; fi
     if [ $INSTALL_DEPENDENCIES ] ; then install_dependencies ; fi
     if [ $DOWNLOAD_DATA ] ; then download_data ; fi
-    if [ $HASKELL_STACK_SETUP ] ; then install_haskell_dependencies ; fi
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
     if [ $INSTALL_LANGUAGE ] ; then install_language ; fi
     if [ $INSTALL_FROM_REPO ] ; then install_opencog_github_repo "$INSTALL_FROM_REPO" ; fi
-    if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
     if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_ASMOSES ] ; then install_asmoses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
-    if [ $INSTALL_NOTEBOOKS ] ; then install_notebooks ; fi
     if [ $BUILD_EXAMPLES ] ; then build_examples ; fi
     if [ $TEST_SOURCE ] ; then test_source ; fi
     if [ $INSTALL_BUILD ] ; then install_build ; fi
