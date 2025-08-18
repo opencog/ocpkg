@@ -307,7 +307,6 @@ PACKAGES_EXDEV="
 		patch \
 		ttf-lyx \
 		zlib1g-dev \
-		python-bzrlib \
 		linux-headers-generic \
 		# libcpprest \
 		# libzmq3-dev \
@@ -409,7 +408,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     esac
   done
 else
-  while getopts ":i:o:j:s:c:l:r:adubtnxrvh" flag ; do
+  while getopts ":i:o:j:s:c:l:adubtnxvh" flag ; do
     case $flag in
       i)	INPUT_ISO_NAME="$OPTARG" ;;
       o)	OUTPUT_ISO_NAME="$OPTARG" ;;
@@ -417,7 +416,6 @@ else
       s)	HOST_SOURCE_BRANCH="$OPTARG" ;;
       c)	HOST_BUILD_DIR="$OPTARG" ;;     #local cached build dir
       l)	LIVE_BUILD_DIR="$OPTARG" ;;     #live build directory
-      r)	BZR_REVISION="$OPTARG" ;;
       a)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;;    #ALL, none
       u)	UPDATE_OPENCOG=true ;;          #git pull
