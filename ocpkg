@@ -121,6 +121,7 @@ PACKAGES_ADMIN="
 # parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
 # and more. Sidelining this one package could reduce a lot of cruft.
 #
+# libsparsehash-dev is optional for atomspace
 # libpq-dev is needed by the postgres storage node.
 # nlohmann-json3-dev is needed by the cogserver.
 PACKAGES_BUILD=" build-essential \
@@ -140,6 +141,7 @@ PACKAGES_BUILD=" build-essential \
 		libboost-system-dev \
 		libboost-random-dev \
 		libedit-dev \
+		libsparsehash-dev \
 		libpcre2-dev \
 		libpq-dev \
 		uuid-dev \
