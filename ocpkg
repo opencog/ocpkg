@@ -323,25 +323,6 @@ PACKAGES_EXDEV="
 		ttf-lyx \
 		zlib1g-dev \
 		linux-headers-generic \
-		# libcpprest \
-		# libzmq3-dev \
-		# libsdl-gfx1.2-dev \
-		# tcl-dev \
-		# tcsh \
-		# libprotoc-dev \
-		# protobuf-compiler \
-		# wordnet \
-		# wordnet-dev \
-		# wordnet-sense-index \
-		# liblua5.1-0-dev \
-		# libxmlrpc-c3-dev \
-		# python-flask \
-		# python-flask-restful \
-		# libglade2-0 \
-		# python-glade2 \
-		# python-tk \
-		# tcl8.5 \
-		# tk8.5 \
 		"
 
 # SECTION 2: Command line option handling
@@ -771,7 +752,8 @@ install_opencog() {
   install_opencog_github_repo pln
   install_opencog_github_repo miner
   install_opencog_github_repo asmoses
-  install_opencog_github_repo opencog
+# opencog no longer compiles.
+#  install_opencog_github_repo opencog
   install_opencog_github_repo agi-bio
   install_opencog_github_repo benchmark
 }
