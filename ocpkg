@@ -124,21 +124,30 @@ PACKAGES_ADMIN="
 # libsparsehash-dev is optional for atomspace
 # libpq-dev is needed by the postgres storage node.
 # nlohmann-json3-dev is needed by the cogserver.
+# libasio-dev is needed by the cogserver.
+#
+# The only remaining users of boost are ure, miner and as-moses
+# libboost-date-time-dev asmoses gregorian dates.
+# libboost-program-options-dev by asmoses/utils/log_prog_name.cc
+# libboost-regex-dev asmoses combo
+# libboost-random-dev asmoses random shuffle
+#
+# libboost-filesystem-dev seems unused ...
+# libboost-serialization-dev seems unused ...
+# libboost-thread-dev seems unused ...
+# libboost-system-dev seems unused ...
 PACKAGES_BUILD=" build-essential \
 		cmake \
 		rlwrap \
 		binutils-dev \
 		libiberty-dev \
 		libltdl-dev \
+		libasio-dev \
 		libbz2-dev \
 		libboost-date-time-dev \
-		libboost-filesystem-dev \
 		libboost-math-dev \
 		libboost-program-options-dev \
 		libboost-regex-dev \
-		libboost-serialization-dev \
-		libboost-thread-dev \
-		libboost-system-dev \
 		libboost-random-dev \
 		libedit-dev \
 		libsparsehash-dev \
@@ -148,9 +157,6 @@ PACKAGES_BUILD=" build-essential \
 		libssl-dev \
 		ccache \
 		cxxtest \
-		libgsasl-dev \
-		libldap2-dev \
-		krb5-multidev \
 		gperf \
 		libatomic-ops-dev \
 		libgmp-dev \
