@@ -92,16 +92,11 @@ VERBOSE="-v"				#for mount, umount, rm, etc.
 LIVE_DESKTOP_SOURCE="OpenCog Source Code"
 
 REPOSITORIES=""
-#		ppa:opencog-dev/ppa \
-#		opencog-dev: cxxtest
 
 PACKAGES_TOOLS="
 		squashfs-tools \
 		genisoimage \
 		"
-		#aria2 \
-		#qemu-kvm \
-		#testdrive \
 
 PACKAGES_FETCH="
 		git \
@@ -111,9 +106,6 @@ PACKAGES_FETCH="
 
 PACKAGES_ADMIN="
 		apt-rdepends \
-		synaptic \
-		gdebi \
-		epiphany-browser \
 		"
 
 # The opencv-dev package is needed for vision processing. Unfortunately
@@ -136,6 +128,15 @@ PACKAGES_ADMIN="
 # libboost-serialization-dev seems unused ...
 # libboost-thread-dev seems unused ...
 # libboost-system-dev seems unused ...
+#
+# Packages for GPU devel (OpenCL)
+#   clinfo
+# For AMD GPU's
+#   mesa-opencl-icd opencl-headers opencl-clhpp-headers
+# For Nvidia GPU's
+#   cuda-opencl-dev XXX no !??
+# Compiler for GPU kernels
+#   clang-14 llvm-spirv-14
 PACKAGES_BUILD=" build-essential \
 		cmake \
 		rlwrap \
@@ -174,6 +175,12 @@ PACKAGES_BUILD=" build-essential \
 		nlohmann-json3-dev \
 		less \
 		vim \
+		clinfo \
+		mesa-opencl-icd \
+		opencl-headers \
+		opencl-clhpp-headers \
+		clang-14 \
+		llvm-spirv-14 \
 		"
 
 PACKAGES_RUNTIME="
