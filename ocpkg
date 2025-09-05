@@ -115,19 +115,22 @@ PACKAGES_ADMIN="
 #
 # libsparsehash-dev is optional for atomspace
 # libpq-dev is needed by the postgres storage node.
-# nlohmann-json3-dev is needed by the cogserver.
+# libjsoncpp-dev is needed by the cogserver.
 # libasio-dev is needed by the cogserver.
+#
+# m4 autoconf-archive autoconf automake autopoint libtool swig flex
+# are all required to build link-grammar.
+#
+# libatomic-ops-dev libgmp-dev libffi-dev libunistring-dev
+# are all required for building guile from source. Maybe
+# we should stop building guile, and just use the packaged
+# version. The need for the source build has gone away.
 #
 # The only remaining users of boost are ure, miner and as-moses
 # libboost-date-time-dev asmoses gregorian dates.
 # libboost-program-options-dev by asmoses/utils/log_prog_name.cc
 # libboost-regex-dev asmoses combo
 # libboost-random-dev asmoses random shuffle
-#
-# libboost-filesystem-dev seems unused ...
-# libboost-serialization-dev seems unused ...
-# libboost-thread-dev seems unused ...
-# libboost-system-dev seems unused ...
 #
 # Packages for GPU devel (OpenCL)
 #   clinfo
@@ -139,7 +142,6 @@ PACKAGES_ADMIN="
 #   clang-14 llvm-spirv-14
 PACKAGES_BUILD=" build-essential \
 		cmake \
-		rlwrap \
 		binutils-dev \
 		libiberty-dev \
 		libltdl-dev \
@@ -151,9 +153,12 @@ PACKAGES_BUILD=" build-essential \
 		libboost-regex-dev \
 		libboost-random-dev \
 		libedit-dev \
-		libsparsehash-dev \
+		libjsoncpp-dev \
 		libpcre2-dev \
 		libpq-dev \
+		libreadline-dev \
+		librocksdb-dev \
+		libsparsehash-dev \
 		uuid-dev \
 		libssl-dev \
 		ccache \
@@ -162,7 +167,6 @@ PACKAGES_BUILD=" build-essential \
 		libatomic-ops-dev \
 		libgmp-dev \
 		libffi-dev \
-		libreadline-dev \
 		libunistring-dev \
 		m4 \
 		autoconf-archive \
@@ -170,9 +174,7 @@ PACKAGES_BUILD=" build-essential \
 		libtool \
 		swig \
 		flex \
-		librocksdb-dev \
 		libopencv-dev \
-		nlohmann-json3-dev \
 		less \
 		vim \
 		clinfo \
