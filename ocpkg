@@ -354,11 +354,14 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   echo " -c Install CogUtil"
   echo " -a Install AtomSpace"
   echo " -f Install from opencog github repo. Pass the name of the repo as an argument"
-  echo " -o Install OpenCog"
   echo " -l [master|java] Install Link Grammar release tarball; else master branch"
-  echo " -m Install ASMOSES"
+  echo " -u Install the GPU subsystem"
   echo " -z Install the language subsystem"
-  echo " -g Install Guile $GUILEVERSION"
+  echo " -x Install the benchmarking tools"
+  echo " -n Install the vision subsystem"
+  echo " -m Install ASMOSES"
+  echo " -o Install OpenCog (obsolete)"
+  echo " -g Install Guile $GUILEVERSION from source"
   echo " -b Build source code in git worktree found @ $PWD"
   echo " -e Build examples in git worktree found @ $PWD"
   echo " -t Run tests of source code in git worktree found @ $PWD"
@@ -390,7 +393,7 @@ fi
 if [ $# -eq 0 ] ; then NO_ARGS=true ; fi
 
 if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
-  while getopts "abdef:gipcrstl:mhvj:ownz" flag ; do
+  while getopts "abdef:gipcrstl:mhvj:ownuz" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
       d)	INSTALL_DEPENDENCIES=true ;; # base development packages
@@ -406,13 +409,16 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
         	elif [ "$OPTARG" == "java" ]; then
         	  INSTALL_JAVA_LINK_GRAMMAR=true
         	fi ;;
+      u)	INSTALL_GPU_SUBSYS=true ;;
+      z)	INSTALL_LANGUAGE=true ;;
+      x)	INSTALL_BENCHMARK=true ;;
+      n)	INSTALL_VISION=true ;;
       m)	INSTALL_ASMOSES=true ;;
       g)	INSTALL_GUILE=true ;;
       b)	BUILD_SOURCE=true ;;
       e)	BUILD_EXAMPLES=true ;;
       t)	TEST_SOURCE=true ;;
       v)	unset QUIET ;;
-      z)	INSTALL_LANGUAGE=true ;;
       j)	MAKE_JOBS="$OPTARG" ;;
       i)	INSTALL_BUILD=true ;;
       h)	usage ;;
@@ -757,17 +763,29 @@ install_language() {
   install_opencog_github_repo matrix
   install_opencog_github_repo learn
   install_opencog_github_repo generate
+}
 
-  # Install GPU and vision stuff, although this really should be
-  # separate and unrelated.
+# Install GPU stuff
+install_gpu_subsys() {
+
   sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_GPU
   install_opencog_github_repo atomese-simd
+}
 
+# Install vision stuff This installs 250 more apt packages!!
+install_vision() {
   sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_VISION
   install_opencog_github_repo vision
 }
 
-# Install all of OpenCog
+# Install benchmarking subset
+# agi-bio does nothing but provide some atom types for benchmarking.
+install_benchmark() {
+  install_opencog_github_repo agi-bio
+  install_opencog_github_repo benchmark
+}
+
+# Install obsolete parts of OpenCog
 install_opencog() {
   install_language
   sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_OLD
@@ -776,11 +794,8 @@ install_opencog() {
   install_opencog_github_repo spacetime
   install_opencog_github_repo pln
   install_opencog_github_repo miner
-  install_opencog_github_repo asmoses
 # opencog no longer compiles.
 #  install_opencog_github_repo opencog
-  install_opencog_github_repo agi-bio
-  install_opencog_github_repo benchmark
 }
 
 # Install ASMOSES
@@ -1226,10 +1241,13 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
     if [ $INSTALL_OPENCOG_PYTHON_PACKAGES ] ; then install_opencog_python_packages ; fi
     if [ $INSTALL_COGUTIL ] ; then install_cogutil ; fi
     if [ $INSTALL_ATOMSPACE ] ; then install_atomspace ; fi
+    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_LANGUAGE ] ; then install_language ; fi
+    if [ $INSTALL_GPU_SUBSYS ] ; then install_gpu_subsys ; fi
+    if [ $INSTALL_BENCHMARK ] ; then install_benchmark ; fi
+    if [ $INSTALL_VISION ] ; then install_vision ; fi
     if [ $INSTALL_FROM_REPO ] ; then install_opencog_github_repo "$INSTALL_FROM_REPO" ; fi
     if [ $INSTALL_OPENCOG ] ; then install_opencog ; fi
-    if [ $INSTALL_LINK_GRAMMAR ] ; then install_link_grammar ; fi
     if [ $INSTALL_ASMOSES ] ; then install_asmoses ; fi
     if [ $INSTALL_GUILE ] ; then install_guile ; fi
     if [ $BUILD_SOURCE ] ; then build_source ; fi
