@@ -135,6 +135,7 @@ PACKAGES_BUILD_OLD=" \
 PACKAGES_BUILD_GPU=" \
 		clinfo \
 		mesa-opencl-icd \
+		ocl-icd-opencl-dev \
 		opencl-headers \
 		opencl-clhpp-headers \
 		clang-14 \
