@@ -189,8 +189,11 @@ PACKAGES_BUILD_CORE=" build-essential \
 		swig \
 		"
 
+# Must install PACKAGES_BUILD_OLD for now, because the circle-ci
+# container expects these, in order for as-moses, etc to build.
 PACKAGES_BUILD="
 		$PACKAGES_BUILD_CORE \
+		$PACKAGES_BUILD_OLD \
 		$PACKAGES_BUILD_GUILE \
 		"
 
