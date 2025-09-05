@@ -189,7 +189,7 @@ PACKAGES_BUILD_CORE=" build-essential \
 		swig \
 		"
 
-PACKAGES_BUILD= \
+PACKAGES_BUILD=\
 		$PACKAGES_BUILD_CORE \
 		$PACKAGES_BUILD_OLD \
 		$PACKAGES_BUILD_GPU \
@@ -964,7 +964,8 @@ install_dependencies() {
   # Update ccache links
   update_ccache_links
 
-  # Install guile >3.0.0 also install bdwgc for language-learning
+  # Install custom guile >3.0.0 for language-learning
+  # The apt-get default is OK these days.
   # install_guile
 }
 
