@@ -141,6 +141,11 @@ PACKAGES_BUILD_GPU=" \
 		llvm-spirv-14 \
 		"
 
+# Default apt packages that provide guile.
+PACKAGES_BUILD_GUILE=" \
+		guile-3.0 guile-3.0-dev \
+		"
+
 # The opencv-dev package is needed for vision processing. Unfortunately
 # it sucks in vast numbers of junk packages as depdencies, including
 # parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
@@ -178,7 +183,6 @@ PACKAGES_BUILD_CORE=" build-essential \
 		cmake \
 		cxxtest \
 		flex \
-		guile-3.0 guile-3.0-dev \
 		m4 \
 		libtool \
 		locales
@@ -189,6 +193,7 @@ PACKAGES_BUILD= \
 		$PACKAGES_BUILD_CORE \
 		$PACKAGES_BUILD_OLD \
 		$PACKAGES_BUILD_GPU \
+		$PACKAGES_BUILD_GUILE \
 		$PACKAGES_BUILD_VISION
 
 PACKAGES_RUNTIME="
@@ -887,6 +892,10 @@ install_python_pip() {
 
 
 install_guile() {
+    # First, remove the default guile.
+    sudo apt-get --assume-yes purge $PACKAGES_BUILD_GUILE --auto-remove
+
+    # Next, install things that the bdwgc/guile build will need.
     sudo apt-get install -y --no-install-recommends \
       libatomic-ops-dev libgmp-dev libffi-dev libunistring-dev
 
