@@ -102,36 +102,28 @@ PACKAGES_FETCH="
 		git \
 		curl \
 		wget \
-			"
+		"
 
 PACKAGES_ADMIN="
 		apt-rdepends \
 		"
 
-# The opencv-dev package is needed for vision processing. Unfortunately
-# it sucks in vast numbers of junk packages as depdencies, including
-# parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
-# and more. Sidelining this one package could reduce a lot of cruft.
-#
-# libsparsehash-dev is optional for atomspace
-# libpq-dev is needed by the postgres storage node.
-# libjsoncpp-dev is needed by the cogserver.
-# libasio-dev is needed by the cogserver.
-#
-# m4 autoconf-archive autoconf automake autopoint libtool swig flex
-# are all required to build link-grammar.
-#
-# libatomic-ops-dev libgmp-dev libffi-dev libunistring-dev
-# are all required for building guile from source. Maybe
-# we should stop building guile, and just use the packaged
-# version. The need for the source build has gone away.
-#
 # The only remaining users of boost are ure, miner and as-moses
 # libboost-date-time-dev asmoses gregorian dates.
 # libboost-program-options-dev by asmoses/utils/log_prog_name.cc
 # libboost-regex-dev asmoses combo
 # libboost-random-dev asmoses random shuffle
+# liboctomap-dev for spacetime
 #
+PACKAGES_BUILD_OLD=" \
+		libboost-date-time-dev \
+		libboost-math-dev \
+		libboost-program-options-dev \
+		libboost-regex-dev \
+		libboost-random-dev \
+		liboctomap-dev \
+		"
+
 # Packages for GPU devel (OpenCL)
 #   clinfo
 # For AMD GPU's
@@ -140,43 +132,7 @@ PACKAGES_ADMIN="
 #   cuda-opencl-dev XXX no !??
 # Compiler for GPU kernels
 #   clang-14 llvm-spirv-14
-PACKAGES_BUILD=" build-essential \
-		cmake \
-		binutils-dev \
-		libiberty-dev \
-		libltdl-dev \
-		libasio-dev \
-		libbz2-dev \
-		libboost-date-time-dev \
-		libboost-math-dev \
-		libboost-program-options-dev \
-		libboost-regex-dev \
-		libboost-random-dev \
-		libedit-dev \
-		libjsoncpp-dev \
-		libpcre2-dev \
-		libpq-dev \
-		libreadline-dev \
-		librocksdb-dev \
-		libsparsehash-dev \
-		uuid-dev \
-		libssl-dev \
-		ccache \
-		cxxtest \
-		gperf \
-		libatomic-ops-dev \
-		libgmp-dev \
-		libffi-dev \
-		libunistring-dev \
-		m4 \
-		autoconf-archive \
-		autoconf automake autopoint \
-		libtool \
-		swig \
-		flex \
-		libopencv-dev \
-		less \
-		vim \
+PACKAGES_BUILD_GPU=" \
 		clinfo \
 		mesa-opencl-icd \
 		opencl-headers \
@@ -185,9 +141,62 @@ PACKAGES_BUILD=" build-essential \
 		llvm-spirv-14 \
 		"
 
+# The opencv-dev package is needed for vision processing. Unfortunately
+# it sucks in vast numbers of junk packages as depdencies, including
+# parts of X11, libgtk-3-common, ubuntu-mono, unixodbc-common, libtk8.6
+# and more. Sidelining this one package could reduce a lot of cruft.
+PACKAGES_BUILD_VISION=" \
+		libopencv-dev \
+		"
+#
+# libsparsehash-dev is optional for atomspace
+# libpq-dev is needed by the postgres storage node.
+# libjsoncpp-dev is needed by the cogserver.
+# libasio-dev is needed by the cogserver.
+# uuid-dev is used by lg-atomese and generate
+#
+# m4 autoconf-archive autoconf automake autopoint libtool swig flex
+# are all required to build link-grammar.
+#
+PACKAGES_BUILD_CORE=" build-essential \
+		binutils-dev \
+		libiberty-dev \
+		libltdl-dev \
+		libasio-dev \
+		libbz2-dev \
+		libedit-dev \
+		libjsoncpp-dev \
+		libpcre2-dev \
+		libpq-dev \
+		libreadline-dev \
+		librocksdb-dev \
+		libsparsehash-dev \
+		libssl-dev \
+		uuid-dev \
+		autoconf automake autopoint autoconf-archive \
+		ccache \
+		cmake \
+		cxxtest \
+		flex \
+		guile-3.0 guile-3.0-dev \
+		m4 \
+		libtool \
+		locales
+		swig \
+		"
+
+PACKAGES_BUILD= \
+		$PACKAGES_BUILD_CORE \
+		$PACKAGES_BUILD_OLD \
+		$PACKAGES_BUILD_GPU \
+		$PACKAGES_BUILD_VISION
+
 PACKAGES_RUNTIME="
-		postgresql-client \
+		gperf \
+		less \
 		netcat-openbsd \
+		postgresql-client \
+		vim \
 		"
 
 PACKAGES_DOC="
@@ -378,7 +387,7 @@ if [ "$SELF_NAME" == "$TOOL_NAME" ] ; then
   while getopts "abdef:gipcrstl:mhvj:ownz" flag ; do
     case $flag in
       r)	ADD_REPOSITORIES=true ;;
-      d)	INSTALL_DEPENDENCIES=true ;; #base development packages
+      d)	INSTALL_DEPENDENCIES=true ;; # base development packages
       w)	DOWNLOAD_DATA=true ;;
       p)	INSTALL_OPENCOG_PYTHON_PACKAGES=true ;;
       c)	INSTALL_COGUTIL=true ;;
@@ -878,6 +887,9 @@ install_python_pip() {
 
 
 install_guile() {
+    sudo apt-get install -y --no-install-recommends \
+      libatomic-ops-dev libgmp-dev libffi-dev libunistring-dev
+
     install_bdwgc
     MESSAGE="Installing guile-$GUILEVERSION...." ; message
     cd /tmp/
@@ -935,7 +947,7 @@ install_dependencies() {
   install_python
 
   MESSAGE="Installing OpenCog build dependencies...." ; message
-  if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH liboctomap-dev locales ; then
+  if ! sudo apt-get $QUIET --no-upgrade --assume-yes --no-install-recommends install $PACKAGES_BUILD $PACKAGES_RUNTIME $PACKAGES_FETCH ; then
     exit 1
   fi
   ensure_UTF_installed
@@ -944,7 +956,7 @@ install_dependencies() {
   update_ccache_links
 
   # Install guile >3.0.0 also install bdwgc for language-learning
-  install_guile
+  # install_guile
 }
 
 # Download data
