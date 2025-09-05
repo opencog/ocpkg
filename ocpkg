@@ -189,12 +189,10 @@ PACKAGES_BUILD_CORE=" build-essential \
 		swig \
 		"
 
-PACKAGES_BUILD=\
+PACKAGES_BUILD="
 		$PACKAGES_BUILD_CORE \
-		$PACKAGES_BUILD_OLD \
-		$PACKAGES_BUILD_GPU \
 		$PACKAGES_BUILD_GUILE \
-		$PACKAGES_BUILD_VISION
+		"
 
 PACKAGES_RUNTIME="
 		gperf \
@@ -756,12 +754,20 @@ install_language() {
   install_opencog_github_repo matrix
   install_opencog_github_repo learn
   install_opencog_github_repo generate
+
+  # Install GPU and vision stuff, although this really should be
+  # separate and unrelated.
+  sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_GPU
+  install_opencog_github_repo atomese-simd
+
+  sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_VISION
   install_opencog_github_repo vision
 }
 
 # Install all of OpenCog
 install_opencog() {
   install_language
+  sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_OLD
   install_opencog_github_repo ure
   install_opencog_github_repo attention
   install_opencog_github_repo spacetime
