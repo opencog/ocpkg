@@ -896,14 +896,8 @@ install_python() {
 
   if [[ "$UBUNTU_VERSION" = "\"20.04\"" ]]; then
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
-    sudo apt-get install -y --no-install-recommends python3-nose cython3
   fi
-  if [[ "$UBUNTU_VERSION" = "\"22.04\"" ]]; then
-    sudo apt-get install -y --no-install-recommends python3-nose cython3
-  fi
-  if [[ "$UBUNTU_VERSION" = "\"24.04\"" ]]; then
-    sudo apt-get install -y --no-install-recommends python3-nose cython3
-  fi
+  sudo apt-get install -y --no-install-recommends python3-nose2 cython3
 }
 
 # Install pip seperately. The problem here is that installing pip
