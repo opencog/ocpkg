@@ -67,8 +67,8 @@ DEFAULT_UPDATE_OPENCOG=true
 DEFAULT_BUILD_OPENCOG=false
 DEFAULT_TEST_OPENCOG=false
 
-UBUNTU_ISO=ubuntu-20.04.3-desktop-amd64.iso
-UBUNTU_URL=http://releases.ubuntu.com/20.04/
+UBUNTU_ISO=ubuntu-24.04-desktop-amd64.iso
+UBUNTU_URL=http://releases.ubuntu.com/24.04/
 UBUNTU_MD5SUM=5fdebc435ded46ae99136ca875afc6f05bde217be7dd018e1841924f71db46b5
 UBUNTU_ISO_IMAGE=$CURRENT_DIR/$UBUNTU_ISO #default location
 
