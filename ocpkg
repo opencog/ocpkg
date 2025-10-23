@@ -108,12 +108,11 @@ PACKAGES_ADMIN="
 		apt-rdepends \
 		"
 
-# The only remaining users of boost are ure, miner and as-moses
+# The only remaining user of boost is as-moses
 # libboost-date-time-dev asmoses gregorian dates.
 # libboost-program-options-dev by asmoses/utils/log_prog_name.cc
 # libboost-regex-dev asmoses combo
 # libboost-random-dev asmoses random shuffle
-# liboctomap-dev for spacetime
 #
 PACKAGES_BUILD_OLD=" \
 		libboost-date-time-dev \
@@ -121,7 +120,6 @@ PACKAGES_BUILD_OLD=" \
 		libboost-program-options-dev \
 		libboost-regex-dev \
 		libboost-random-dev \
-		liboctomap-dev \
 		"
 
 # Packages for GPU devel (OpenCL)
@@ -790,16 +788,15 @@ install_benchmark() {
 }
 
 # Install obsolete parts of OpenCog
+# None of these compile any longer due to bitrot.
 install_opencog() {
-  install_language
   sudo apt-get $QUIET --no-upgrade --assume-yes install $PACKAGES_BUILD_OLD
   install_opencog_github_repo ure
   install_opencog_github_repo attention
   install_opencog_github_repo spacetime
   install_opencog_github_repo pln
   install_opencog_github_repo miner
-# opencog no longer compiles.
-#  install_opencog_github_repo opencog
+  install_opencog_github_repo opencog
 }
 
 # Install ASMOSES
