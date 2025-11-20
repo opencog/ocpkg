@@ -895,7 +895,7 @@ install_python() {
   MESSAGE="Installing python3 ...." ; message
   sudo apt-get install -y --no-install-recommends python3-dev
 
-  if [[ "$UBUNTU_VERSION" = "\"20.04\"" ]]; then
+  if [[ $UBUNTU_VERSION = "20.04" ]]; then
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
   fi
   sudo apt-get install -y --no-install-recommends python3-pytest cython3
@@ -983,11 +983,11 @@ install_dependencies() {
 
   # boost is needed in NumberNode.h for lexical cast, but only if the
   # compiler is old. 2022 or later is OK; bullseye is from August 2021.
-  if [[ "$UBUNTU_VERSION" = "\"20.04\"" ]]; then
-    sudo apt-get $QUIET --assume-yes --no-install-recommends install boost-dev
+  if [[ $UBUNTU_VERSION = "20.04" ]]; then
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
   fi
-  if [[ "$DEBIAN_VERSION" = "\"bullseye\"" ]]; then
-    sudo apt-get $QUIET --assume-yes --no-install-recommends install boost-dev
+  if [[ $DEBIAN_VERSION = "bullseye" ]]; then
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
   fi
 
   # Update ccache links
