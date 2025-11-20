@@ -28,14 +28,12 @@ Uses debootstrap. Requires ocpkg.
 For installing opencog on a Raspberry Pi Computer running Raspbian.
 The readme [here](https://github.com/opencog/opencog_rpi/blob/master/README.md) will be helpful.
 
-May be out of date.
+Is out of date.
 
 #### Example Usage
 * To install all dependencies necessary to build OpenCog:
 ```
  ./octool -rdpcav -l default
- # Optional: Add -s for installing dependencies for haskell binding.
- # Optional: Add -n for installing dependencies and kernels for jupyter notebooks.
 ```
 
 * To install all dependencies necessary to build AtomSpace and AS-MOSES:
