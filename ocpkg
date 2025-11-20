@@ -574,15 +574,11 @@ else
 fi
 }
 
-get_ubuntu_version() {
-  cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
-}
-get_debian_version() {
+get_release_version() {
   cat /etc/os-release | grep "^VERSION_CODENAME="  | cut -d "=" -f 2
 }
 
-UBUNTU_VERSION=$(get_ubuntu_version)
-DEBIAN_VERSION=$(get_debian_version)
+RELEASE_VERSION=$(get_release_version)
 
 add_repositories() {
 MESSAGE="Adding software repositories..." ; message
@@ -895,7 +891,8 @@ install_python() {
   MESSAGE="Installing python3 ...." ; message
   sudo apt-get install -y --no-install-recommends python3-dev
 
-  if [[ $UBUNTU_VERSION = "20.04" ]]; then
+  # Ubuntu focal is 20.04 LTS
+  if [[ $RELEASE_VERSION = "focal" ]]; then
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
   fi
   sudo apt-get install -y --no-install-recommends python3-pytest cython3
@@ -981,12 +978,14 @@ install_dependencies() {
   fi
   ensure_UTF_installed
 
-  # boost is needed in NumberNode.h for lexical cast, but only if the
-  # compiler is old. 2022 or later is OK; bullseye is from August 2021.
-  if [[ $UBUNTU_VERSION = "20.04" ]]; then
+  # boost is needed in NumberNode.h for lexical cast,
+  # but only if the compiler is old. gcc circa 2022 or later is OK.
+  # Ubuntu focal is 20.04 LTS
+  # Debian bullseye is from August 2021.
+  if [[ $RELEASE_VERSION = "focal" ]]; then
     sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
   fi
-  if [[ $DEBIAN_VERSION = "bullseye" ]]; then
+  if [[ $RELEASE_VERSION = "bullseye" ]]; then
     sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
   fi
 
