@@ -574,11 +574,15 @@ else
 fi
 }
 
-get_distro_version() {
+get_ubuntu_version() {
   cat /etc/os-release | grep "^VERSION_ID="  | cut -d "=" -f 2
 }
+get_debian_version() {
+  cat /etc/os-release | grep "^VERSION_CODENAME="  | cut -d "=" -f 2
+}
 
-UBUNTU_VERSION=$(get_distro_version)
+UBUNTU_VERSION=$(get_ubuntu_version)
+DEBIAN_VERSION=$(get_debian_version)
 
 add_repositories() {
 MESSAGE="Adding software repositories..." ; message
@@ -977,11 +981,20 @@ install_dependencies() {
   fi
   ensure_UTF_installed
 
+  # boost is needed in NumberNode.h for lexical cast, but only if the
+  # compiler is old. 2022 or later is OK; bullseye is from August 2021.
+  if [[ "$UBUNTU_VERSION" = "\"20.04\"" ]]; then
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install boost-dev
+  fi
+  if [[ "$DEBIAN_VERSION" = "\"bullseye\"" ]]; then
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install boost-dev
+  fi
+
   # Update ccache links
   update_ccache_links
 
   # Install custom guile >3.0.0 for language-learning
-  # The apt-get default is OK these days.
+  # Not needed -- the apt-get default is OK these days.
   # install_guile
 }
 
