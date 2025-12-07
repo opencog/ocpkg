@@ -978,15 +978,15 @@ install_dependencies() {
   fi
   ensure_UTF_installed
 
-  # boost is needed in NumberNode.h for lexical cast,
-  # but only if the compiler is old. gcc circa 2022 or later is OK.
+  # gcc-11 is needed in NumberNode.h for lexical cast,
+  # also for std::atomic::wait()
   # Ubuntu focal is 20.04 LTS
   # Debian bullseye is from August 2021.
   if [[ $RELEASE_VERSION = "focal" ]]; then
-    sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install gcc-11 g++-11
   fi
   if [[ $RELEASE_VERSION = "bullseye" ]]; then
-    sudo apt-get $QUIET --assume-yes --no-install-recommends install libboost-dev
+    sudo apt-get $QUIET --assume-yes --no-install-recommends install gcc-11 g++-11
   fi
 
   # Update ccache links
