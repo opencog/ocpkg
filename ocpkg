@@ -961,12 +961,6 @@ ensure_UTF_installed() {
     fi
 }
 
-# In Ubuntu 18.04 some links are absent when build-essential and ccache
-# packages are installed by same apt-get command
-update_ccache_links() {
-  sudo update-ccache-symlinks
-}
-
 # Install system dependencies
 install_dependencies() {
   # Install the latest python3 version before everything else
@@ -978,19 +972,15 @@ install_dependencies() {
   fi
   ensure_UTF_installed
 
-  # gcc-11 is needed in NumberNode.h for lexical cast,
+  # gcc-11 is needed in NumberNode.h for std::lexical cast,
   # also for std::atomic::wait()
   # Ubuntu focal is 20.04 LTS
-  # Debian bullseye is from August 2021.
+  # Debian bullseye is from August 2021; it uses gcc-10;
+  # there no gcc-11 so it's dead meat.
   if [[ $RELEASE_VERSION = "focal" ]]; then
+    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
     sudo apt-get $QUIET --assume-yes --no-install-recommends install gcc-11 g++-11
   fi
-  if [[ $RELEASE_VERSION = "bullseye" ]]; then
-    sudo apt-get $QUIET --assume-yes --no-install-recommends install gcc-11 g++-11
-  fi
-
-  # Update ccache links
-  update_ccache_links
 
   # Install custom guile >3.0.0 for language-learning
   # Not needed -- the apt-get default is OK these days.
