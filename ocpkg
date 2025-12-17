@@ -395,8 +395,8 @@ install_atomspace(){
   install_opencog_github_repo atomspace
   install_opencog_github_repo atomspace-storage
   install_opencog_github_repo atomspace-rocks
-  install_opencog_github_repo atomspace-cog
   install_opencog_github_repo cogserver
+  install_opencog_github_repo atomspace-cog
   install_opencog_github_repo unify
   install_opencog_github_repo sensory
   install_opencog_github_repo motor
@@ -412,6 +412,7 @@ install_atomspace(){
 # now uses the AtomSpace to hold dictionaries, and the lg-atomese
 # Atom types to do it.
 install_language() {
+  install_link_grammar
   install_opencog_github_repo lg-atomese
   install_link_grammar
   install_opencog_github_repo matrix
