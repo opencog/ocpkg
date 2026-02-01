@@ -391,7 +391,7 @@ install_build() {
 }
 
 # Install Core AtomSpace
-install_atomspace(){
+install_atomspace() {
   install_opencog_github_repo atomspace
   install_opencog_github_repo atomspace-storage
   install_opencog_github_repo atomspace-rocks
@@ -399,7 +399,8 @@ install_atomspace(){
   install_opencog_github_repo atomspace-cog
   install_opencog_github_repo unify
   install_opencog_github_repo sensory
-  install_opencog_github_repo motor
+  install_opencog_github_repo atomspace-viz
+  # install_opencog_github_repo motor
 
   # Postgres no longer builds due to missing SimpleTV and general
   # obsolescence.
