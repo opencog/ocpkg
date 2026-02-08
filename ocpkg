@@ -105,6 +105,7 @@ PACKAGES_BUILD_VISION=" \
 # libjsoncpp-dev is needed by the cogserver.
 # libasio-dev is needed by the cogserver.
 # uuid-dev is used by lg-atomese and generate
+# libcpp-httplib-dev is needed by sensory to talk to ollama
 #
 # m4 autoconf-archive autoconf automake autopoint libtool swig flex
 # are all required to build link-grammar.
@@ -116,6 +117,7 @@ PACKAGES_BUILD_CORE=" build-essential \
 		libasio-dev \
 		libbz2-dev \
 		libedit-dev \
+		libcpp-httplib-dev \
 		libjsoncpp-dev \
 		libpcre2-dev \
 		libpq-dev \
